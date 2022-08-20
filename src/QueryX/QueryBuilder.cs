@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -17,24 +18,50 @@ namespace QueryX
 
         public Query<TModel> CreateQueryInstance<TModel>(QueryModel queryModel)
         {
-            var filterTokens = QueryTokenizer.GetFilterTokens(queryModel.Filter);
+            var query = new Query<TModel>();
+
+            SetQueryFilters(queryModel, _filterRegistry, query);
+            SetQueryOrderByAndPaging(queryModel, query);
+
+            return query;
+        }
+
+        private static void SetQueryFilters<TModel>(QueryModel queryModel, FilterRegistry filterRegistry, Query<TModel> query)
+        {
+            var filterTokens = QueryModelTokenizer.GetFilterTokens(queryModel.Filter);
 
             var filters = new List<(Expression Property, IFilter Filter)>();
             var modelParameter = Expression.Parameter(typeof(TModel), "m");
 
-            foreach (var filterToken in filterTokens)
+            foreach (var (PropName, Operator, Values) in filterTokens)
             {
-                var propExp = filterToken.PropName.GetPropertyExpression<TModel>(modelParameter);
+                var propExp = PropName.GetPropertyExpression<TModel>(modelParameter);
                 var propType = ((PropertyInfo)((MemberExpression)propExp).Member).PropertyType;
                 filters.Add(
-                    (propExp, 
-                    _filterRegistry.CreateFilterInstance(filterToken.Operator, propType, filterToken.Values.ToArray())));
+                    (propExp,
+                    filterRegistry.CreateFilterInstance(Operator, propType, Values.ToArray())));
             }
 
-            var query = new Query<TModel>();
             query.SetFilters(modelParameter, filters);
+        }
 
-            return query;
+        private static void SetQueryOrderByAndPaging<TModel>(QueryModel queryModel, Query<TModel> query)
+        {
+            var orderingTokens = QueryModelTokenizer.GetOrderingTokens(queryModel.OrderBy);
+
+            var orderings = new List<(Expression<Func<TModel, object>> Property, bool Ascending)>();
+
+            foreach(var (PropName, Ascending) in orderingTokens)
+            {
+                var modelParameter = Expression.Parameter(typeof(TModel), "m");
+                var propExp = PropName.GetPropertyExpression<TModel>(modelParameter);
+
+                orderings.Add((Expression.Lambda<Func<TModel, object>>(propExp, modelParameter), Ascending));
+            }
+
+            query.SetOrdering(orderings);
+
+            query.SetPaging(queryModel.Offset, queryModel.Limit);
         }
     }
 }
