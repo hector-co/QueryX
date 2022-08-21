@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QueryX.Filters;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
@@ -28,11 +29,33 @@ namespace QueryX
 
             foreach (var member in propertyName.Split('.'))
             {
-                if (!property.Type.GetCachedProperties().Any(t => t.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase)))
+                var existentProp = property.Type.GetCachedProperties().FirstOrDefault(t => t.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
+                if (existentProp == null)
                     throw new Exception();
 
-                property = Expression.Property(property, member);
+                property = Expression.Property(property, existentProp.Name);
             }
+
+            return property;
+        }
+
+        internal static PropertyInfo GetPropertyInfo<TModel>(this string propertyName)
+        {
+            PropertyInfo? property = null;
+            var type = typeof(TModel);
+
+            foreach (var member in propertyName.Split('.'))
+            {
+                var currentProp = type.GetCachedProperties().FirstOrDefault(t => t.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
+                if (currentProp == null)
+                    throw new Exception();
+
+                property = currentProp;
+                type = property.PropertyType;
+            }
+
+            if (property == null)
+                throw new Exception();
 
             return property;
         }
@@ -43,6 +66,30 @@ namespace QueryX
             Expression<Func<object>> lambdaExpression = Expression.Lambda<Func<object>>(constructorExpression);
             Func<object> createObjFunc = lambdaExpression.Compile();
             return createObjFunc();
+        }
+
+        internal static Query ToQuery<TModel>(this QueryModel queryModel, FilterRegistry filterRegistry)
+        {
+            var query = new Query();
+
+            var filterTokens = QueryModelTokenizer.GetFilterTokens(queryModel.Filter);
+            foreach (var (PropName, Operator, Values) in filterTokens)
+            {
+                var propType = PropName.GetPropertyInfo<TModel>().PropertyType;
+
+                query.Filters.Add((PropName, filterRegistry.CreateFilterInstance(Operator, propType, Values.ToArray())));
+            }
+
+            var orderingTokens = QueryModelTokenizer.GetOrderingTokens(queryModel.OrderBy);
+            foreach (var (PropName, Ascending) in orderingTokens)
+            {
+                query.OrderBy.Add((PropName, Ascending));
+            }
+
+            query.Offset = queryModel.Offset;
+            query.Limit = query.Limit;
+
+            return query;
         }
     }
 }
