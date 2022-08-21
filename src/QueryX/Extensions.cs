@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QueryX.Exceptions;
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
@@ -30,7 +31,7 @@ namespace QueryX
             {
                 var existentProp = property.Type.GetCachedProperties().FirstOrDefault(t => t.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
                 if (existentProp == null)
-                    throw new Exception();
+                    throw new QueryXException($"Property not found '{member}'");
 
                 property = Expression.Property(property, existentProp.Name);
             }
@@ -38,7 +39,7 @@ namespace QueryX
             return property;
         }
 
-        internal static PropertyInfo GetPropertyInfo<TModel>(this string propertyName)
+        internal static PropertyInfo? GetPropertyInfo<TModel>(this string propertyName)
         {
             PropertyInfo? property = null;
             var type = typeof(TModel);
@@ -47,14 +48,11 @@ namespace QueryX
             {
                 var currentProp = type.GetCachedProperties().FirstOrDefault(t => t.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
                 if (currentProp == null)
-                    throw new Exception();
+                    return null;
 
                 property = currentProp;
                 type = property.PropertyType;
             }
-
-            if (property == null)
-                throw new Exception();
 
             return property;
         }

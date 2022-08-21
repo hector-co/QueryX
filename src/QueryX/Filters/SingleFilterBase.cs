@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QueryX.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -22,7 +23,7 @@ namespace QueryX.Filters
         public override void SetValueFromString(params string?[] values)
         {
             if (values.Length != 1)
-                throw new Exception();
+                throw new QueryXArgurmentException($"One parameters expected");
 
             if (values[0] == null)
                 Value = default;

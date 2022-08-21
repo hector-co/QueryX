@@ -1,4 +1,4 @@
-﻿using System;
+﻿using QueryX.Exceptions;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
@@ -28,7 +28,7 @@ namespace QueryX.Filters
         public override void SetValueFromString(params string?[] values)
         {
             if (values.Length != 2)
-                throw new Exception();
+                throw new QueryXArgurmentException($"Two parameters expected");
 
             From = (TValue)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFrom(values[0]);
             To = (TValue)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFrom(values[1]);

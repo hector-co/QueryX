@@ -1,4 +1,4 @@
-﻿using System;
+﻿using QueryX.Exceptions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -27,7 +27,7 @@ namespace QueryX
                     .Where(s => !string.IsNullOrEmpty(s)).ToArray();
 
                 if (filterParams.Length != 3)
-                    throw new Exception();
+                    throw new QueryXFormatException();
 
                 result.Add((filterParams[0], filterParams[1], SplitCommaSeparatedValues(filterParams[2])));
             }

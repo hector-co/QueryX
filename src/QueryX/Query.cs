@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
+using System.Linq;
 using System.Reflection;
 using QueryX.Filters;
 
 namespace QueryX
 {
-    public class Query<TModel>
+    public class Query<TFilterModel>
     {
         public List<(string propertyName, IFilter filter)> Filters { get; set; } = new List<(string propertyName, IFilter filter)>();
         public List<(string propertyName, bool ascending)> OrderBy { get; set; } = new List<(string propertyName, bool ascending)>();
@@ -20,7 +20,7 @@ namespace QueryX
                 .Select(f => f.filter);
         }
 
-        public IEnumerable<IFilter> GetFilters<TValue>(Expression<Func<TModel, TValue>> selector)
+        public IEnumerable<IFilter> GetFilters<TValue>(Expression<Func<TFilterModel, TValue>> selector)
         {
             var propInfo = (PropertyInfo)((MemberExpression)selector.Body).Member;
 
