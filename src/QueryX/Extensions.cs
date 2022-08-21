@@ -1,5 +1,4 @@
-﻿using QueryX.Filters;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
@@ -66,30 +65,6 @@ namespace QueryX
             Expression<Func<object>> lambdaExpression = Expression.Lambda<Func<object>>(constructorExpression);
             Func<object> createObjFunc = lambdaExpression.Compile();
             return createObjFunc();
-        }
-
-        internal static Query ToQuery<TModel>(this QueryModel queryModel, FilterRegistry filterRegistry)
-        {
-            var query = new Query();
-
-            var filterTokens = QueryModelTokenizer.GetFilterTokens(queryModel.Filter);
-            foreach (var (PropName, Operator, Values) in filterTokens)
-            {
-                var propType = PropName.GetPropertyInfo<TModel>().PropertyType;
-
-                query.Filters.Add((PropName, filterRegistry.CreateFilterInstance(Operator, propType, Values.ToArray())));
-            }
-
-            var orderingTokens = QueryModelTokenizer.GetOrderingTokens(queryModel.OrderBy);
-            foreach (var (PropName, Ascending) in orderingTokens)
-            {
-                query.OrderBy.Add((PropName, Ascending));
-            }
-
-            query.Offset = queryModel.Offset;
-            query.Limit = query.Limit;
-
-            return query;
         }
     }
 }

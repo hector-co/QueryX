@@ -4,19 +4,35 @@ using System.Linq.Expressions;
 
 namespace QueryX
 {
-    public class QueryProcessor
+    public static class QueryExtensions
     {
-        private readonly FilterRegistry _filterRegistry;
-
-        public QueryProcessor(FilterRegistry filterRegistry)
+        public static Query<TModel> ToQuery<TModel>(this QueryModel queryModel, FilterRegistry filterRegistry)
         {
-            _filterRegistry = filterRegistry;
+            var query = new Query<TModel>();
+
+            var filterTokens = QueryModelTokenizer.GetFilterTokens(queryModel.Filter);
+            foreach (var (propName, @operator, values) in filterTokens)
+            {
+                var propType = propName.GetPropertyInfo<TModel>().PropertyType;
+
+                query.Filters.Add((propName, filterRegistry.CreateFilterInstance(@operator, propType, values.ToArray())));
+            }
+
+            var orderingTokens = QueryModelTokenizer.GetOrderingTokens(queryModel.OrderBy);
+            foreach (var (PropName, Ascending) in orderingTokens)
+            {
+                query.OrderBy.Add((PropName, Ascending));
+            }
+
+            query.Offset = queryModel.Offset;
+            query.Limit = query.Limit;
+
+            return query;
         }
 
-        public IQueryable<TModel> ApplyQuery<TModel>(IQueryable<TModel> source, QueryModel queryModel, bool applyOrderingAndPaging = true)
+        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, Query<TModel> query, bool applyOrderingAndPaging = false)
+            where TModel : class
         {
-            var query = queryModel.ToQuery<TModel>(_filterRegistry);
-
             var modelParameter = Expression.Parameter(typeof(TModel), "m");
 
             var filtersPredicate = GetFiltersPredicate<TModel>(query, modelParameter);
@@ -24,14 +40,13 @@ namespace QueryX
             source = source.Where(filtersPredicate);
 
             if (applyOrderingAndPaging)
-                source = ApplyOrderingAndPaging(source, queryModel);
+                source = ApplyOrderingAndPaging(source, query);
 
             return source;
         }
 
-        public IQueryable<TModel> ApplyOrderingAndPaging<TModel>(IQueryable<TModel> source, QueryModel queryModel)
+        public static IQueryable<TModel> ApplyOrderingAndPaging<TModel>(IQueryable<TModel> source, Query<TModel> query)
         {
-            var query = queryModel.ToQuery<TModel>(_filterRegistry);
             var applyThenBy = false;
 
             foreach (var (propertyName, ascending) in query.OrderBy)
@@ -66,7 +81,7 @@ namespace QueryX
             return source;
         }
 
-        private static Expression<Func<TModel, bool>> GetFiltersPredicate<TModel>(Query query, ParameterExpression modelParameter)
+        private static Expression<Func<TModel, bool>> GetFiltersPredicate<TModel>(Query<TModel> query, ParameterExpression modelParameter)
         {
             Expression? exp = null;
 
