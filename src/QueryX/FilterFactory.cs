@@ -4,11 +4,11 @@ using QueryX.Filters;
 
 namespace QueryX
 {
-    public class FilterRegistry
+    public class FilterFactory
     {
         private readonly Dictionary<string, Type> _filterTypes;
 
-        public FilterRegistry()
+        public FilterFactory()
         {
             _filterTypes = new Dictionary<string, Type>(StringComparer.InvariantCultureIgnoreCase);
             AddDefaultFilterTypes();

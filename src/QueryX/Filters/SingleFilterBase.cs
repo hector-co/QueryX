@@ -1,5 +1,4 @@
 ﻿using QueryX.Exceptions;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -23,12 +22,19 @@ namespace QueryX.Filters
         public override void SetValueFromString(params string?[] values)
         {
             if (values.Length != 1)
-                throw new QueryXArgurmentException($"One parameters expected");
+                throw new QueryXFormatException($"One parameters expected");
 
             if (values[0] == null)
+            {
                 Value = default;
+            }
             else
+            {
+                if (!TypeDescriptor.GetConverter(typeof(TValue)).IsValid(values[0]))
+                    throw new QueryXFormatException($"'{values[0]}' is not valid for type {typeof(TValue).Name}");
+
                 Value = (TValue)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFrom(values[0]);
+            }
         }
 
         public override IEnumerable<TValue> Values => new[] { Value };

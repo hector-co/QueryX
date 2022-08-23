@@ -2,6 +2,15 @@
 
 namespace QueryX.Tests
 {
+    public class TestClass1
+    {
+        public int IntProperty1 { get; set; }
+        public string StringProperty1 { get; set; } = string.Empty;
+        public double DoubleProperty1 { get; set; }
+        public bool BoolProperty1 { get; set; }
+        public DateTime DateTimeProperty1 { get; set; }
+    }
+
     public class TestClass
     {
         public string Property1 { get; set; } = string.Empty;
@@ -21,7 +30,7 @@ namespace QueryX.Tests
     {
         public class Filter
         {
-            [QueryX(ModelPropertyName = "property1")]
+            [QueryX(ParamsPropertyName = "property1")]
             public string Property1Mapped { get; set; } = string.Empty;
             public int Property2 { get; set; }
         }

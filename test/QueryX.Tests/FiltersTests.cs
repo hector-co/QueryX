@@ -16,13 +16,13 @@ namespace QueryX.Tests
         [InlineData("null", default(string))]
         public void EqualsFilterStringPropertyTest(string value, string expectedValue)
         {
-            var filterReg = new FilterRegistry();
-            var queryModel = new QueryModel
+            var builder = new QueryBuilder(new FilterFactory());
+            var queryParams = new QuerParams
             {
                 Filter = $"property1 eq {value}"
             };
 
-            var query = queryModel.ToQuery<TestClass>(filterReg);
+            var query = builder.CreateQuery<TestClass>(queryParams);
             var property1Filters = query.GetFilters(m => m.Property1)
                 .Cast<FilterBase<string>>();
 
@@ -42,16 +42,16 @@ namespace QueryX.Tests
         [InlineData("\"3\"", 3)]
         [InlineData("\" 4 \"", 4)]
         [InlineData("null", default(int))]
-        //[InlineData("\"null\"", default(int))]
+        [InlineData("\"null\"", default(int))]
         public void EqualsFilterIntPropertyTest(string value, int expectedValue)
         {
-            var filterReg = new FilterRegistry();
-            var queryModel = new QueryModel
+            var builder = new QueryBuilder(new FilterFactory());
+            var queryParams = new QuerParams
             {
                 Filter = $"property2 eq {value}"
             };
 
-            var query = queryModel.ToQuery<TestClass>(filterReg);
+            var query = builder.CreateQuery<TestClass>(queryParams);
             var property1Filters = query.GetFilters(m => m.Property2)
                 .Cast<FilterBase<int>>();
 
@@ -68,13 +68,13 @@ namespace QueryX.Tests
         [Fact]
         public void T1()
         {
-            var filterReg = new FilterRegistry();
-            var queryModel = new QueryModel
+            var builder = new QueryBuilder(new FilterFactory());
+            var queryParams = new QuerParams
             {
                 Filter = $"property1 eq test"
             };
 
-            var query = queryModel.ToQuery<QueryWithFilter, QueryWithFilter.Filter>(filterReg);
+            var query = builder.CreateQuery<QueryWithFilter, QueryWithFilter.Filter>(queryParams);
 
             query.Should().NotBeNull();
         }
@@ -82,13 +82,13 @@ namespace QueryX.Tests
         [Fact]
         public void T2()
         {
-            var filterReg = new FilterRegistry();
-            var queryModel = new QueryModel
+            var builder = new QueryBuilder(new FilterFactory());
+            var queryParams = new QuerParams
             {
                 Filter = $"property1 eq test"
             };
 
-            var query = queryModel.ToQuery<QueryWithFilter2, QueryWithFilter2.Filter>(filterReg);
+            var query = builder.CreateQuery<QueryWithFilter2, QueryWithFilter2.Filter>(queryParams);
             var property1Filters = query.GetFilters(m => m.Property1Mapped)
                 .Cast<FilterBase<string>>();
 

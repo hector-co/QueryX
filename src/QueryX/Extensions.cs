@@ -1,5 +1,4 @@
-﻿using QueryX.Exceptions;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
@@ -23,7 +22,7 @@ namespace QueryX
             return properties;
         }
 
-        internal static Expression GetPropertyExpression<TModel>(this string propertyName, Expression modelParameter)
+        internal static Expression? GetPropertyExpression<TModel>(this string propertyName, Expression modelParameter)
         {
             Expression property = modelParameter;
 
@@ -31,7 +30,7 @@ namespace QueryX
             {
                 var existentProp = property.Type.GetCachedProperties().FirstOrDefault(t => t.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
                 if (existentProp == null)
-                    throw new QueryXException($"Property not found '{member}'");
+                    return null;
 
                 property = Expression.Property(property, existentProp.Name);
             }

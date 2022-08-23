@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace QueryX
 {
-    internal static class QueryModelTokenizer
+    internal static class QueryParamsTokenizer
     {
         const string FilterCollectionSplit = @";(?=(?:[^""]*""[^""]*"")*[^""]*$)";
         const string FilterSplit = @"\s(?=(?:[^""]*""[^""]*"")*[^""]*$)";
