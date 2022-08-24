@@ -3,7 +3,7 @@
 namespace QueryX.Filters
 {
 
-    public class EqualsFilter<TValue> : SingleFilterBase<TValue>
+    public class EqualsFilter<TValue> : SingleFilterPropertyBase<TValue>
     {
         public EqualsFilter()
         {
@@ -13,7 +13,7 @@ namespace QueryX.Filters
         {
         }
 
-        public override Expression GetExpression(Expression property)
+        protected override Expression GetExpression(Expression property)
         {
             return Expression.Equal(property, Expression.Constant(Value));
         }

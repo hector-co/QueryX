@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace QueryX.Filters
 {
-    public class InFilter<TValue> : FilterBase<TValue>
+    public class InFilter<TValue> : FilterPropertyBase<TValue>
     {
         private List<TValue> _values;
 
@@ -19,7 +19,7 @@ namespace QueryX.Filters
             _values = values.ToList();
         }
 
-        public override IEnumerable<TValue> Values => _values.AsReadOnly();
+        public IEnumerable<TValue> Values => _values.AsReadOnly();
 
         public override void SetValueFromString(params string?[] values)
         {
@@ -27,7 +27,7 @@ namespace QueryX.Filters
             _values.AddRange(values.Select(v => (TValue)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFrom(v)));
         }
 
-        public override Expression GetExpression(Expression property)
+        protected override Expression GetExpression(Expression property)
         {
             return Expression.Call(Expression.Constant(_values), typeof(List<TValue>).GetMethod("Contains"), property);
         }

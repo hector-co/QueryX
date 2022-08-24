@@ -1,20 +1,19 @@
 ﻿using QueryX.Exceptions;
-using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace QueryX.Filters
 {
-    public abstract class SingleFilterBase<TValue> : FilterBase<TValue>
+    public abstract class SingleFilterPropertyBase<TValue> : FilterPropertyBase<TValue>
     {
         public TValue Value { get; set; }
 
 #pragma warning disable CS8618
-        public SingleFilterBase()
+        public SingleFilterPropertyBase()
 #pragma warning restore CS8618
         {
         }
 
-        public SingleFilterBase(TValue value)
+        public SingleFilterPropertyBase(TValue value)
         {
             Value = value;
         }
@@ -36,7 +35,5 @@ namespace QueryX.Filters
                 Value = (TValue)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFrom(values[0]);
             }
         }
-
-        public override IEnumerable<TValue> Values => new[] { Value };
     }
 }

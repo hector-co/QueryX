@@ -40,20 +40,8 @@ namespace QueryX
 
         internal static PropertyInfo? GetPropertyInfo<TModel>(this string propertyName)
         {
-            PropertyInfo? property = null;
-            var type = typeof(TModel);
-
-            foreach (var member in propertyName.Split('.'))
-            {
-                var currentProp = type.GetCachedProperties().FirstOrDefault(t => t.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
-                if (currentProp == null)
-                    return null;
-
-                property = currentProp;
-                type = property.PropertyType;
-            }
-
-            return property;
+            return typeof(TModel).GetCachedProperties()
+                .FirstOrDefault(t => t.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
         }
 
         internal static object CreateInstance(this Type type)

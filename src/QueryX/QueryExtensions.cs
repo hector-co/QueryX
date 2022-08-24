@@ -1,5 +1,4 @@
-﻿using QueryX.Attributes;
-using System;
+﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -10,6 +9,9 @@ namespace QueryX
         public static IQueryable<TModel> ApplyQuery<TModel, TFilterModel>(this IQueryable<TModel> source, Query<TFilterModel> query, bool applyOrderingAndPaging = false)
             where TModel : class
         {
+            var q = new Query<TFilterModel>();
+            source.ApplyQuery(q, true);
+
             var modelParameter = Expression.Parameter(typeof(TModel), "m");
 
             var filtersPredicate = GetFiltersPredicate<TModel, TFilterModel>(query, modelParameter);
@@ -27,17 +29,17 @@ namespace QueryX
         {
             var applyThenBy = false;
 
-            foreach (var (propertyName, ascending) in query.OrderBy)
+            foreach (var sortProperty in query.OrderBy)
             {
                 var modelParameter = Expression.Parameter(typeof(TModel), "m");
-                var propExp = propertyName.GetPropertyExpression<TModel>(modelParameter);
+                var propExp = sortProperty.ModelPropertyName.GetPropertyExpression<TModel>(modelParameter);
 
                 if (propExp == null)
                     continue;
 
                 var keySelector = Expression.Lambda<Func<TModel, object>>(propExp, modelParameter);
 
-                if (ascending)
+                if (sortProperty.Ascending)
                 {
                     if (!applyThenBy)
                         source = source.OrderBy(keySelector);
@@ -67,37 +69,17 @@ namespace QueryX
         {
             Expression? exp = null;
 
-            var filterModelProps = typeof(TFilterModel).GetCachedProperties();
-            var filterModelAttrs = filterModelProps
-                .Select(p => new { Property = p, Attribute = (QueryXAttribute)Attribute.GetCustomAttribute(p, typeof(QueryXAttribute)) })
-                .Where(p => p.Attribute != null);
-
-            foreach (var (propertyName, filter) in query.Filters)
+            foreach (var filter in query.Filters)
             {
-                var filterPropInfo = propertyName.GetPropertyInfo<TFilterModel>()!;
+                var filterExp = filter.GetFilterExpression<TModel>(modelParameter);
 
-                var queryAttr = (QueryXAttribute)Attribute.GetCustomAttribute(filterPropInfo, typeof(QueryXAttribute));
-
-                if (queryAttr != null && queryAttr.IsCustom)
-                    continue;
-
-                var modelPropertyName = queryAttr != null && !string.IsNullOrEmpty(queryAttr.ModelPropertyName)
-                    ? queryAttr.ModelPropertyName
-                    : propertyName;
-
-                var propExp = modelPropertyName.GetPropertyExpression<TModel>(modelParameter);
-
-                if (propExp == null)
+                if (filterExp == null)
                     continue;
 
                 if (exp == null)
-                {
-                    exp = filter.GetExpression(propExp);
-                }
+                    exp = filterExp;
                 else
-                {
-                    exp = Expression.AndAlso(exp, filter.GetExpression(propExp));
-                }
+                    exp = Expression.AndAlso(exp, filterExp);
             }
 
             if (exp == null)

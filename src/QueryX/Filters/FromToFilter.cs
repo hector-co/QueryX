@@ -1,11 +1,10 @@
 ﻿using QueryX.Exceptions;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
 
 namespace QueryX.Filters
 {
-    public class FromToFilter<TValue> : FilterBase<TValue>
+    public class FromToFilter<TValue> : FilterPropertyBase<TValue>
     {
         public TValue From { get; set; }
         public TValue To { get; set; }
@@ -23,8 +22,6 @@ namespace QueryX.Filters
             To = to;
         }
 
-        public override IEnumerable<TValue> Values => new[] { From, To };
-
         public override void SetValueFromString(params string?[] values)
         {
             if (values.Length != 2)
@@ -34,7 +31,7 @@ namespace QueryX.Filters
             To = (TValue)TypeDescriptor.GetConverter(typeof(TValue)).ConvertFrom(values[1]);
         }
 
-        public override Expression GetExpression(Expression property)
+        protected override Expression GetExpression(Expression property)
         {
             return Expression.And(
                 Expression.GreaterThanOrEqual(property, Expression.Constant(From)),

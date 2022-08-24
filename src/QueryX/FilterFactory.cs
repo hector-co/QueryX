@@ -6,6 +6,11 @@ namespace QueryX
 {
     public class FilterFactory
     {
+        public const string EqualsFilterOp = "EQ";
+        public const string NotEqualsFilterOp = "NE";
+        public const string FromToFilterOp = "FT";
+        public const string InFilterOp = "IN";
+
         private readonly Dictionary<string, Type> _filterTypes;
 
         public FilterFactory()
@@ -19,17 +24,17 @@ namespace QueryX
             _filterTypes.Add(@operator, genericType);
         }
 
-        public IFilter CreateFilterInstance<TValue>(string @operator, params string[] values)
+        public IFilter Create<TValue>(string @operator, params string[] values)
         {
-            return CreateFilterInstance(@operator, typeof(TValue), values);
+            return Create(@operator, typeof(TValue), values);
         }
 
-        public IFilter CreateFilterInstance(string @operator, Type valueType, params string?[] values)
+        public IFilterProperty Create(string @operator, Type valueType, params string?[] values)
         {
             var genericType = _filterTypes[@operator];
             var filterType = genericType.MakeGenericType(valueType);
 
-            var filter = (IFilter)filterType.CreateInstance();
+            var filter = (IFilterProperty)filterType.CreateInstance();
             filter.SetValueFromString(values);
 
             return filter;
@@ -37,10 +42,10 @@ namespace QueryX
 
         private void AddDefaultFilterTypes()
         {
-            AddFilterType("EQ", typeof(EqualsFilter<>));
-            AddFilterType("NE", typeof(NotEqualsFilter<>));
-            AddFilterType("FT", typeof(FromToFilter<>));
-            AddFilterType("IN", typeof(InFilter<>));
+            AddFilterType(EqualsFilterOp, typeof(EqualsFilter<>));
+            AddFilterType(NotEqualsFilterOp, typeof(NotEqualsFilter<>));
+            AddFilterType(FromToFilterOp, typeof(FromToFilter<>));
+            AddFilterType(InFilterOp, typeof(InFilter<>));
         }
 
     }

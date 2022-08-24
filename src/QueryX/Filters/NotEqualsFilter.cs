@@ -2,7 +2,7 @@
 
 namespace QueryX.Filters
 {
-    public class NotEqualsFilter<TValue> : SingleFilterBase<TValue>
+    public class NotEqualsFilter<TValue> : SingleFilterPropertyBase<TValue>
     {
         public NotEqualsFilter()
         {
@@ -12,7 +12,7 @@ namespace QueryX.Filters
         {
         }
 
-        public override Expression GetExpression(Expression property)
+        protected override Expression GetExpression(Expression property)
         {
             return Expression.NotEqual(property, Expression.Constant(Value));
         }
