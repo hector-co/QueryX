@@ -3,8 +3,28 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-    <Authors>hector-co</Authors>
+      <Copyright>Copyright © 2022 Hector Carballo</Copyright>
+      <PackageProjectUrl>https://github.com/hector-co/QueryX</PackageProjectUrl>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
+      <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+      <Authors>Hector Carballo</Authors>
+      <VersionPrefix>1.0.0</VersionPrefix>
+      <VersionSuffix>alpha-0001</VersionSuffix>
+      <Description>Query string queries</Description>
+      <RepositoryType>https://github.com/hector-co/QueryX</RepositoryType>
+      <PackageTags>query string url</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
