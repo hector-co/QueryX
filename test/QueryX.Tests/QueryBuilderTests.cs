@@ -610,7 +610,9 @@ namespace QueryX.Tests
 
             enumPropFilters.First()!.CustomFiltering.Should().BeTrue();
 
-            enumPropFilters.First().Values.First().Should().Be(expectedEnumValue);
+            enumPropFilters.First().GetType().Should().Be(typeof(NotEqualsFilter<TestEnum>));
+
+            ((NotEqualsFilter<TestEnum>)enumPropFilters.First()).Value.Should().Be(expectedEnumValue);
         }
 
         [Theory]

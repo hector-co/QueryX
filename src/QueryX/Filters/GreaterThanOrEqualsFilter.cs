@@ -8,6 +8,8 @@ namespace QueryX.Filters
         {
         }
 
+        public override string Operator => OperatorType.GreaterThanOrEqualsFilter;
+
         public override Expression GetExpression(Expression property)
         {
             return Expression.GreaterThanOrEqual(property, Expression.Constant(Value, typeof(TValue)));

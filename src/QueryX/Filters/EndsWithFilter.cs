@@ -8,6 +8,8 @@ namespace QueryX.Filters
         {
         }
 
+        public override string Operator => OperatorType.EndsWithFilter;
+
         public override Expression GetExpression(Expression property)
         {
             return Expression.Call(property, typeof(string).GetMethod("EndsWith", new[] { typeof(string) }), Expression.Constant(Value, typeof(string)));

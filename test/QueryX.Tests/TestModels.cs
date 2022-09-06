@@ -1,4 +1,5 @@
 ﻿using QueryX.Attributes;
+using QueryX.Filters;
 using System;
 
 namespace QueryX.Tests
@@ -63,7 +64,7 @@ namespace QueryX.Tests
         [QueryOptions(CustomFiltering = true)]
         public TestEnum EnumProperty1 { get; set; }
 
-        [QueryOptions(Operator = FilterTypes.EqualsFilter)]
+        [QueryOptions(Operator = OperatorType.EqualsFilter)]
         public string StringProperty2 { get; set; } = string.Empty;
     }
 

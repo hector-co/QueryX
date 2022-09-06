@@ -11,6 +11,6 @@ namespace QueryX.Filters
             Value = value;
         }
 
-        public override IEnumerable<TValue> Values => new[] { Value };
+        //public override IEnumerable<TValue> Values => new[] { Value };
     }
 }

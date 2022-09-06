@@ -1,6 +1,6 @@
-﻿namespace QueryX
+﻿namespace QueryX.Filters
 {
-    public class FilterTypes
+    public class OperatorType
     {
         public const string EqualsFilter = "==";
         public const string CiEqualsFilter = "==*";

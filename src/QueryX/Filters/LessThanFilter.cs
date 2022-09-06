@@ -8,6 +8,8 @@ namespace QueryX.Filters
         {
         }
 
+        public override string Operator => OperatorType.LessThanFilter;
+
         public override Expression GetExpression(Expression property)
         {
             return Expression.LessThan(property, Expression.Constant(Value, typeof(TValue)));

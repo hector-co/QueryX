@@ -13,7 +13,9 @@ namespace QueryX.Filters
             _values = values.ToList();
         }
 
-        public override IEnumerable<TValue> Values => _values.AsReadOnly();
+        public override string Operator => OperatorType.NotInFilter;
+
+        public IEnumerable<TValue> Values => _values.AsReadOnly();
 
         public override Expression GetExpression(Expression property)
         {

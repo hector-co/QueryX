@@ -9,6 +9,8 @@ namespace QueryX.Filters
         {
         }
 
+        public override string Operator => OperatorType.CiStartsWithFilter;
+
         public override Expression GetExpression(Expression property)
         {
             Expression toLowerExp = Expression.Call(property, typeof(string).GetMethod("ToLower", Type.EmptyTypes));
