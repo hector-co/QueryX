@@ -1,6 +1,6 @@
 ﻿namespace QueryX
 {
-    public class QueryParams
+    public class QueryModel
     {
         public string Filter { get; set; } = string.Empty;
         public string OrderBy { get; set; } = string.Empty;

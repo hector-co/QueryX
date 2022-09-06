@@ -4,6 +4,7 @@ namespace QueryX.Filters
 {
     public interface IFilter
     {
-        Expression? GetFilterExpression<TModel>(ParameterExpression modelParameter);
+        bool CustomFiltering { get; set; }
+        Expression GetExpression(Expression property);
     }
 }

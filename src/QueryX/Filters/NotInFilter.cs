@@ -4,11 +4,11 @@ using System.Linq.Expressions;
 
 namespace QueryX.Filters
 {
-    public class InFilter<TValue> : FilterBase<TValue>
+    public class NotInFilter<TValue> : FilterBase<TValue>
     {
-        private List<TValue> _values;
+        private readonly List<TValue> _values;
 
-        public InFilter(IEnumerable<TValue> values)
+        public NotInFilter(IEnumerable<TValue> values)
         {
             _values = values.ToList();
         }
@@ -17,7 +17,7 @@ namespace QueryX.Filters
 
         public override Expression GetExpression(Expression property)
         {
-            return Expression.Call(Expression.Constant(_values), typeof(List<TValue>).GetMethod("Contains"), property);
+            return Expression.Not(Expression.Call(Expression.Constant(_values), typeof(List<TValue>).GetMethod("Contains"), property));
         }
     }
 }
