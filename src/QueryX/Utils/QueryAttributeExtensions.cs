@@ -1,35 +1,18 @@
-﻿using QueryX.Attributes;
-using QueryX.Exceptions;
+﻿using System.Linq;
+using System.Reflection;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
+using QueryX.Attributes;
 
-namespace QueryX
+namespace QueryX.Utils
 {
-    internal static class Extensions
+    internal static class QueryAttributeExtensions
     {
         const char PropertyNamesSeparator = '.';
 
-        internal static ConcurrentDictionary<Type, PropertyInfo[]> Properties { get; set; }
-            = new ConcurrentDictionary<Type, PropertyInfo[]>();
         internal static ConcurrentDictionary<Type, Dictionary<PropertyInfo, IEnumerable<QueryBaseAttribute>>> TypesAttributes
             = new ConcurrentDictionary<Type, Dictionary<PropertyInfo, IEnumerable<QueryBaseAttribute>>>();
-
-        internal static PropertyInfo[] GetCachedProperties(this Type type)
-        {
-            if (Properties.ContainsKey(type))
-            {
-                if (Properties.TryGetValue(type, out var props))
-                    return props;
-            }
-            var properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            Properties.TryAdd(type, properties);
-            return properties;
-        }
 
         internal static bool TryGetPropertyQueryInfo<TModel>(this string propertyName, out QueryAttributeInfo? queryAttributeInfo)
         {
@@ -144,58 +127,6 @@ namespace QueryX
                 optionsAttr?.CustomFiltering ?? false, optionsAttr?.IsSortable ?? true);
 
             return true;
-        }
-
-        internal static Expression? GetPropertyExpression<TModel>(this string propertyName, Expression modelParameter)
-        {
-            Expression property = modelParameter;
-
-            foreach (var member in propertyName.Split('.'))
-            {
-                var existentProp = property.Type.GetCachedProperties().FirstOrDefault(t => t.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
-                if (existentProp == null)
-                    return null;
-
-                property = Expression.Property(property, existentProp.Name);
-            }
-
-            return property;
-        }
-
-        internal static PropertyInfo? GetPropertyInfo<TModel>(this string propertyName)
-        {
-            return typeof(TModel).GetCachedProperties()
-                .FirstOrDefault(t => t.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
-        }
-
-        internal static PropertyInfo GetPropertyInfo<TModel, TValue>(this Expression<Func<TModel, TValue>> selector)
-        {
-            return (PropertyInfo)((MemberExpression)selector.Body).Member;
-        }
-
-        internal static bool TryConvertTo(this string? value, Type targetType, out object? converted)
-        {
-            converted = null;
-
-            if (value == null)
-                return true;
-
-            if (targetType.IsEnum)
-            {
-                if (!Enum.TryParse(targetType, value, true, out var enumValue))
-                    return false;
-
-                converted = enumValue;
-                return true;
-            }
-            else
-            {
-                if (!TypeDescriptor.GetConverter(targetType).IsValid(value))
-                    return false;
-
-                converted = TypeDescriptor.GetConverter(targetType).ConvertFrom(value);
-                return true;
-            }
         }
     }
 }

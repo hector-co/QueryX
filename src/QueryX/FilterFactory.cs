@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using QueryX.Exceptions;
 using QueryX.Filters;
 using System.Collections;
+using QueryX.Utils;
 
 namespace QueryX
 {

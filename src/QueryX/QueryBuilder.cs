@@ -1,4 +1,5 @@
 ﻿using QueryX.Exceptions;
+using QueryX.Utils;
 using QueryX.Parser;
 using System;
 using System.Collections.Generic;
