@@ -24,7 +24,7 @@ namespace QueryX.Utils
             return properties;
         }
 
-        internal static Expression? GetPropertyExpression<TModel>(this string propertyName, Expression modelParameter)
+        internal static Expression? GetPropertyExpression(this string propertyName, Expression modelParameter)
         {
             Expression property = modelParameter;
 

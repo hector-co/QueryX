@@ -1,38 +1,43 @@
 ﻿using QueryX.Filters;
-using QueryX.Utils;
 using QueryX.Parser.Nodes;
+using QueryX.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace QueryX
 {
-    internal class QueryVisitor<TFilterModel, TModel> : IQueryVisitor
+    internal class QueryVisitor<TFilterModel, TModel> : INodeVisitor
     {
-        private readonly FilterFactory _filterFactory;        
-        private readonly Stack<Expression?> _stack;
+        private readonly FilterFactory _filterFactory;
         private readonly List<(string property, IFilter filter)> _filters;
-        private readonly ParameterExpression _modelParameter;
+
+        private readonly Stack<Context> _contexts;
 
         public QueryVisitor(FilterFactory filterFactory)
         {
             _filterFactory = filterFactory;
-            _stack = new Stack<Expression?>();
             _filters = new List<(string property, IFilter filter)>();
-            _modelParameter = Expression.Parameter(typeof(TModel), "m");
+
+            _contexts = new Stack<Context>();
+            _contexts.Push(new Context(typeof(TFilterModel), string.Empty, Expression.Parameter(typeof(TModel), "m")));
         }
 
         public void Visit(OrElseNode node)
         {
+            var context = _contexts.First();
+
             node.Left.Accept(this);
             node.Right.Accept(this);
 
-            var right = _stack.Pop();
-            var left = _stack.Pop();
+            var right = context.Stack.Pop();
+            var left = context.Stack.Pop();
 
             if (left != null && right != null)
             {
-                _stack.Push(Expression.OrElse(left, right));
+                context.Stack.Push(Expression.OrElse(left, right));
                 return;
             }
 
@@ -42,20 +47,22 @@ namespace QueryX
                     ? right
                     : left;
 
-            _stack.Push(forPush);
+            context.Stack.Push(forPush);
         }
 
         public void Visit(AndAlsoNode node)
         {
+            var context = _contexts.First();
+
             node.Left.Accept(this);
             node.Right.Accept(this);
 
-            var right = _stack.Pop();
-            var left = _stack.Pop();
+            var right = context.Stack.Pop();
+            var left = context.Stack.Pop();
 
             if (left != null && right != null)
             {
-                _stack.Push(Expression.AndAlso(left, right));
+                context.Stack.Push(Expression.AndAlso(left, right));
                 return;
             }
 
@@ -65,14 +72,18 @@ namespace QueryX
                     ? right
                     : left;
 
-            _stack.Push(forPush);
+            context.Stack.Push(forPush);
         }
 
         public void Visit(OperatorNode node)
         {
-            if (!node.Property.TryGetPropertyQueryInfo<TFilterModel>(out var queryAttributeInfo) || queryAttributeInfo!.IsIgnored)
+            var context = _contexts.First();
+
+            var propertyName = context.GetConcatenatedProperty(node.Property);
+
+            if (!propertyName.TryGetPropertyQueryInfo(context.ParentType, out var queryAttributeInfo) || queryAttributeInfo!.IsIgnored)
             {
-                _stack.Push(null);
+                context.Stack.Push(null);
                 return;
             }
 
@@ -87,28 +98,114 @@ namespace QueryX
             if (queryAttributeInfo.CustomFiltering)
             {
                 filter.CustomFiltering = true;
-                _stack.Push(null);
+                context.Stack.Push(null);
                 return;
             }
 
-            var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression<TModel>(_modelParameter);
+            var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
             if (propExp == null)
             {
-                _stack.Push(null);
+                context.Stack.Push(null);
                 return;
             }
 
-            _stack.Push(filter.GetExpression(propExp));
+            context.Stack.Push(filter.GetExpression(propExp));
         }
 
         public Expression<Func<TModel, bool>>? GetFilterExpression()
         {
-            if (_stack.Count == 0 || _stack.TryPop(out var last) && last == null)
+            var context = _contexts.First();
+
+            if (context.Stack.Count == 0 || context.Stack.TryPop(out var exp) && exp == null)
                 return null;
 
-            return Expression.Lambda<Func<TModel, bool>>(last, _modelParameter);
+            return Expression.Lambda<Func<TModel, bool>>(exp, context.Parameter);
         }
 
-        public List<(string property, IFilter filter)> GetCustomFilters() => _filters;
+        public List<(string property, IFilter filter)> GetFilters() => _filters;
+
+        public void Visit(ObjectFilterNode node)
+        {
+            var context = _contexts.First();
+
+            if (!node.Property.TryGetPropertyQueryInfo<TFilterModel>(out var queryAttributeInfo) || queryAttributeInfo!.IsIgnored)
+            {
+                context.Stack.Push(null);
+                return;
+            }
+
+            var type = queryAttributeInfo.PropertyInfo.PropertyType;
+            var typeIsCollection = (type.GetInterface(nameof(IEnumerable)) != null);
+
+            if (!typeIsCollection)
+            {
+                var subContext = new Context(context.ParentType, context.PropertyName, context.Parameter);
+                subContext.ConcatToPropertyName(queryAttributeInfo.ModelPropertyName);
+                _contexts.Push(subContext);
+
+                Visit(node.Filter as dynamic);
+
+                var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
+                var notNullExp = Expression.NotEqual(propExp, Expression.Constant(null));
+                var exp = subContext.Stack.Pop();
+
+                context.Stack.Push(Expression.AndAlso(notNullExp, exp));
+
+                _contexts.Pop();
+            }
+            else
+            {
+                var targetType = type.GenericTypeArguments[0];
+                var modelParameter = Expression.Parameter(targetType, "s");
+                var subContext = new Context(targetType, context.PropertyName, modelParameter);
+                _contexts.Push(subContext);
+
+                Visit(node.Filter as dynamic);
+
+                var exp = Expression.Lambda(subContext.Stack.Last(), modelParameter);
+
+                var any = typeof(Enumerable).GetMethods()
+                    .First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
+                var anyGeneric = any.MakeGenericMethod(targetType);
+
+                var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
+                var notNullExp = Expression.NotEqual(propExp, Expression.Constant(null));
+                var anyExp = Expression.Call(null, anyGeneric, propExp, exp);
+
+                context.Stack.Push(Expression.AndAlso(notNullExp, anyExp));
+                _contexts.Pop();
+            }
+        }
+
+        class Context
+        {
+            public Context(Type parentType, string propertyName, ParameterExpression parameter)
+            {
+                ParentType = parentType;
+                PropertyName = propertyName;
+                Parameter = parameter;
+                Stack = new Stack<Expression?>();
+            }
+
+            public Type ParentType { get; set; }
+            public string PropertyName { get; set; }
+            public ParameterExpression Parameter { get; set; }
+            public Stack<Expression?> Stack { get; set; }
+
+            public void ConcatToPropertyName(string propertyName)
+            {
+                PropertyName = string.IsNullOrEmpty(PropertyName)
+                        ? propertyName
+                        : $"{PropertyName}.{propertyName}";
+            }
+
+            public string GetConcatenatedProperty(string propertyName)
+            {
+                return string.IsNullOrEmpty(PropertyName)
+                        ? propertyName
+                        : $"{PropertyName}.{propertyName}";
+            }
+        }
     }
+
 }

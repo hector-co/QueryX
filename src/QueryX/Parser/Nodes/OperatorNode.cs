@@ -15,6 +15,6 @@ namespace QueryX.Parser.Nodes
         public string Operator { get; set; } = string.Empty;
         public IEnumerable<string?> Values { get; set; }
 
-        public override void Accept(IQueryVisitor visitor) => visitor.Visit(this);
+        public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
     }
 }

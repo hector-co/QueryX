@@ -40,7 +40,7 @@ namespace QueryX
 
                 var filterExp = visitor.GetFilterExpression();
                 query.SetFilterExpression(filterExp);
-                query.SetFilters(visitor.GetCustomFilters());
+                query.SetFilters(visitor.GetFilters());
             }
 
             var orderBy = GetOrderByExp<TFilterModel, TModel>(queryModel.OrderBy);
@@ -64,7 +64,7 @@ namespace QueryX
                     continue;
 
                 var modelParameter = Expression.Parameter(typeof(TModel), "m");
-                var propExp = queryAttrInfo.ModelPropertyName.GetPropertyExpression<TModel>(modelParameter);
+                var propExp = queryAttrInfo.ModelPropertyName.GetPropertyExpression(modelParameter);
 
                 if (propExp == null)
                     continue;

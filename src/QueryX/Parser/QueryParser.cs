@@ -56,6 +56,11 @@ namespace QueryX.Parser
             from values in ValueArray
             select (NodeBase)new OperatorNode(property, op, values);
 
+        static TokenListParser<QueryToken, NodeBase> ObjectFilter { get; } =
+            from property in Property
+            from objectFilter in Parse.Ref(() => Group!)
+            select (NodeBase)new ObjectFilterNode(property, objectFilter);
+
         static TokenListParser<QueryToken, NodeBase> OrElse { get; } =
             from filter1 in Parse.Ref(() => Filter!).Or(Parse.Ref(() => Group!))
             from op in Token.EqualTo(QueryToken.Or)
@@ -77,6 +82,7 @@ namespace QueryX.Parser
         static TokenListParser<QueryToken, NodeBase> Exp { get; } =
             OrElse.Try()
             .Or(AndAlso).Try()
+            .Or(ObjectFilter).Try()
             .Or(Group).Try()
             .Or(Filter).Try()
             .Select(s => s);

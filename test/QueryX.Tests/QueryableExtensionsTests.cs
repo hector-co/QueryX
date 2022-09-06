@@ -222,5 +222,20 @@ namespace QueryX.Tests
             var result = queryable.ToList();
             result.Should().NotBeNull();
         }
+
+        [Fact]
+        public void QueryWithObjectProperties()
+        {
+            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(
+                new QueryModel
+                {
+                    Filter = "prop1(prop2=='stringVal1')"
+                });
+
+            var queryable = SampleObjectWithRelationshipsCollectionWithNulls.AsQueryable().ApplyQuery(query);
+            var result = queryable.ToList();
+            result.Should().NotBeNull();
+            result.Count().Should().Be(1);
+        }
     }
 }

@@ -2,6 +2,6 @@
 {
     public abstract class NodeBase
     {
-        public abstract void Accept(IQueryVisitor visitor);
+        public abstract void Accept(INodeVisitor visitor);
     }
 }

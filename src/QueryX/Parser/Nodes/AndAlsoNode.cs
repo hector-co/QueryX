@@ -6,6 +6,6 @@
         {
         }
 
-        public override void Accept(IQueryVisitor visitor) => visitor.Visit(this);
+        public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
     }
 }
