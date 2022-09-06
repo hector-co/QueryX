@@ -62,6 +62,9 @@ namespace QueryX.Tests
 
         [QueryOptions(CustomFiltering = true)]
         public TestEnum EnumProperty1 { get; set; }
+
+        [QueryOptions(Operator = FilterTypes.EqualsFilter)]
+        public string StringProperty2 { get; set; } = string.Empty;
     }
 
     public enum TestEnum

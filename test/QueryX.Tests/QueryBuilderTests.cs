@@ -677,5 +677,24 @@ namespace QueryX.Tests
 
         }
 
+        [Theory]
+        [InlineData("==")]
+        [InlineData("!=")]
+        [InlineData("|=")]
+        [InlineData("=-")]
+        public void DefaultOperatorTest(string @operator)
+        {
+            var queryParams = new QueryModel
+            {
+                Filter = $"stringProperty2 {@operator} 'test value'"
+            };
+
+            var query = _queryBuilder.CreateQuery<TestModel3>(queryParams);
+
+            query.TryGetFilters(m => m.StringProperty2, out var stringFilters).Should().BeTrue();
+
+            stringFilters.First().GetType().Should().Be(typeof(EqualsFilter<string>));
+        }
+
     }
 }

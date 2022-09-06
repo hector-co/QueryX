@@ -76,8 +76,11 @@ namespace QueryX
             }
 
             var valueType = queryAttributeInfo.PropertyInfo.PropertyType;
+            var op = string.IsNullOrEmpty(queryAttributeInfo!.Operator)
+                ? node.Operator
+                : queryAttributeInfo!.Operator;
 
-            var filter = _filterFactory.Create(node.Operator, valueType, node.Values);
+            var filter = _filterFactory.Create(op, valueType, node.Values);
             _filters.Add((queryAttributeInfo.PropertyInfo.Name, filter));
 
             if (queryAttributeInfo.CustomFiltering)

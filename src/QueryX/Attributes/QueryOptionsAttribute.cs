@@ -7,6 +7,7 @@ namespace QueryX.Attributes
     {
         public string ParamsPropertyName { get; set; } = string.Empty;
         public string ModelPropertyName { get; set; } = string.Empty;
+        public string Operator { get; set; } = string.Empty;
         public bool IsSortable { get; set; } = true;
         public bool CustomFiltering { get; set; }
     }

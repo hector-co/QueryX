@@ -199,7 +199,7 @@ namespace QueryX.Tests
         {
             var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(new QueryModel
             {
-                OrderBy = "test_prop"
+                OrderBy = $"{(ascending ? "" : "-")}test_prop"
             });
 
             var queryable = SampleObjectWithRelationshipsCollectionWithNulls.AsQueryable().ApplyQuery(query);
@@ -214,7 +214,7 @@ namespace QueryX.Tests
         {
             var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(new QueryModel
             {
-                OrderBy = "test_prop"
+                OrderBy = $"{(ascending ? "" : "-")}test_prop"
             });
 
             var queryable = SampleObjectWithRelationshipsCollectionWithNulls.AsQueryable().ApplyQuery(query, applyOrderingAndPaging: false);

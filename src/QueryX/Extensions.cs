@@ -102,7 +102,7 @@ namespace QueryX
             parenType = prevParentType;
             modelPropertyName = modelPropertyName.TrimEnd(PropertyNamesSeparator);
 
-            queryAttributeInfo = new QueryAttributeInfo(childPropInfo!, false, modelPropertyName, qai!.CustomFiltering, qai!.IsSortable);
+            queryAttributeInfo = new QueryAttributeInfo(childPropInfo!, false, modelPropertyName, qai!.Operator, qai!.CustomFiltering, qai!.IsSortable);
 
             return true;
         }
@@ -140,6 +140,7 @@ namespace QueryX
 
             queryAttributeInfo = new QueryAttributeInfo
                 (propertyInfo, false, optionsAttr?.ModelPropertyName ?? propertyInfo.Name,
+                optionsAttr?.Operator ?? string.Empty,
                 optionsAttr?.CustomFiltering ?? false, optionsAttr?.IsSortable ?? true);
 
             return true;
