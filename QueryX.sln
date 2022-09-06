@@ -9,7 +9,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F9D59AF0-B39
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{AB3AF74D-F296-48B2-AC8B-E2F95458FBF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueryX.Tests", "test\QueryX.Tests\QueryX.Tests.csproj", "{E9C642A5-6F32-4422-9B28-2825FC3A8E7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QueryX.Tests", "test\QueryX.Tests\QueryX.Tests.csproj", "{E9C642A5-6F32-4422-9B28-2825FC3A8E7C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QueryX.AspNetCore", "src\QueryX.AspNetCore\QueryX.AspNetCore.csproj", "{1A68BC30-E21B-42DD-AC02-EE1FC33A38DE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{FF57113C-0A5F-4B5F-B7BF-FB2F5E42F124}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueryX.Samples.WebApi", "samples\QueryX.Samples.WebApi\QueryX.Samples.WebApi.csproj", "{CD529E57-814D-447D-9E45-17348138CB99}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,6 +31,14 @@ Global
 		{E9C642A5-6F32-4422-9B28-2825FC3A8E7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E9C642A5-6F32-4422-9B28-2825FC3A8E7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E9C642A5-6F32-4422-9B28-2825FC3A8E7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A68BC30-E21B-42DD-AC02-EE1FC33A38DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A68BC30-E21B-42DD-AC02-EE1FC33A38DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A68BC30-E21B-42DD-AC02-EE1FC33A38DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A68BC30-E21B-42DD-AC02-EE1FC33A38DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD529E57-814D-447D-9E45-17348138CB99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD529E57-814D-447D-9E45-17348138CB99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD529E57-814D-447D-9E45-17348138CB99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD529E57-814D-447D-9E45-17348138CB99}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,6 +46,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{CD5B30C5-0B3B-4999-A2D0-3C04B08FA0EC} = {F9D59AF0-B39A-462C-B2CF-3810B9861008}
 		{E9C642A5-6F32-4422-9B28-2825FC3A8E7C} = {AB3AF74D-F296-48B2-AC8B-E2F95458FBF4}
+		{1A68BC30-E21B-42DD-AC02-EE1FC33A38DE} = {F9D59AF0-B39A-462C-B2CF-3810B9861008}
+		{CD529E57-814D-447D-9E45-17348138CB99} = {FF57113C-0A5F-4B5F-B7BF-FB2F5E42F124}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2C889E44-3FCC-4EF9-8799-C56E810291E9}

@@ -1,0 +1,14 @@
+version: "3"
+
+volumes:
+    postgres-SampleAspNetCore-data:
+
+services:
+    postgres:
+        image: 'postgres:12'
+        volumes:
+            - postgres-SampleAspNetCore-data:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_PASSWORD=postgres
+        ports:
+            - 5432:5432
