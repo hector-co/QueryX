@@ -16,59 +16,63 @@ namespace QueryX.Utils
 
         internal static bool TryGetPropertyQueryInfo<TModel>(this string propertyName, out QueryAttributeInfo? queryAttributeInfo)
         {
+            return propertyName.TryGetPropertyQueryInfo(typeof(TModel), out queryAttributeInfo);
+        }
+
+        internal static bool TryGetPropertyQueryInfo(this string propertyName, Type parentType, out QueryAttributeInfo? queryAttributeInfo)
+        {
             queryAttributeInfo = null;
 
-            var type = typeof(TModel);
-            if (!TypesAttributes.ContainsKey(type))
+            if (!TypesAttributes.ContainsKey(parentType))
             {
-                TypesAttributes.TryAdd(type, type
+                TypesAttributes.TryAdd(parentType, parentType
                     .GetCachedProperties()
                     .Select(p => (property: p, attributes:
                         Attribute.GetCustomAttributes(p, typeof(QueryBaseAttribute)).Select(a => (a as QueryBaseAttribute)!)))
                     .ToDictionary(f => f.property, f => f.attributes));
             }
 
-            foreach (var key in TypesAttributes[type].Keys)
+            foreach (var key in TypesAttributes[parentType].Keys)
             {
-                if (TypesAttributes[type][key]
+                if (TypesAttributes[parentType][key]
                     .Any(a => a is QueryOptionsAttribute attr && attr.ParamsPropertyName.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    return key.TryGetPropertyQueryInfo<TModel>(out queryAttributeInfo);
+                    return key.TryGetPropertyQueryInfo(parentType, out queryAttributeInfo);
                 }
             }
 
             if (propertyName.Contains(PropertyNamesSeparator))
             {
-                return propertyName.TryGetSubPropertyQueryInfo<TModel>(out queryAttributeInfo);
+                return propertyName.TryGetSubPropertyQueryInfo(parentType, out queryAttributeInfo);
             }
 
-            var propertyInfo = propertyName.GetPropertyInfo<TModel>();
+            var propertyInfo = parentType.GetCachedProperties()
+                .FirstOrDefault(t => t.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
 
             if (propertyInfo == null)
                 return false;
 
-            return propertyInfo.TryGetPropertyQueryInfo<TModel>(out queryAttributeInfo);
+            return propertyInfo.TryGetPropertyQueryInfo(parentType, out queryAttributeInfo);
         }
 
-        internal static bool TryGetSubPropertyQueryInfo<TModel>(this string propertyName, out QueryAttributeInfo? queryAttributeInfo)
+        private static bool TryGetSubPropertyQueryInfo(this string propertyName, Type parentType, out QueryAttributeInfo? queryAttributeInfo)
         {
             queryAttributeInfo = null;
 
-            Type parenType = typeof(TModel);
-            Type prevParentType = parenType;
+            Type prevParentType = parentType;
             PropertyInfo? childPropInfo = null;
             QueryAttributeInfo? qai = null;
             var modelPropertyName = "";
             foreach (var member in propertyName.Split(PropertyNamesSeparator))
             {
-                prevParentType = parenType;
-                childPropInfo = parenType.GetCachedProperties()
+                prevParentType = parentType;
+                childPropInfo = parentType.GetCachedProperties()
                     .FirstOrDefault(p => p.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
 
                 if (childPropInfo == null)
                     return false;
 
-                if (!childPropInfo.TryGetPropertyQueryInfo(parenType, out qai))
+                if (!childPropInfo.TryGetPropertyQueryInfo(parentType, out qai))
                 {
                     return false;
                 }
@@ -80,19 +84,14 @@ namespace QueryX.Utils
                 }
 
                 modelPropertyName += qai!.ModelPropertyName + PropertyNamesSeparator;
-                parenType = childPropInfo.PropertyType;
+                parentType = childPropInfo.PropertyType;
             }
-            parenType = prevParentType;
+            parentType = prevParentType;
             modelPropertyName = modelPropertyName.TrimEnd(PropertyNamesSeparator);
 
             queryAttributeInfo = new QueryAttributeInfo(childPropInfo!, false, modelPropertyName, qai!.Operator, qai!.CustomFiltering, qai!.IsSortable);
 
             return true;
-        }
-
-        internal static bool TryGetPropertyQueryInfo<TModel>(this PropertyInfo propertyInfo, out QueryAttributeInfo? queryAttributeInfo)
-        {
-            return propertyInfo.TryGetPropertyQueryInfo(typeof(TModel), out queryAttributeInfo);
         }
 
         internal static bool TryGetPropertyQueryInfo(this PropertyInfo propertyInfo, Type parentType, out QueryAttributeInfo? queryAttributeInfo)

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace QueryX
 {
@@ -51,7 +52,7 @@ namespace QueryX
 
         public bool TryGetFilters<TValue>(Expression<Func<TFilterModel, TValue>> selector, out IEnumerable<FilterBase<TValue>> filters)
         {
-            var propName = selector.GetPropertyInfo().Name;
+            var propName = ((PropertyInfo)((MemberExpression)selector.Body).Member).Name;
 
             filters = _filters
                 .Where(f => f.property.Equals(propName, StringComparison.InvariantCultureIgnoreCase))

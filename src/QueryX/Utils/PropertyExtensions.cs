@@ -46,11 +46,6 @@ namespace QueryX.Utils
                 .FirstOrDefault(t => t.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        internal static PropertyInfo GetPropertyInfo<TModel, TValue>(this Expression<Func<TModel, TValue>> selector)
-        {
-            return (PropertyInfo)((MemberExpression)selector.Body).Member;
-        }
-
         internal static bool TryConvertTo(this string? value, Type targetType, out object? converted)
         {
             converted = null;
