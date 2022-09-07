@@ -89,24 +89,13 @@ namespace QueryX.Parser
 
         static TokenListParser<QueryToken, NodeBase> Instance { get; } = Exp.AtEnd();
 
-        internal static bool TryParse(string source, out NodeBase? root)
+
+        internal static NodeBase ParseNodes(string source)
         {
-            root = null;
-            try
-            {
-                var tokens = QueryTokenizer.Instance.TryTokenize(source);
-                var result = Instance.TryParse(tokens.Value);
+            var tokens = QueryTokenizer.Instance.TryTokenize(source);
+            var result = Instance.Parse(tokens.Value);
 
-                if (!result.HasValue)
-                    return false;
-
-                root = result.Value;
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return result;
         }
 
         const string CommaSeparatedValuesSplit = @",(?=(?:[^']*'[^']*')*[^']*$)";

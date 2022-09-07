@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using QueryX.Parser.Nodes;
 
 namespace QueryX
 {
@@ -32,8 +33,21 @@ namespace QueryX
 
             if (!string.IsNullOrEmpty(queryModel.Filter))
             {
-                if (!QueryParser.TryParse(queryModel.Filter, out var root))
-                    throw new QueryFormatException();
+                NodeBase? root = null;
+
+                try
+                {
+                    root = QueryParser.ParseNodes(queryModel.Filter);
+                }
+                catch (Superpower.ParseException pex)
+                {
+                    throw new QueryFormatException($"Error parsing input. Invalid token at line {pex.ErrorPosition.Line}, column {pex.ErrorPosition.Column}", pex);
+
+                }
+                catch (Exception ex)
+                {
+                    throw new QueryFormatException("Error parsing input", ex);
+                }
 
                 var visitor = new QueryVisitor<TFilterModel, TModel>(_filterFactory);
                 root!.Accept(visitor);
