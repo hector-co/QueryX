@@ -2,15 +2,17 @@
 
 namespace QueryX.Filters
 {
-    public class ContainsFilter : SingleValueFilterBase<string>
+    public class ContainsFilter : IFilter
     {
-        public ContainsFilter(string value) : base(value)
+        public ContainsFilter(string value)
         {
+            Value = value;
         }
 
-        public override string Operator => OperatorType.ContainsFilter;
+        public string Operator => OperatorType.ContainsFilter;
+        public string Value { get; set; }
 
-        public override Expression GetExpression(Expression property)
+        public Expression GetExpression(Expression property)
         {
             return Expression.Call(property, typeof(string).GetMethod("Contains", new[] { typeof(string) }), Expression.Constant(Value, typeof(string)));
         }

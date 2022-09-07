@@ -2,15 +2,17 @@
 
 namespace QueryX.Filters
 {
-    public class GreaterThanOrEqualsFilter<TValue> : SingleValueFilterBase<TValue>
+    public class GreaterThanOrEqualsFilter<TValue> : IFilter
     {
-        public GreaterThanOrEqualsFilter(TValue value) : base(value)
+        public GreaterThanOrEqualsFilter(TValue value)
         {
+            Value = value;
         }
 
-        public override string Operator => OperatorType.GreaterThanOrEqualsFilter;
+        public string Operator => OperatorType.GreaterThanOrEqualsFilter;
+        public TValue Value { get; set; }
 
-        public override Expression GetExpression(Expression property)
+        public Expression GetExpression(Expression property)
         {
             return Expression.GreaterThanOrEqual(property, Expression.Constant(Value, typeof(TValue)));
         }

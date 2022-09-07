@@ -3,15 +3,17 @@ using System.Linq.Expressions;
 
 namespace QueryX.Filters
 {
-    public class CiEqualsFilter : SingleValueFilterBase<string>
+    public class CiEqualsFilter : IFilter
     {
-        public CiEqualsFilter(string value) : base(value)
+        public CiEqualsFilter(string value)
         {
+            Value = value;
         }
 
-        public override string Operator => OperatorType.CiEqualsFilter;
+        public string Operator => OperatorType.CiEqualsFilter;
+        public string Value { get; set; }
 
-        public override Expression GetExpression(Expression property)
+        public Expression GetExpression(Expression property)
         {
             Expression toLowerExp = Expression.Call(property, typeof(string).GetMethod("ToLower", Type.EmptyTypes));
 

@@ -12,14 +12,14 @@ namespace QueryX
     internal class QueryVisitor<TFilterModel, TModel> : INodeVisitor
     {
         private readonly FilterFactory _filterFactory;
-        private readonly List<(string property, IFilter filter)> _filters;
+        private readonly List<(string property, IFilter filter)> _customFilters;
 
         private readonly Stack<Context> _contexts;
 
         public QueryVisitor(FilterFactory filterFactory)
         {
             _filterFactory = filterFactory;
-            _filters = new List<(string property, IFilter filter)>();
+            _customFilters = new List<(string property, IFilter filter)>();
 
             _contexts = new Stack<Context>();
             _contexts.Push(new Context(typeof(TFilterModel), string.Empty, Expression.Parameter(typeof(TModel), "m")));
@@ -93,12 +93,11 @@ namespace QueryX
                 : queryAttributeInfo!.Operator;
 
             var filter = _filterFactory.Create(op, valueType, node.Values);
-            _filters.Add((queryAttributeInfo.PropertyInfo.Name, filter));
 
             if (queryAttributeInfo.CustomFiltering)
             {
-                filter.CustomFiltering = true;
                 context.Stack.Push(null);
+                _customFilters.Add((queryAttributeInfo.PropertyInfo.Name, filter));
                 return;
             }
 
@@ -122,7 +121,7 @@ namespace QueryX
             return Expression.Lambda<Func<TModel, bool>>(exp, context.Parameter);
         }
 
-        public List<(string property, IFilter filter)> GetFilters() => _filters;
+        public List<(string property, IFilter filter)> GetCustomFilters() => _customFilters;
 
         public void Visit(ObjectFilterNode node)
         {

@@ -2,15 +2,17 @@
 
 namespace QueryX.Filters
 {
-    public class EqualsFilter<TValue> : SingleValueFilterBase<TValue>
+    public class EqualsFilter<TValue> : IFilter
     {
-        public EqualsFilter(TValue value) : base(value)
+        public EqualsFilter(TValue value)
         {
+            Value = value;
         }
 
-        public override string Operator => OperatorType.EqualsFilter;
+        public string Operator => OperatorType.EqualsFilter;
+        public TValue Value { get; set; }
 
-        public override Expression GetExpression(Expression property)
+        public Expression GetExpression(Expression property)
         {
             return Expression.Equal(property, Expression.Constant(Value, typeof(TValue)));
         }

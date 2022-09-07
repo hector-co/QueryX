@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace QueryX.Filters
 {
-    public class NotInFilter<TValue> : FilterBase<TValue>
+    public class NotInFilter<TValue> : IFilter
     {
         private readonly List<TValue> _values;
 
@@ -13,11 +13,11 @@ namespace QueryX.Filters
             _values = values.ToList();
         }
 
-        public override string Operator => OperatorType.NotInFilter;
+        public string Operator => OperatorType.NotInFilter;
 
         public IEnumerable<TValue> Values => _values.AsReadOnly();
 
-        public override Expression GetExpression(Expression property)
+        public Expression GetExpression(Expression property)
         {
             return Expression.Not(Expression.Call(Expression.Constant(_values), typeof(List<TValue>).GetMethod("Contains"), property));
         }

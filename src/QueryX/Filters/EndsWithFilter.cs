@@ -2,15 +2,17 @@
 
 namespace QueryX.Filters
 {
-    public class EndsWithFilter : SingleValueFilterBase<string>
+    public class EndsWithFilter : IFilter
     {
-        public EndsWithFilter(string value) : base(value)
+        public EndsWithFilter(string value)
         {
+            Value = value;
         }
 
-        public override string Operator => OperatorType.EndsWithFilter;
+        public string Operator => OperatorType.EndsWithFilter;
+        public string Value { get; set; }
 
-        public override Expression GetExpression(Expression property)
+        public Expression GetExpression(Expression property)
         {
             return Expression.Call(property, typeof(string).GetMethod("EndsWith", new[] { typeof(string) }), Expression.Constant(Value, typeof(string)));
         }

@@ -121,7 +121,8 @@ namespace QueryX.Utils
             var optionsAttr = (QueryOptionsAttribute?)TypesAttributes[parentType][propertyInfo].FirstOrDefault(a => a is QueryOptionsAttribute);
 
             queryAttributeInfo = new QueryAttributeInfo
-                (propertyInfo, false, optionsAttr?.ModelPropertyName ?? propertyInfo.Name,
+                (propertyInfo, false,
+                string.IsNullOrEmpty(optionsAttr?.ModelPropertyName) ? propertyInfo.Name : optionsAttr.ModelPropertyName,
                 optionsAttr?.Operator ?? string.Empty,
                 optionsAttr?.CustomFiltering ?? false, optionsAttr?.IsSortable ?? true);
 

@@ -2,15 +2,17 @@
 
 namespace QueryX.Filters
 {
-    public class NotEqualsFilter<TValue> : SingleValueFilterBase<TValue>
+    public class NotEqualsFilter<TValue> : IFilter
     {
-        public NotEqualsFilter(TValue value) : base(value)
+        public NotEqualsFilter(TValue value)
         {
+            Value = value;
         }
 
-        public override string Operator => OperatorType.NotEqualsFilter;
+        public string Operator => OperatorType.NotEqualsFilter;
+        public TValue Value { get; set; }
 
-        public override Expression GetExpression(Expression property)
+        public Expression GetExpression(Expression property)
         {
             return Expression.NotEqual(property, Expression.Constant(Value, typeof(TValue)));
         }

@@ -40,7 +40,7 @@ namespace QueryX
 
                 var filterExp = visitor.GetFilterExpression();
                 query.SetFilterExpression(filterExp);
-                query.SetFilters(visitor.GetFilters());
+                query.SetCustomFilters(visitor.GetCustomFilters());
             }
 
             var orderBy = GetOrderByExp<TFilterModel, TModel>(queryModel.OrderBy);

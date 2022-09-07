@@ -2,15 +2,17 @@
 
 namespace QueryX.Filters
 {
-    public class StartsWithFilter : SingleValueFilterBase<string>
+    public class StartsWithFilter : IFilter
     {
-        public StartsWithFilter(string value) : base(value)
+        public StartsWithFilter(string value)
         {
+            Value = value;
         }
 
-        public override string Operator => OperatorType.StartsWithFilter;
+        public string Operator => OperatorType.StartsWithFilter;
+        public string Value { get; set; }
 
-        public override Expression GetExpression(Expression property)
+        public Expression GetExpression(Expression property)
         {
             return Expression.Call(property, typeof(string).GetMethod("StartsWith", new[] { typeof(string) }), Expression.Constant(Value, typeof(string)));
         }

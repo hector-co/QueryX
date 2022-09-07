@@ -2,15 +2,17 @@
 
 namespace QueryX.Filters
 {
-    public class LessThanFilter<TValue> : SingleValueFilterBase<TValue>
+    public class LessThanFilter<TValue> : IFilter
     {
-        public LessThanFilter(TValue value) : base(value)
+        public LessThanFilter(TValue value)
         {
+            Value = value;
         }
 
-        public override string Operator => OperatorType.LessThanFilter;
+        public string Operator => OperatorType.LessThanFilter;
+        public TValue Value { get; set; }
 
-        public override Expression GetExpression(Expression property)
+        public Expression GetExpression(Expression property)
         {
             return Expression.LessThan(property, Expression.Constant(Value, typeof(TValue)));
         }

@@ -12,14 +12,14 @@ namespace QueryX
     {
         private Expression<Func<TModel, bool>>? _filterExp;
         private readonly List<(Expression<Func<TModel, object>> sortExp, bool ascending)> _orderByExp;
-        private readonly List<(string property, IFilter filter)> _filters;
+        private readonly List<(string property, IFilter filter)> _customFilters;
         private readonly List<SortValue> _orderBy;
 
         public Query()
         {
             _filterExp = null;
             _orderByExp = new List<(Expression<Func<TModel, object>>, bool)>();
-            _filters = new List<(string property, IFilter filter)>();
+            _customFilters = new List<(string property, IFilter filter)>();
             _orderBy = new List<SortValue>();
         }
 
@@ -38,10 +38,10 @@ namespace QueryX
             _orderByExp.AddRange(orderBy);
         }
 
-        internal void SetFilters(List<(string property, IFilter filter)> filters)
+        internal void SetCustomFilters(List<(string property, IFilter filter)> filters)
         {
-            _filters.Clear();
-            _filters.AddRange(filters);
+            _customFilters.Clear();
+            _customFilters.AddRange(filters);
         }
 
         internal void SetOrderBy(List<SortValue> orderBy)
@@ -50,14 +50,13 @@ namespace QueryX
             _orderBy.AddRange(orderBy);
         }
 
-        public bool TryGetFilters<TValue>(Expression<Func<TFilterModel, TValue>> selector, out IEnumerable<FilterBase<TValue>> filters)
+        public bool TryGetCustomFilters<TValue>(Expression<Func<TFilterModel, TValue>> selector, out IEnumerable<IFilter> filters)
         {
             var propName = ((PropertyInfo)((MemberExpression)selector.Body).Member).Name;
 
-            filters = _filters
+            filters = _customFilters
                 .Where(f => f.property.Equals(propName, StringComparison.InvariantCultureIgnoreCase))
-                .Select(f => f.filter)
-                .Cast<FilterBase<TValue>>();
+                .Select(f => f.filter);
 
             return filters.Count() > 0;
         }
