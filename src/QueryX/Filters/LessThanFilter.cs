@@ -9,7 +9,7 @@ namespace QueryX.Filters
             Value = value;
         }
 
-        public string Operator => OperatorType.LessThanFilter;
+        public OperatorType Operator => OperatorType.LessThan;
         public TValue Value { get; set; }
 
         public Expression GetExpression(Expression property)

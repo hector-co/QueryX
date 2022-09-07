@@ -9,7 +9,7 @@ namespace QueryX.Filters
             Value = value;
         }
 
-        public string Operator => OperatorType.EndsWithFilter;
+        public OperatorType Operator => OperatorType.EndsWith;
         public string Value { get; set; }
 
         public Expression GetExpression(Expression property)

@@ -10,7 +10,7 @@ namespace QueryX.Filters
             Value = value;
         }
 
-        public string Operator => OperatorType.CiEqualsFilter;
+        public OperatorType Operator => OperatorType.CiEquals;
         public string Value { get; set; }
 
         public Expression GetExpression(Expression property)

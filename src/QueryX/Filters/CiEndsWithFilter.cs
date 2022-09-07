@@ -11,7 +11,7 @@ namespace QueryX.Filters
         }
 
         public string Value { get; set; }
-        public string Operator => OperatorType.CiEndsWithFilter;
+        public OperatorType Operator => OperatorType.CiEndsWith;
 
         public Expression GetExpression(Expression property)
         {

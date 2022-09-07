@@ -1,10 +1,11 @@
-﻿using System.Reflection;
+﻿using QueryX.Filters;
+using System.Reflection;
 
 namespace QueryX.Attributes
 {
     internal class QueryAttributeInfo
     {
-        public QueryAttributeInfo(PropertyInfo propertyInfo, bool isIgnored, string modelPropertyName = "", string @operator = "", bool customFiltering = false, bool isSortable = true)
+        public QueryAttributeInfo(PropertyInfo propertyInfo, bool isIgnored, string modelPropertyName = "", OperatorType @operator = OperatorType.None, bool customFiltering = false, bool isSortable = true)
         {
             PropertyInfo = propertyInfo;
             IsIgnored = isIgnored;
@@ -17,7 +18,7 @@ namespace QueryX.Attributes
         public PropertyInfo PropertyInfo { get; }
         public bool IsIgnored { get; }
         public string ModelPropertyName { get; }
-        public string Operator { get; }
+        public OperatorType Operator { get; }
         public bool CustomFiltering { get; }
         public bool IsSortable { get; } = true;
     }

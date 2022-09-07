@@ -4,7 +4,7 @@ namespace QueryX.Filters
 {
     public interface IFilter
     {
-        public string Operator { get; }
+        public OperatorType Operator { get; }
         Expression GetExpression(Expression property);
     }
 }

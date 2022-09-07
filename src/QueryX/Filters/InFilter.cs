@@ -13,7 +13,7 @@ namespace QueryX.Filters
             _values = values.ToList();
         }
 
-        public string Operator => OperatorType.InFilter;
+        public OperatorType Operator => OperatorType.In;
 
         public IEnumerable<TValue> Values => _values.AsReadOnly();
 

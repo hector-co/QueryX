@@ -79,7 +79,7 @@ namespace QueryX.Tests
         [QueryOptions(CustomFiltering = true)]
         public TestEnum EnumProperty1 { get; set; }
 
-        [QueryOptions(Operator = OperatorType.EqualsFilter, CustomFiltering = true)]
+        [QueryOptions(Operator = OperatorType.Equals, CustomFiltering = true)]
         public string StringProperty2 { get; set; } = string.Empty;
     }
 

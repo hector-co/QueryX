@@ -123,7 +123,7 @@ namespace QueryX.Utils
             queryAttributeInfo = new QueryAttributeInfo
                 (propertyInfo, false,
                 string.IsNullOrEmpty(optionsAttr?.ModelPropertyName) ? propertyInfo.Name : optionsAttr.ModelPropertyName,
-                optionsAttr?.Operator ?? string.Empty,
+                optionsAttr?.Operator ?? Filters.OperatorType.None,
                 optionsAttr?.CustomFiltering ?? false, optionsAttr?.IsSortable ?? true);
 
             return true;

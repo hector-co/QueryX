@@ -13,7 +13,7 @@ namespace QueryX.Filters
             _values = values.ToList();
         }
 
-        public string Operator => OperatorType.NotInFilter;
+        public OperatorType Operator => OperatorType.NotIn;
 
         public IEnumerable<TValue> Values => _values.AsReadOnly();
 

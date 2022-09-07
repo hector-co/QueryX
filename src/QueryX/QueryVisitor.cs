@@ -1,4 +1,5 @@
-﻿using QueryX.Filters;
+﻿using QueryX.Exceptions;
+using QueryX.Filters;
 using QueryX.Parser.Nodes;
 using QueryX.Utils;
 using System;
@@ -13,16 +14,35 @@ namespace QueryX
     {
         private readonly FilterFactory _filterFactory;
         private readonly List<(string property, IFilter filter)> _customFilters;
-
         private readonly Stack<Context> _contexts;
+        private readonly Dictionary<string, OperatorType> _operatorsMapping;
 
         public QueryVisitor(FilterFactory filterFactory)
         {
             _filterFactory = filterFactory;
             _customFilters = new List<(string property, IFilter filter)>();
-
             _contexts = new Stack<Context>();
             _contexts.Push(new Context(typeof(TFilterModel), string.Empty, Expression.Parameter(typeof(TModel), "m")));
+
+            _operatorsMapping = new Dictionary<string, OperatorType>
+            {
+                { "-=-*", OperatorType.CiContains },
+                { "-=*", OperatorType.CiEndsWith },
+                { "==*", OperatorType.CiEquals },
+                { "!=*", OperatorType.CiNotEquals },
+                { "=-*", OperatorType.CiStartsWith },
+                { "-=-", OperatorType.Contains },
+                { "-=", OperatorType.EndsWith },
+                { "==", OperatorType.Equals },
+                { ">", OperatorType.GreaterThan },
+                { ">=", OperatorType.GreaterThanOrEquals },
+                { "|=", OperatorType.In },
+                { "<", OperatorType.LessThan },
+                { "<=", OperatorType.LessThanOrEquals },
+                { "!=", OperatorType.NotEquals },
+                { "!|=", OperatorType.NotIn },
+                { "=-", OperatorType.StartsWith }
+            };
         }
 
         public void Visit(OrElseNode node)
@@ -77,6 +97,9 @@ namespace QueryX
 
         public void Visit(OperatorNode node)
         {
+            if (!_operatorsMapping.ContainsKey(node.Operator))
+                throw new QueryFormatException($"Operator not found: '{node.Operator}'");
+
             var context = _contexts.First();
 
             var propertyName = context.GetConcatenatedProperty(node.Property);
@@ -88,8 +111,8 @@ namespace QueryX
             }
 
             var valueType = queryAttributeInfo.PropertyInfo.PropertyType;
-            var op = string.IsNullOrEmpty(queryAttributeInfo!.Operator)
-                ? node.Operator
+            var op = queryAttributeInfo!.Operator == OperatorType.None
+                ? _operatorsMapping[node.Operator]
                 : queryAttributeInfo!.Operator;
 
             var filter = _filterFactory.Create(op, valueType, node.Values);

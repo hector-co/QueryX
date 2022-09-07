@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QueryX.Filters;
+using System;
 
 namespace QueryX.Attributes
 {
@@ -7,7 +8,7 @@ namespace QueryX.Attributes
     {
         public string ParamsPropertyName { get; set; } = string.Empty;
         public string ModelPropertyName { get; set; } = string.Empty;
-        public string Operator { get; set; } = string.Empty;
+        public OperatorType Operator { get; set; } = OperatorType.None;
         public bool IsSortable { get; set; } = true;
         public bool CustomFiltering { get; set; }
     }
