@@ -14,7 +14,7 @@ namespace QueryX.Filters
 
         public Expression GetExpression(Expression property)
         {
-            return Expression.Call(property, typeof(string).GetMethod("EndsWith", new[] { typeof(string) }), Expression.Constant(Value, typeof(string)));
+            return Expression.Call(property, Methods.EndsWith, Expression.Constant(Value, typeof(string)));
         }
     }
 }

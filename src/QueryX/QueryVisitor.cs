@@ -7,11 +7,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace QueryX
 {
     internal class QueryVisitor<TFilterModel, TModel> : INodeVisitor
     {
+        private static MethodInfo _anyMethod = typeof(Enumerable).GetMethods().First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
+
         private readonly FilterFactory _filterFactory;
         private readonly List<(string property, IFilter filter)> _customFilters;
         private readonly Stack<Context> _contexts;
@@ -186,8 +189,7 @@ namespace QueryX
 
                 var exp = Expression.Lambda(subContext.Stack.Last(), modelParameter);
 
-                var any = typeof(Enumerable).GetMethods()
-                    .First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
+                var any = _anyMethod;
                 var anyGeneric = any.MakeGenericMethod(targetType);
 
                 var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);

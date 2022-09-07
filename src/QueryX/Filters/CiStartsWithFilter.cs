@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace QueryX.Filters
 {
@@ -15,9 +14,9 @@ namespace QueryX.Filters
 
         public Expression GetExpression(Expression property)
         {
-            Expression toLowerExp = Expression.Call(property, typeof(string).GetMethod("ToLower", Type.EmptyTypes));
+            Expression toLowerExp = Expression.Call(property, Methods.ToLower);
 
-            return Expression.Call(toLowerExp, typeof(string).GetMethod("StartsWith", new[] { typeof(string) }), Expression.Constant(Value?.ToLower(), typeof(string)));
+            return Expression.Call(toLowerExp, Methods.StartsWith, Expression.Constant(Value?.ToLower(), typeof(string)));
         }
     }
 }

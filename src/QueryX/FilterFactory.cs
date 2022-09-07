@@ -12,6 +12,8 @@ namespace QueryX
 {
     public class FilterFactory
     {
+        private static MethodInfo _castMethod = typeof(Enumerable).GetMethod("Cast");
+
         private readonly IEnumerable<OperatorType> StringOperators = new[]
         {
             OperatorType.CiEquals, OperatorType.CiNotEquals, OperatorType.Contains, OperatorType.CiContains,
@@ -55,7 +57,7 @@ namespace QueryX
         private IEnumerable ConvertValues(Type valueType, IEnumerable<string?> values)
         {
             var converted = values.Select(v => ConvertValue(valueType, v));
-            return (IEnumerable)typeof(Enumerable).GetMethod("Cast")!.MakeGenericMethod(valueType).Invoke(null, new[] { converted })!;
+            return (IEnumerable)_castMethod.MakeGenericMethod(valueType).Invoke(null, new[] { converted })!;
         }
 
         private object? ConvertValue(Type valueType, string? value)

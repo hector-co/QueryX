@@ -19,7 +19,7 @@ namespace QueryX.Filters
 
         public Expression GetExpression(Expression property)
         {
-            return Expression.Not(Expression.Call(Expression.Constant(_values), typeof(List<TValue>).GetMethod("Contains"), property));
+            return Expression.Not(Expression.Call(Expression.Constant(_values), InFilter<TValue>.ListContains, property));
         }
     }
 }
