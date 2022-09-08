@@ -30,6 +30,21 @@ namespace QueryX.Tests
         public SampleObject Prop2 { get; set; } = new SampleObject();
     }
 
+    public class SampleObjectWithRelationshipFilter
+    {
+        [QueryOptions(ModelPropertyName = "Prop2")]
+        public SampleObjectFilter TheProp2 { get; set; } = new SampleObjectFilter();
+    }
+
+    public class SampleObjectFilter
+    {
+        [QueryOptions(ModelPropertyName = "Prop1")]
+        public int TheProp1 { get; set; }
+
+        [QueryOptions(ModelPropertyName = "Prop2")]
+        public string TheProp2 { get; set; } = string.Empty;
+    }
+
     public class TestModel1
     {
         [QueryOptions(CustomFiltering = true)]

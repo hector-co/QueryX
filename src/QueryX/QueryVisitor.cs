@@ -165,7 +165,7 @@ namespace QueryX
             if (!typeIsCollection)
             {
                 var subContext = new Context(context.ParentType, context.PropertyName, context.Parameter);
-                subContext.ConcatToPropertyName(queryAttributeInfo.ModelPropertyName);
+                subContext.ConcatToPropertyName(queryAttributeInfo.PropertyInfo.Name);
                 _contexts.Push(subContext);
 
                 Visit(node.Filter as dynamic);
@@ -180,9 +180,12 @@ namespace QueryX
             }
             else
             {
-                var targetType = type.GenericTypeArguments[0];
-                var modelParameter = Expression.Parameter(targetType, "s");
-                var subContext = new Context(targetType, context.PropertyName, modelParameter);
+                var modelPropertyType = queryAttributeInfo.ModelPropertyName.GetPropertyInfo<TModel>()!.PropertyType;
+                var modelTargetType = modelPropertyType.GenericTypeArguments[0];
+                var modelFilterTargetType = type.GenericTypeArguments[0];
+
+                var modelParameter = Expression.Parameter(modelTargetType, "s");
+                var subContext = new Context(modelFilterTargetType, context.PropertyName, modelParameter);
                 _contexts.Push(subContext);
 
                 Visit(node.Filter as dynamic);
@@ -190,7 +193,7 @@ namespace QueryX
                 var exp = Expression.Lambda(subContext.Stack.Last(), modelParameter);
 
                 var any = _anyMethod;
-                var anyGeneric = any.MakeGenericMethod(targetType);
+                var anyGeneric = any.MakeGenericMethod(modelTargetType);
 
                 var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
                 var notNullExp = Expression.NotEqual(propExp, Expression.Constant(null));

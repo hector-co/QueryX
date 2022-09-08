@@ -248,5 +248,20 @@ namespace QueryX.Tests
             result.Should().NotBeNull();
             result.Count().Should().Be(2);
         }
+
+        [Fact]
+        public void CustomFilterModelWithMappings()
+        {
+            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationshipFilter, SampleObjectWithRelationship>(
+                new QueryModel
+                {
+                    Filter = "theProp2(theProp2=='stringVal2')|theProp2.theProp2=='newvalue2'"
+                });
+
+            var queryable = SampleObjectWithRelationshipsCollectionWithNulls.AsQueryable().ApplyQuery(query);
+            var result = queryable.ToList();
+            result.Should().NotBeNull();
+            result.Count().Should().Be(2);
+        }
     }
 }
