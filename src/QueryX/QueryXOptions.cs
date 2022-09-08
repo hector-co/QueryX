@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace QueryX.AspNetCore
+namespace QueryX
 {
     public class QueryXOptions
     {

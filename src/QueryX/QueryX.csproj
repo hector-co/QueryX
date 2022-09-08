@@ -13,6 +13,7 @@
       <Description>Query string queries</Description>
       <RepositoryType>https://github.com/hector-co/QueryX</RepositoryType>
       <PackageTags>query string url</PackageTags>
+      <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
     <PackageReference Include="Superpower" Version="3.0.0" />
   </ItemGroup>
 

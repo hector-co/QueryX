@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using QueryX.AspNetCore;
 using System;
 
 namespace QueryX

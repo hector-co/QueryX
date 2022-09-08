@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\QueryX.AspNetCore\QueryX.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\QueryX\QueryX.csproj" />
   </ItemGroup>
 
 </Project>
