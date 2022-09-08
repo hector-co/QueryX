@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QueryX.Samples.WebApi.Models;
-using System.Linq.Expressions;
 
 namespace QueryX.Samples.WebApi.Controllers
 {
@@ -29,15 +28,14 @@ namespace QueryX.Samples.WebApi.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get([FromQuery] QueryModel queryParams)
+        public IActionResult Get([FromQuery] QueryModel queryModel)
         {
-            Expression<Func<Person, bool>> e = (p) => p.Addresses.Any(s => s.Name == "add1");
-
-            var query = _queryBuilder.CreateQuery<Person>(queryParams);
+            var query = _queryBuilder.CreateQuery<Person>(queryModel);
             var result = _context.Set<Person>()
                 .Include(p => p.Group)
                 .Include(p => p.Addresses)
-                .ApplyQuery(query).ToList();
+                .ApplyQuery(query)
+                .ToList();
             return Ok(result);
         }
     }

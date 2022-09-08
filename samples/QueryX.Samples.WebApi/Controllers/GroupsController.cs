@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using QueryX.Samples.WebApi.Models;
 
 namespace QueryX.Samples.WebApi.Controllers
@@ -21,15 +20,18 @@ namespace QueryX.Samples.WebApi.Controllers
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            var result = _context.Set<Group>().FirstOrDefault(g => g.Id == id);
+            var result = _context.Set<Group>()
+                .FirstOrDefault(g => g.Id == id);
             return Ok(result);
         }
 
         [HttpGet]
-        public IActionResult Get([FromQuery]QueryModel queryParams)
+        public IActionResult Get([FromQuery]QueryModel queryModel)
         {
-            var query = _queryBuilder.CreateQuery<Group>(queryParams);
-            var result = _context.Set<Group>().ApplyQuery(query).ToList();
+            var query = _queryBuilder.CreateQuery<Group>(queryModel);
+            var result = _context.Set<Group>()
+                .ApplyQuery(query)
+                .ToList();
             return Ok(result);
         }
     }

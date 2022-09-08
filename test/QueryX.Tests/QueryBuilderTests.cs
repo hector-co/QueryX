@@ -19,12 +19,12 @@ namespace QueryX.Tests
         [InlineData("-enumProperty1,-dateTimeProperty1,-stringProperty1", new[] { "EnumProperty1", "DateTimeProperty1", "StringProperty1" }, new[] { false, false, false })]
         public void OrderByTest(string orderBy, string[] properties, bool[] ascending)
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 OrderBy = orderBy
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.OrderBy.Count().Should().Be(properties.Length);
             for (var i = 0; i < query.OrderBy.Count(); i++)
@@ -39,12 +39,12 @@ namespace QueryX.Tests
         [InlineData("-enumPropertyx,-dateTimePropertyy,-stringPropertyz")]
         public void OrderByShouldIgnoreNonExistentPropertiesTest(string orderBy)
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 OrderBy = orderBy
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.OrderBy.Count().Should().Be(0);
         }
@@ -55,12 +55,12 @@ namespace QueryX.Tests
             var expectedIntValue = 8;
             var expectedBoolValue = false;
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 == {expectedIntValue}; boolProperty1 == {expectedBoolValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
@@ -80,12 +80,12 @@ namespace QueryX.Tests
         {
             var expectedDateTimeValue = new DateTime(2022, 1, 1);
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"dateTimeProperty1 == '{expectedDateTimeValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.DateTimeProperty1, out var dateTimeFilters).Should().BeTrue();
 
@@ -99,12 +99,12 @@ namespace QueryX.Tests
         {
             var exptectedEnumValue = TestEnum.Value1;
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"enumProperty1 == '{exptectedEnumValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.EnumProperty1, out var enumFilters).Should().BeTrue();
 
@@ -118,12 +118,12 @@ namespace QueryX.Tests
         {
             var exptectedStringValue = "testValue";
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 ==* '{exptectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
@@ -138,12 +138,12 @@ namespace QueryX.Tests
             var expectedIntValue = 8;
             var expectedBoolValue = false;
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 != {expectedIntValue}; boolProperty1 != {expectedBoolValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
@@ -163,12 +163,12 @@ namespace QueryX.Tests
         {
             var exptectedStringValue = "testValue";
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 !=* '{exptectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
@@ -182,12 +182,12 @@ namespace QueryX.Tests
         {
             var expectedIntValue = 8;
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 < {expectedIntValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
@@ -201,12 +201,12 @@ namespace QueryX.Tests
         {
             var expectedIntValue = 8;
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 <= {expectedIntValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
@@ -220,12 +220,12 @@ namespace QueryX.Tests
         {
             var expectedIntValue = 8;
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 > {expectedIntValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
@@ -239,12 +239,12 @@ namespace QueryX.Tests
         {
             var expectedIntValue = 8;
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 >= {expectedIntValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
@@ -258,12 +258,12 @@ namespace QueryX.Tests
         {
             var expectedStringValue = "test-string";
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 -=- '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
@@ -277,12 +277,12 @@ namespace QueryX.Tests
         {
             var expectedStringValue = "test-string";
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 -=-* '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
@@ -296,14 +296,14 @@ namespace QueryX.Tests
         {
             var expectedIntValue = 8;
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 -=- {expectedIntValue}"
             };
 
             var act = () =>
             {
-                var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+                var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
             };
 
             act.Should().Throw<QueryException>();
@@ -314,12 +314,12 @@ namespace QueryX.Tests
         {
             var expectedStringValue = "test-string";
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 =- '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
@@ -333,12 +333,12 @@ namespace QueryX.Tests
         {
             var expectedStringValue = "test-string";
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 =-* '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
@@ -352,12 +352,12 @@ namespace QueryX.Tests
         {
             var expectedStringValue = "test-string";
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 -= '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
@@ -371,12 +371,12 @@ namespace QueryX.Tests
         {
             var expectedStringValue = "test-string";
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 -=* '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
@@ -391,12 +391,12 @@ namespace QueryX.Tests
             var expectedIntValues = new[] { 3, 8, 15 };
             var expectedStringValues = new[] { "abc", "d" };
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 |= {string.Join(',', expectedIntValues)}; stringProperty1 |= {string.Join(',', expectedStringValues.Select(s=>$"'{s}'"))}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
@@ -416,12 +416,12 @@ namespace QueryX.Tests
         {
             var expectedIntValues = new[] { 3, 8, 15 };
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 !|= {string.Join(',', expectedIntValues)}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
@@ -440,12 +440,12 @@ namespace QueryX.Tests
         [InlineData("null", default(string))]
         public void EqualsFilterStringPropertyTest(string value, string expectedValue)
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 == {value}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
@@ -461,12 +461,12 @@ namespace QueryX.Tests
         [InlineData("' 4 '", 4)]
         public void EqualsFilterIntPropertyTest(string value, int expectedValue)
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 == {value}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
@@ -483,12 +483,12 @@ namespace QueryX.Tests
         [InlineData("null", null)]
         public void EqualsFilterNullableIntPropertyTest(string value, int? expectedValue)
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty2 == {value}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty2, out var intFilters).Should().BeTrue();
 
@@ -501,14 +501,14 @@ namespace QueryX.Tests
         [InlineData("'null'")]
         public void EqualsFilterIntPropertyWithInvalidValueShouldThrowAnExceptionTest(string value)
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 == {value}"
             };
 
             var act = () =>
             {
-                var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+                var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
             };
 
             act.Should().Throw<QueryFormatException>();
@@ -517,12 +517,12 @@ namespace QueryX.Tests
         [Fact]
         public void IgnoresPropertiesShouldNotBeIncludedAsFilters()
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = "stringProperty1 == 'testValue'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel2>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel2>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out _).Should().BeFalse();
         }
@@ -530,12 +530,12 @@ namespace QueryX.Tests
         [Fact]
         public void IgnoresPropertiesShouldNotBeIncludedAsOrderBy()
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 OrderBy = "stringProperty1"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel2>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel2>(queryModel);
 
             query.OrderBy.Any(o => o.PropertyName.Equals(nameof(TestModel2.StringProperty1), StringComparison.InvariantCultureIgnoreCase))
                 .Should().BeFalse();
@@ -544,12 +544,12 @@ namespace QueryX.Tests
         [Fact]
         public void QueryOptionAttrMapParamPropertyTest()
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = "intProperty1 == 8; string_property != 'testValue'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel3>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
 
             query.TryGetCustomFilters(p => p.IntProperty1, out _).Should().BeTrue();
 
@@ -561,13 +561,13 @@ namespace QueryX.Tests
         {
             var expectedOrderByProperty = "IntProperty1";
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = "intProperty1 == 8; doubleProperty1 != 55",
                 OrderBy = "intProperty1, dateTimeProperty1"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel3>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
 
             query.OrderBy.Count().Should().Be(1);
             query.OrderBy.First().PropertyName.Should().Be(expectedOrderByProperty);
@@ -576,12 +576,12 @@ namespace QueryX.Tests
         [Fact]
         public void QueryOptionHandleCustomFilterPropertyTest()
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = "intProperty1 == 8; enumProperty1 != 'value2'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel3>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
 
             query.TryGetCustomFilters(p => p.IntProperty1, out _).Should().BeTrue();
 
@@ -595,12 +595,12 @@ namespace QueryX.Tests
         {
             var expectedEnumValue = TestEnum.Value2;
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"enumProperty1 != 'value2'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel3>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
 
             query.TryGetCustomFilters(p => p.EnumProperty1, out var enumPropFilters).Should().BeTrue();
 
@@ -620,14 +620,14 @@ namespace QueryX.Tests
         [InlineData("stringProperty1 == ''test'")]
         public void FilterWithInvalidFormatShouldThrowException(string invalidFilters)
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = invalidFilters
             };
 
             var act = () =>
             {
-                var query = _queryBuilder.CreateQuery<TestModel3>(queryParams);
+                var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
             };
 
             act.Should().Throw<QueryFormatException>();
@@ -640,12 +640,12 @@ namespace QueryX.Tests
         [InlineData("'te st '", "te st ")]
         public void StringWithQuotesTest(string paramString, string expectedString)
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 == {paramString}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
@@ -658,12 +658,12 @@ namespace QueryX.Tests
             var intFromExpected = 5;
             var intToExpected = 15;
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 > {intFromExpected}; intProperty1 <= {intToExpected}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
@@ -682,12 +682,12 @@ namespace QueryX.Tests
         [InlineData("=-")]
         public void DefaultOperatorTest(string @operator)
         {
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty2 {@operator} 'test value'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel3>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty2, out var stringFilters).Should().BeTrue();
 
@@ -699,12 +699,12 @@ namespace QueryX.Tests
         {
             var exptectedStringValue = "testValue";
 
-            var queryParams = new QueryModel
+            var queryModel = new QueryModel
             {
                 Filter = $"stringProperty2 ==* '{exptectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryParams);
+            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeFalse();
         }
