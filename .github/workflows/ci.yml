@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  create:
+    branches: 
+      - release/**
   push:
     branches: [ "main" ]
   pull_request:
@@ -17,9 +20,8 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+    - name: Build, Test and Publish
+      env:
+        NUGET_API_KEY: ${{ secrets.MYGET_MEDIATR_CI_API_KEY }}
+      run: ./Build.ps1
+      shell: pwsh
