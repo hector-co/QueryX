@@ -61,30 +61,30 @@ namespace QueryX.Parser
             from objectFilter in Parse.Ref(() => Group!)
             select (NodeBase)new ObjectFilterNode(property, objectFilter);
 
-        static TokenListParser<QueryToken, NodeBase> OrElse { get; } =
-            from filter1 in Parse.Ref(() => Filter!).Or(Parse.Ref(() => Group!))
-            from op in Token.EqualTo(QueryToken.Or)
-            from filter2 in Parse.Ref(() => Exp!)
-            select (NodeBase)new OrElseNode(filter1, filter2);
-
-        static TokenListParser<QueryToken, NodeBase> AndAlso { get; } =
-            from filter1 in Parse.Ref(() => Filter!).Or(Parse.Ref(() => Group!))
-            from op in Token.EqualTo(QueryToken.And)
-            from filter2 in Parse.Ref(() => Exp!)
-            select (NodeBase)new AndAlsoNode(filter1, filter2);
-
         static TokenListParser<QueryToken, NodeBase> Group { get; } =
             from lParen in Token.EqualTo(QueryToken.LParen)
             from filter in Parse.Ref(() => Exp!)
             from rParen in Token.EqualTo(QueryToken.RParen)
             select filter;
 
+        static TokenListParser<QueryToken, NodeBase> OrElse { get; } =
+            from filter1 in Parse.Ref(() => ObjectFilter!).Try().Or(Parse.Ref(() => Filter!)).Try().Or(Parse.Ref(() => Group!)).Try()
+            from op in Token.EqualTo(QueryToken.Or)
+            from filter2 in Parse.Ref(() => Exp!)
+            select (NodeBase)new OrElseNode(filter1, filter2);
+
+        static TokenListParser<QueryToken, NodeBase> AndAlso { get; } =
+            from filter1 in Parse.Ref(() => ObjectFilter!).Try().Or(Parse.Ref(() => Filter!)).Try().Or(Parse.Ref(() => Group!)).Try()
+            from op in Token.EqualTo(QueryToken.And)
+            from filter2 in Parse.Ref(() => Exp!)
+            select (NodeBase)new AndAlsoNode(filter1, filter2);
+
         static TokenListParser<QueryToken, NodeBase> Exp { get; } =
             OrElse.Try()
             .Or(AndAlso).Try()
             .Or(ObjectFilter).Try()
-            .Or(Group).Try()
             .Or(Filter).Try()
+            .Or(Group).Try()
             .Select(s => s);
 
         static TokenListParser<QueryToken, NodeBase> Instance { get; } = Exp.AtEnd();

@@ -1,8 +1,4 @@
 ﻿using FluentAssertions;
-using QueryX.Filters;
-using System;
-using System.Linq;
-using Xunit;
 
 namespace QueryX.Tests
 {
@@ -14,8 +10,8 @@ namespace QueryX.Tests
         private static readonly SampleObject SampleoObject4 = new(4, "newvalue2", false, new DateTime(2017, 12, 11));
         private static readonly SampleObject SampleoObject5 = new(5, "custom", true, new DateTime(2016, 7, 7));
 
-        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship1 = new() { Prop1 = SampleoObject1 };
-        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship2 = new() { Prop1 = null };
+        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship1 = new() { Prop1 = SampleoObject1, Prop2 = SampleoObject2 };
+        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship2 = new() { Prop1 = null, Prop2 = SampleoObject4 };
         private static readonly SampleObjectWithRelationship SampleObjectWithRelationship3 = new() { Prop1 = SampleoObject3 };
         private static readonly SampleObjectWithRelationship SampleObjectWithRelationship4 = new() { Prop1 = SampleoObject5 };
 
@@ -236,6 +232,21 @@ namespace QueryX.Tests
             var result = queryable.ToList();
             result.Should().NotBeNull();
             result.Count().Should().Be(1);
+        }
+
+        [Fact]
+        public void CombineQueryWithObjectProperties()
+        {
+            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(
+                new QueryModel
+                {
+                    Filter = "prop2(prop2=='stringVal2')|prop2.prop2=='newvalue2'"
+                });
+
+            var queryable = SampleObjectWithRelationshipsCollectionWithNulls.AsQueryable().ApplyQuery(query);
+            var result = queryable.ToList();
+            result.Should().NotBeNull();
+            result.Count().Should().Be(2);
         }
     }
 }

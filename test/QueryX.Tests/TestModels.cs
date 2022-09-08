@@ -27,6 +27,7 @@ namespace QueryX.Tests
     public class SampleObjectWithRelationship
     {
         public SampleObject? Prop1 { get; set; } = new SampleObject();
+        public SampleObject Prop2 { get; set; } = new SampleObject();
     }
 
     public class TestModel1
