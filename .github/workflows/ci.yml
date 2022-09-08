@@ -22,6 +22,6 @@ jobs:
         dotnet-version: 6.0.x
     - name: Build, Test and Publish
       env:
-        NUGET_API_KEY: ${{ secrets.MYGET_MEDIATR_CI_API_KEY }}
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
       run: ./Build.ps1
       shell: pwsh
