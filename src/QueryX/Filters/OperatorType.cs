@@ -3,21 +3,23 @@
     public enum OperatorType
     {
         None,
-        Equals,
+        CiContains,
+        CiEndsWith,
         CiEquals,
-        NotEquals,
+        CiIn,
         CiNotEquals,
-        LessThan,
-        LessThanOrEquals,
+        CiNotIn,
+        CiStartsWith,
+        Contains,
+        Equals,
+        EndsWith,
         GreaterThan,
         GreaterThanOrEquals,
-        Contains,
-        CiContains,
-        StartsWith,
-        CiStartsWith,
-        EndsWith,
-        CiEndsWith,
         In,
-        NotIn
+        LessThan,
+        LessThanOrEquals,
+        NotEquals,
+        NotIn,
+        StartsWith
     }
 }

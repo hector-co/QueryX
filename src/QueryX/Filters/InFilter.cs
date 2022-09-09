@@ -9,7 +9,7 @@ namespace QueryX.Filters
     {
         private static readonly MethodInfo _listContains = typeof(List<TValue>).GetMethod("Contains");
 
-        private List<TValue> _values;
+        private readonly List<TValue> _values;
 
         public InFilter(IEnumerable<TValue> values)
         {

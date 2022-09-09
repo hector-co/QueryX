@@ -16,8 +16,8 @@ namespace QueryX
 
         private readonly IEnumerable<OperatorType> StringOperators = new[]
         {
-            OperatorType.CiEquals, OperatorType.CiNotEquals, OperatorType.Contains, OperatorType.CiContains,
-            OperatorType.StartsWith, OperatorType.CiStartsWith, OperatorType.EndsWith, OperatorType.CiEndsWith
+            OperatorType.CiEquals, OperatorType.CiNotEquals, OperatorType.CiIn, OperatorType.CiContains, OperatorType.CiEndsWith,
+            OperatorType.CiNotIn, OperatorType.CiStartsWith, OperatorType.Contains, OperatorType.EndsWith, OperatorType.StartsWith
         };
 
         private readonly Dictionary<OperatorType, Type> _filterTypes;
@@ -48,7 +48,7 @@ namespace QueryX
                 ? filterType.MakeGenericType(valueType)
             : filterType;
 
-            if (@operator == OperatorType.In || @operator == OperatorType.NotIn)
+            if (@operator == OperatorType.In || @operator == OperatorType.NotIn || @operator == OperatorType.CiIn || @operator == OperatorType.CiNotIn)
                 return CreateFilterInstance(completeFilterType, typeof(IEnumerable<>).MakeGenericType(valueType), ConvertValues(valueType, values));
             else
                 return CreateFilterInstance(completeFilterType, valueType, ConvertValue(valueType, values.First()));
@@ -86,22 +86,24 @@ namespace QueryX
 
         private void AddDefaultFilterTypes()
         {
-            AddFilterType(OperatorType.Equals, typeof(EqualsFilter<>));
+            AddFilterType(OperatorType.CiContains, typeof(CiContainsFilter));
+            AddFilterType(OperatorType.CiEndsWith, typeof(CiEndsWithFilter));
             AddFilterType(OperatorType.CiEquals, typeof(CiEqualsFilter));
-            AddFilterType(OperatorType.NotEquals, typeof(NotEqualsFilter<>));
+            AddFilterType(OperatorType.CiIn, typeof(CiInFilter));
             AddFilterType(OperatorType.CiNotEquals, typeof(CiNotEqualsFilter));
-            AddFilterType(OperatorType.LessThan, typeof(LessThanFilter<>));
-            AddFilterType(OperatorType.LessThanOrEquals, typeof(LessThanOrEqualsFilter<>));
+            AddFilterType(OperatorType.CiNotIn, typeof(CiNotInFilter));
+            AddFilterType(OperatorType.CiStartsWith, typeof(CiStartsWithFilter));
+            AddFilterType(OperatorType.Contains, typeof(ContainsFilter));
+            AddFilterType(OperatorType.EndsWith, typeof(EndsWithFilter));
+            AddFilterType(OperatorType.Equals, typeof(EqualsFilter<>));
             AddFilterType(OperatorType.GreaterThan, typeof(GreaterThanFilter<>));
             AddFilterType(OperatorType.GreaterThanOrEquals, typeof(GreaterThanOrEqualsFilter<>));
-            AddFilterType(OperatorType.Contains, typeof(ContainsFilter));
-            AddFilterType(OperatorType.CiContains, typeof(CiContainsFilter));
-            AddFilterType(OperatorType.StartsWith, typeof(StartsWithFilter));
-            AddFilterType(OperatorType.CiStartsWith, typeof(CiStartsWithFilter));
-            AddFilterType(OperatorType.EndsWith, typeof(EndsWithFilter));
-            AddFilterType(OperatorType.CiEndsWith, typeof(CiEndsWithFilter));
             AddFilterType(OperatorType.In, typeof(InFilter<>));
+            AddFilterType(OperatorType.LessThan, typeof(LessThanFilter<>));
+            AddFilterType(OperatorType.LessThanOrEquals, typeof(LessThanOrEqualsFilter<>));
+            AddFilterType(OperatorType.NotEquals, typeof(NotEqualsFilter<>));
             AddFilterType(OperatorType.NotIn, typeof(NotInFilter<>));
+            AddFilterType(OperatorType.StartsWith, typeof(StartsWithFilter));
         }
     }
 }
