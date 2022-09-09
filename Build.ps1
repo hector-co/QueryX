@@ -33,15 +33,3 @@ exec { & dotnet build -c Release }
 exec { & dotnet test -c Release -r $artifacts --no-build -l trx --verbosity=normal }
 
 exec { & dotnet pack .\src\QueryX\QueryX.csproj -c Release -o $artifacts --no-build }
-
-if ([string]::IsNullOrEmpty($Env:NUGET_API_KEY)) {
-    Write-Host "${scriptName}: NUGET_API_KEY is empty or not set. Skipped pushing package(s)."
-} else {
-    Get-ChildItem $artifacts -Filter "*.nupkg" | ForEach-Object {
-        Write-Host "$($scriptName): Pushing $($_.Name)"
-        dotnet nuget push $_ --source 'https://api.nuget.org/v3/index.json' --api-key $Env:NUGET_API_KEY
-        if ($lastexitcode -ne 0) {
-            throw ("Exec: " + $errorMessage)
-        }
-    }
-}

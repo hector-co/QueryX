@@ -20,8 +20,11 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
-    - name: Build, Test and Publish
+    - name: Build and Test
+      run: ./Build.ps1
+      shell: pwsh
+    - name: Push to Nuget
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      run: ./Build.ps1
+      run: ./Push.ps1
       shell: pwsh
