@@ -28,6 +28,7 @@ namespace QueryX.Parser
             new TokenizerBuilder<QueryToken>()
                 .Ignore(Span.WhiteSpace)
                 .Match(Operator, QueryToken.Operator)
+                .Match(Character.EqualTo('*'), QueryToken.Asterisk)
                 .Match(Character.EqualTo('('), QueryToken.LParen)
                 .Match(Character.EqualTo(')'), QueryToken.RParen)
                 .Match(Character.In('&', ';'), QueryToken.And)

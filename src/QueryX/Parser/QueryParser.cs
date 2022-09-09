@@ -56,10 +56,16 @@ namespace QueryX.Parser
             from values in ValueArray
             select (NodeBase)new OperatorNode(property, op, values);
 
-        static TokenListParser<QueryToken, NodeBase> ObjectFilter { get; } =
+        static TokenListParser<QueryToken, NodeBase> AnyObjectFilter { get; } =
             from property in Property
             from objectFilter in Parse.Ref(() => Group!)
             select (NodeBase)new ObjectFilterNode(property, objectFilter);
+
+        static TokenListParser<QueryToken, NodeBase> AllObjectFilter { get; } =
+            from property in Property
+            from flag in Token.EqualTo(QueryToken.Asterisk)
+            from objectFilter in Parse.Ref(() => Group!)
+            select (NodeBase)new ObjectFilterNode(property, objectFilter, true);
 
         static TokenListParser<QueryToken, NodeBase> Group { get; } =
             from lParen in Token.EqualTo(QueryToken.LParen)
@@ -68,13 +74,19 @@ namespace QueryX.Parser
             select filter;
 
         static TokenListParser<QueryToken, NodeBase> OrElse { get; } =
-            from filter1 in Parse.Ref(() => ObjectFilter!).Try().Or(Parse.Ref(() => Filter!)).Try().Or(Parse.Ref(() => Group!)).Try()
+            from filter1 in Parse.Ref(() => AnyObjectFilter!).Try()
+                .Or(Parse.Ref(() => AllObjectFilter!)).Try()
+                .Or(Parse.Ref(() => Filter!)).Try()
+                .Or(Parse.Ref(() => Group!)).Try()
             from op in Token.EqualTo(QueryToken.Or)
             from filter2 in Parse.Ref(() => Exp!)
             select (NodeBase)new OrElseNode(filter1, filter2);
 
         static TokenListParser<QueryToken, NodeBase> AndAlso { get; } =
-            from filter1 in Parse.Ref(() => ObjectFilter!).Try().Or(Parse.Ref(() => Filter!)).Try().Or(Parse.Ref(() => Group!)).Try()
+            from filter1 in Parse.Ref(() => AnyObjectFilter!).Try()
+                .Or(Parse.Ref(() => AllObjectFilter!)).Try()
+                .Or(Parse.Ref(() => Filter!)).Try()
+                .Or(Parse.Ref(() => Group!)).Try()
             from op in Token.EqualTo(QueryToken.And)
             from filter2 in Parse.Ref(() => Exp!)
             select (NodeBase)new AndAlsoNode(filter1, filter2);
@@ -82,7 +94,8 @@ namespace QueryX.Parser
         static TokenListParser<QueryToken, NodeBase> Exp { get; } =
             OrElse.Try()
             .Or(AndAlso).Try()
-            .Or(ObjectFilter).Try()
+            .Or(AnyObjectFilter).Try()
+            .Or(AllObjectFilter).Try()
             .Or(Filter).Try()
             .Or(Group).Try()
             .Select(s => s);

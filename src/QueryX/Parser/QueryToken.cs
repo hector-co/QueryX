@@ -8,6 +8,7 @@
         And,
         Or,
         Comma,
+        Asterisk,
         Operator,
         String,
         Number,
