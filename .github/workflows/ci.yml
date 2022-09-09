@@ -1,9 +1,6 @@
 name: CI
 
 on:
-  create:
-    branches: 
-      - release/**
   push:
     branches: [ "main" ]
   pull_request:
