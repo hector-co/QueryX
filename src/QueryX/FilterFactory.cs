@@ -20,14 +20,37 @@ namespace QueryX
             OperatorType.CiNotIn, OperatorType.CiStartsWith, OperatorType.Contains, OperatorType.EndsWith, OperatorType.StartsWith
         };
 
-        private readonly Dictionary<OperatorType, Type> _filterTypes;
-
         private readonly QueryHelper _queryHelper;
+        private readonly Dictionary<OperatorType, Type> _filterTypes;
+        private readonly Dictionary<string, OperatorType> _operatorsMapping;
 
         public FilterFactory(QueryHelper queryHelper)
         {
             _filterTypes = new Dictionary<OperatorType, Type>();
             _queryHelper = queryHelper;
+
+            _operatorsMapping = new Dictionary<string, OperatorType>
+            {
+                { "-=-*", OperatorType.CiContains },
+                { "-=*", OperatorType.CiEndsWith },
+                { "==*", OperatorType.CiEquals },
+                { "|=*", OperatorType.CiIn },
+                { "!=*", OperatorType.CiNotEquals },
+                { "!|=*", OperatorType.CiNotIn },
+                { "=-*", OperatorType.CiStartsWith },
+                { "-=-", OperatorType.Contains },
+                { "-=", OperatorType.EndsWith },
+                { "==", OperatorType.Equals },
+                { ">", OperatorType.GreaterThan },
+                { ">=", OperatorType.GreaterThanOrEquals },
+                { "|=", OperatorType.In },
+                { "<", OperatorType.LessThan },
+                { "<=", OperatorType.LessThanOrEquals },
+                { "!=", OperatorType.NotEquals },
+                { "!|=", OperatorType.NotIn },
+                { "=-", OperatorType.StartsWith }
+            };
+
             AddDefaultFilterTypes();
         }
 
@@ -36,6 +59,18 @@ namespace QueryX
             if (_filterTypes.ContainsKey(@operator))
                 throw new QueryException($"Duplicated filter operator: '{@operator}'");
             _filterTypes.Add(@operator, filterType);
+        }
+
+        public IFilter Create(string @operator, Type valueType, IEnumerable<string?> values, OperatorType defaultOperator = OperatorType.None)
+        {
+            if (!_operatorsMapping.ContainsKey(@operator))
+                throw new QueryFormatException($"Operator not found: '{@operator}'");
+
+            var op = defaultOperator == OperatorType.None
+                ? _operatorsMapping[@operator]
+                : defaultOperator;
+
+            return Create(op, valueType, values);
         }
 
         public IFilter Create(OperatorType @operator, Type valueType, IEnumerable<string?> values)

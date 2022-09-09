@@ -1,5 +1,5 @@
 ﻿using QueryX.Filters;
-using QueryX.Utils;
+using QueryX.Parser.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,46 +8,27 @@ using System.Reflection;
 
 namespace QueryX
 {
-    public class Query<TFilterModel, TModel>
+    public class Query<TFilterModel>
     {
-        private Expression<Func<TModel, bool>>? _filterExp;
-        private readonly List<(Expression<Func<TModel, object>> sortExp, bool ascending)> _orderByExp;
         private readonly List<(string property, IFilter filter)> _customFilters;
-        private readonly List<SortValue> _orderBy;
 
         public Query()
         {
-            _filterExp = null;
-            _orderByExp = new List<(Expression<Func<TModel, object>>, bool)>();
+            FilterInstances = new Dictionary<OperatorNode, IFilter>();
             _customFilters = new List<(string property, IFilter filter)>();
-            _orderBy = new List<SortValue>();
+            OrderBy = new List<SortValue>();
         }
 
-        public IEnumerable<SortValue> OrderBy => _orderBy.AsReadOnly();
+        internal Dictionary<OperatorNode, IFilter> FilterInstances { get; set; }
+        public NodeBase? Filter { get; set; }
+        public List<SortValue> OrderBy { get; set; }
         public int Offset { get; set; }
         public int Limit { get; set; }
-
-        internal void SetFilterExpression(Expression<Func<TModel, bool>>? filterExpression)
-        {
-            _filterExp = filterExpression;
-        }
-
-        internal void SetOrderByExpression(List<(Expression<Func<TModel, object>>, bool)> orderBy)
-        {
-            _orderByExp.Clear();
-            _orderByExp.AddRange(orderBy);
-        }
 
         internal void SetCustomFilters(List<(string property, IFilter filter)> filters)
         {
             _customFilters.Clear();
             _customFilters.AddRange(filters);
-        }
-
-        internal void SetOrderBy(List<SortValue> orderBy)
-        {
-            _orderBy.Clear();
-            _orderBy.AddRange(orderBy);
         }
 
         public bool TryGetCustomFilters<TValue>(Expression<Func<TFilterModel, TValue>> selector, out IEnumerable<IFilter> filters)
@@ -61,55 +42,5 @@ namespace QueryX
             return filters.Count() > 0;
         }
 
-        public IQueryable<TModel> ApplyTo(IQueryable<TModel> source, bool applyOrderingAndPaging = true)
-        {
-            if (_filterExp != null)
-                source = source.Where(_filterExp);
-
-            if (!applyOrderingAndPaging)
-                return source;
-
-            source = ApplyOrderingAndPaging(source);
-
-            return source;
-        }
-
-        public IQueryable<TModel> ApplyOrderingAndPaging(IQueryable<TModel> source)
-        {
-            var applyThenBy = false;
-            foreach (var (sortExp, ascending) in _orderByExp)
-            {
-                if (ascending)
-                {
-                    if (!applyThenBy)
-                    {
-                        source = source.OrderBy(sortExp);
-                    }
-                    else
-                    {
-                        source = ((IOrderedQueryable<TModel>)source).ThenBy(sortExp);
-                    }
-                }
-                else
-                {
-                    if (!applyThenBy)
-                    {
-                        source = source.OrderByDescending(sortExp);
-                    }
-                    else
-                    {
-                        source = ((IOrderedQueryable<TModel>)source).ThenByDescending(sortExp);
-                    }
-                }
-                applyThenBy = true;
-            }
-
-            if (Offset > 0)
-                source = source.Skip(Offset);
-            if (Limit > 0)
-                source = source.Take(Limit);
-
-            return source;
-        }
     }
 }

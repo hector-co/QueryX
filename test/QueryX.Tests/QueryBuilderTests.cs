@@ -29,7 +29,7 @@ namespace QueryX.Tests
             query.OrderBy.Count().Should().Be(properties.Length);
             for (var i = 0; i < query.OrderBy.Count(); i++)
             {
-                query.OrderBy.ElementAt(i).PropertyName.Should().Be(properties[i]);
+                query.OrderBy.ElementAt(i).PropertyName.Should().BeEquivalentTo(properties[i]);
                 query.OrderBy.ElementAt(i).Ascending.Should().Be(ascending[i]);
             }
         }
@@ -608,7 +608,7 @@ namespace QueryX.Tests
             var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
 
             query.OrderBy.Count().Should().Be(1);
-            query.OrderBy.First().PropertyName.Should().Be(expectedOrderByProperty);
+            query.OrderBy.First().PropertyName.Should().BeEquivalentTo(expectedOrderByProperty);
         }
 
         [Fact]

@@ -210,6 +210,30 @@ namespace QueryX.Tests
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
+        public void SortWithMappedProperties(bool ascending)
+        {
+            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationshipFilter>(new QueryModel
+            {
+                OrderBy = "therop1.theprop2"
+            });
+
+            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
+            var result = queryable.ToList();
+
+
+            if (ascending)
+            {
+                SampleObjectWithRelationshipsCollection.OrderBy(p => p.Prop1?.Prop2).Should().BeEquivalentTo(result);
+            }
+            if (!ascending)
+            {
+                SampleObjectWithRelationshipsCollection.OrderByDescending(p => p.Prop1?.Prop2).Should().BeEquivalentTo(result);
+            }
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         public void DefaultSortWithInvalidPropertyNameShouldNotThrowException(bool ascending)
         {
             var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(new QueryModel
@@ -269,9 +293,24 @@ namespace QueryX.Tests
         }
 
         [Fact]
+        public void FilterWithCustomQueryObject()
+        {
+            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationshipQuery, SampleObjectWithRelationship>(
+                new QueryModel
+                {
+                    Filter = "prop3(prop2=='stringVal2')|prop2.prop2=='stringVal2'"
+                });
+
+            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
+            var result = queryable.ToList();
+            result.Should().NotBeNull();
+            result.Count().Should().Be(2);
+        }
+
+        [Fact]
         public void CustomFilterModelWithMappings()
         {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationshipFilter, SampleObjectWithRelationship>(
+            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationshipFilter>(
                 new QueryModel
                 {
                     Filter = "theProp3(theProp2=='stringVal2')|theProp2.theProp2=='stringVal2'"

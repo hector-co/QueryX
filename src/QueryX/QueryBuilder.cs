@@ -4,9 +4,9 @@ using QueryX.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using QueryX.Parser.Nodes;
 using QueryX.Filters;
+using System.Collections;
 
 namespace QueryX
 {
@@ -19,14 +19,15 @@ namespace QueryX
             _filterFactory = filterFactory;
         }
 
-        public Query<TFilterModel, TFilterModel> CreateQuery<TFilterModel>(QueryModel queryModel)
+        public Query<TFilterModel> CreateQuery<TFilterModel>(QueryModel queryModel)
         {
-            return CreateQuery<TFilterModel, TFilterModel>(queryModel);
+            return CreateQuery<Query<TFilterModel>, TFilterModel>(queryModel);
         }
 
-        public Query<TFilterModel, TModel> CreateQuery<TFilterModel, TModel>(QueryModel queryModel)
+        public TQuery CreateQuery<TQuery, TFilterModel>(QueryModel queryModel)
+            where TQuery : Query<TFilterModel>, new()
         {
-            var query = new Query<TFilterModel, TModel>
+            var query = new TQuery
             {
                 Offset = queryModel.Offset,
                 Limit = queryModel.Limit
@@ -50,25 +51,30 @@ namespace QueryX
                     throw new QueryFormatException("Error parsing input", ex);
                 }
 
-                var visitor = new QueryVisitor<TFilterModel, TModel>(_filterFactory);
-                root!.Accept(visitor);
+                var filterNodes = new List<(OperatorNode node, Type type, OperatorType defaultOp)>();
+                var customFilterNodes = new List<(OperatorNode node, string propName, Type type, OperatorType defaultOp)>();
+                var simplifiedNodes = SimplifyNodes(typeof(TFilterModel), root! as dynamic, filterNodes, customFilterNodes);
 
-                var filterExp = visitor.GetFilterExpression();
-                query.SetFilterExpression(filterExp);
-                query.SetCustomFilters(visitor.GetCustomFilters());
+                var filterNodeInstances = filterNodes
+                    .Select(f => (f.node, filter: _filterFactory.Create(f.node.Operator, f.type, f.node.Values, f.defaultOp)))
+                    .ToList();
+                var customFilters = customFilterNodes
+                    .Select(f => (f.propName, _filterFactory.Create(f.node.Operator, f.type, f.node.Values, f.defaultOp)))
+                    .ToList();
+
+                query.Filter = simplifiedNodes;
+                query.FilterInstances = filterNodeInstances.ToDictionary(f => f.node, f => f.filter);
+                query.SetCustomFilters(customFilters);
             }
 
-            var orderBy = GetOrderByExp<TFilterModel, TModel>(queryModel.OrderBy);
-            query.SetOrderBy(orderBy.Select(t => new SortValue { PropertyName = t.propertyName, Ascending = t.ascending }).ToList());
-            query.SetOrderByExpression(orderBy.Select(t => (t.sortExp, t.ascending)).ToList());
+            query.OrderBy = GetOrderBy<TFilterModel>(queryModel.OrderBy);
 
             return query;
         }
 
-        private static List<(Expression<Func<TModel, object>> sortExp, string propertyName, bool ascending)> GetOrderByExp
-            <TFilterModel, TModel>(string orderBy)
+        private static List<SortValue> GetOrderBy<TFilterModel>(string orderBy)
         {
-            var result = new List<(Expression<Func<TModel, object>> sortExp, string propertyName, bool ascending)>();
+            var result = new List<SortValue>();
             var orderingTokens = QueryParser.GetOrderingTokens(orderBy);
             foreach (var (propName, ascending) in orderingTokens)
             {
@@ -78,18 +84,91 @@ namespace QueryX
                 if (queryAttrInfo!.IsIgnored || !queryAttrInfo!.IsSortable)
                     continue;
 
-                var modelParameter = Expression.Parameter(typeof(TModel), "m");
-                var propExp = queryAttrInfo.ModelPropertyName.GetPropertyExpression(modelParameter);
-
-                if (propExp == null)
-                    continue;
-
-                var sortExp = Expression.Lambda<Func<TModel, object>>(Expression.Convert(propExp, typeof(object)), modelParameter);
-
-                result.Add((sortExp, queryAttrInfo.PropertyInfo.Name, ascending));
+                result.Add(new SortValue
+                {
+                    PropertyName = propName,
+                    Ascending = ascending
+                });
             }
 
             return result;
+        }
+
+        private static NodeBase? SimplifyNodes(Type parentType, AndAlsoNode node,
+            List<(OperatorNode node, Type type, OperatorType defaultOp)> filterNodes, List<(OperatorNode, string, Type, OperatorType defaultOp)> customFilters)
+        {
+            var left = (NodeBase?)SimplifyNodes(parentType, node.Left as dynamic, filterNodes, customFilters);
+            var right = (NodeBase?)SimplifyNodes(parentType, node.Right as dynamic, filterNodes, customFilters);
+
+            if (left == null && right == null)
+                return null;
+
+            if (left == null)
+                return right;
+
+            if (right == null)
+                return left;
+
+            return new AndAlsoNode(left, right);
+        }
+
+        private static NodeBase? SimplifyNodes(Type parentType, OrElseNode node,
+            List<(OperatorNode node, Type type, OperatorType defaultOp)> filterNodes, List<(OperatorNode, string, Type, OperatorType defaultOp)> customFilters)
+        {
+            var left = (NodeBase?)SimplifyNodes(parentType, node.Left as dynamic, filterNodes, customFilters);
+            var right = (NodeBase?)SimplifyNodes(parentType, node.Right as dynamic, filterNodes, customFilters);
+
+            if (left == null && right == null)
+                return null;
+
+            if (left == null)
+                return right;
+
+            if (right == null)
+                return left;
+
+            return new OrElseNode(left, right);
+        }
+
+        private static NodeBase? SimplifyNodes(Type parentType, ObjectFilterNode node,
+            List<(OperatorNode node, Type type, OperatorType defaultOp)> filterNodes, List<(OperatorNode, string, Type, OperatorType defaultOp)> customFilters)
+        {
+            if (!node.Property.TryGetPropertyQueryInfo(parentType, out var queryAttributeInfo))
+                return null;
+
+            var type = queryAttributeInfo!.PropertyInfo.PropertyType;
+            var typeIsCollection = (type.GetInterface(nameof(IEnumerable)) != null);
+
+            if (!typeIsCollection)
+                throw new QueryFormatException();
+
+            if (queryAttributeInfo!.IsIgnored || queryAttributeInfo!.CustomFiltering)
+                return null;
+
+            var targetType = queryAttributeInfo!.PropertyInfo.PropertyType.GenericTypeArguments[0];
+
+            var filter = (NodeBase?)SimplifyNodes(targetType, node.Filter as dynamic, filterNodes, customFilters);
+            if (filter == null)
+                return null;
+
+            return new ObjectFilterNode(node.Property, filter, node.ApplyAll);
+        }
+
+        private static NodeBase? SimplifyNodes(Type parentType, OperatorNode node,
+            List<(OperatorNode node, Type type, OperatorType defaultOp)> filterNodes, List<(OperatorNode, string, Type, OperatorType defaultOp)> customFilters)
+        {
+            if (!node.Property.TryGetPropertyQueryInfo(parentType, out var queryAttributeInfo))
+                return null;
+
+            if (queryAttributeInfo!.CustomFiltering)
+                customFilters.Add((node, queryAttributeInfo!.PropertyInfo.Name, queryAttributeInfo!.PropertyInfo.PropertyType, queryAttributeInfo!.Operator));
+
+            if (queryAttributeInfo!.IsIgnored || queryAttributeInfo!.CustomFiltering)
+                return null;
+
+            filterNodes.Add((node, queryAttributeInfo!.PropertyInfo.PropertyType, queryAttributeInfo!.Operator));
+
+            return node;
         }
     }
 }
