@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using QueryX.Parser.Nodes;
+using QueryX.Filters;
 
 namespace QueryX
 {

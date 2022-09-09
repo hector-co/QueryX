@@ -163,45 +163,30 @@ namespace QueryX
             var typeIsCollection = (type.GetInterface(nameof(IEnumerable)) != null);
 
             if (!typeIsCollection)
-            {
-                var subContext = new Context(context.ParentType, context.PropertyName, context.Parameter);
-                subContext.ConcatToPropertyName(queryAttributeInfo.PropertyInfo.Name);
-                _contexts.Push(subContext);
+                throw new QueryFormatException();
 
-                Visit(node.Filter as dynamic);
 
-                var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
-                var notNullExp = Expression.NotEqual(propExp, Expression.Constant(null));
-                var exp = subContext.Stack.Pop();
+            var modelPropertyType = queryAttributeInfo.ModelPropertyName.GetPropertyInfo<TModel>()!.PropertyType;
+            var modelTargetType = modelPropertyType.GenericTypeArguments[0];
+            var modelFilterTargetType = type.GenericTypeArguments[0];
 
-                context.Stack.Push(Expression.AndAlso(notNullExp, exp));
+            var modelParameter = Expression.Parameter(modelTargetType, "s");
+            var subContext = new Context(modelFilterTargetType, context.PropertyName, modelParameter);
+            _contexts.Push(subContext);
 
-                _contexts.Pop();
-            }
-            else
-            {
-                var modelPropertyType = queryAttributeInfo.ModelPropertyName.GetPropertyInfo<TModel>()!.PropertyType;
-                var modelTargetType = modelPropertyType.GenericTypeArguments[0];
-                var modelFilterTargetType = type.GenericTypeArguments[0];
+            Visit(node.Filter as dynamic);
 
-                var modelParameter = Expression.Parameter(modelTargetType, "s");
-                var subContext = new Context(modelFilterTargetType, context.PropertyName, modelParameter);
-                _contexts.Push(subContext);
+            var exp = Expression.Lambda(subContext.Stack.Last(), modelParameter);
 
-                Visit(node.Filter as dynamic);
+            var any = _anyMethod;
+            var anyGeneric = any.MakeGenericMethod(modelTargetType);
 
-                var exp = Expression.Lambda(subContext.Stack.Last(), modelParameter);
+            var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
+            var notNullExp = Expression.NotEqual(propExp, Expression.Constant(null));
+            var anyExp = Expression.Call(null, anyGeneric, propExp, exp);
 
-                var any = _anyMethod;
-                var anyGeneric = any.MakeGenericMethod(modelTargetType);
-
-                var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
-                var notNullExp = Expression.NotEqual(propExp, Expression.Constant(null));
-                var anyExp = Expression.Call(null, anyGeneric, propExp, exp);
-
-                context.Stack.Push(Expression.AndAlso(notNullExp, anyExp));
-                _contexts.Pop();
-            }
+            context.Stack.Push(Expression.AndAlso(notNullExp, anyExp));
+            _contexts.Pop();
         }
 
         class Context

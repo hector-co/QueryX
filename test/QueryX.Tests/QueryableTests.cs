@@ -1,8 +1,9 @@
 ﻿using FluentAssertions;
+using QueryX.Exceptions;
 
 namespace QueryX.Tests
 {
-    public class QueryableExtensionsTests
+    public class QueryableTests
     {
         private static readonly SampleObject SampleoObject1 = new(1, "stringVal1", true, new DateTime(2018, 1, 1));
         private static readonly SampleObject SampleoObject2 = new(2, "stringVal2", true, new DateTime(2018, 6, 6));
@@ -10,9 +11,27 @@ namespace QueryX.Tests
         private static readonly SampleObject SampleoObject4 = new(4, "newvalue2", false, new DateTime(2017, 12, 11));
         private static readonly SampleObject SampleoObject5 = new(5, "custom", true, new DateTime(2016, 7, 7));
 
-        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship1 = new() { Prop1 = SampleoObject1, Prop2 = SampleoObject2 };
+        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship1 = new()
+        {
+            Prop1 = SampleoObject1,
+            Prop2 = SampleoObject2,
+            Prop3 = new List<SampleObject>
+            {
+                SampleoObject1,
+                SampleoObject3,
+                SampleoObject5
+            }
+        };
         private static readonly SampleObjectWithRelationship SampleObjectWithRelationship2 = new() { Prop1 = null, Prop2 = SampleoObject4 };
-        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship3 = new() { Prop1 = SampleoObject3 };
+        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship3 = new()
+        {
+            Prop1 = SampleoObject3,
+            Prop3 = new List<SampleObject>
+            {
+                SampleoObject2,
+                SampleoObject4
+            }
+        };
         private static readonly SampleObjectWithRelationship SampleObjectWithRelationship4 = new() { Prop1 = SampleoObject5 };
 
         private static readonly SampleObject[] SampleOjectsCollection = new[]
@@ -32,7 +51,7 @@ namespace QueryX.Tests
 
         private readonly QueryBuilder _queryBuilder;
 
-        public QueryableExtensionsTests()
+        public QueryableTests()
         {
             _queryBuilder = new QueryBuilder(new FilterFactory(new QueryHelper()));
 
@@ -220,18 +239,18 @@ namespace QueryX.Tests
         }
 
         [Fact]
-        public void QueryWithObjectProperties()
+        public void QueryWithObjectPropertiesToNonCollectionShouldThrowException()
         {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(
-                new QueryModel
-                {
-                    Filter = "prop1(prop2=='stringVal1')"
-                });
+            var act = () =>
+            {
+                _ = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(
+                    new QueryModel
+                    {
+                        Filter = "prop1(prop2=='stringVal1')"
+                    });
+            };
 
-            var queryable = SampleObjectWithRelationshipsCollectionWithNulls.AsQueryable().ApplyQuery(query);
-            var result = queryable.ToList();
-            result.Should().NotBeNull();
-            result.Count().Should().Be(1);
+            act.Should().Throw<QueryFormatException>();
         }
 
         [Fact]
@@ -240,10 +259,10 @@ namespace QueryX.Tests
             var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(
                 new QueryModel
                 {
-                    Filter = "prop2(prop2=='stringVal2')|prop2.prop2=='newvalue2'"
+                    Filter = "prop3(prop2=='stringVal2')|prop2.prop2=='stringVal2'"
                 });
 
-            var queryable = SampleObjectWithRelationshipsCollectionWithNulls.AsQueryable().ApplyQuery(query);
+            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
             var result = queryable.ToList();
             result.Should().NotBeNull();
             result.Count().Should().Be(2);
@@ -255,10 +274,10 @@ namespace QueryX.Tests
             var query = _queryBuilder.CreateQuery<SampleObjectWithRelationshipFilter, SampleObjectWithRelationship>(
                 new QueryModel
                 {
-                    Filter = "theProp2(theProp2=='stringVal2')|theProp2.theProp2=='newvalue2'"
+                    Filter = "theProp3(theProp2=='stringVal2')|theProp2.theProp2=='stringVal2'"
                 });
 
-            var queryable = SampleObjectWithRelationshipsCollectionWithNulls.AsQueryable().ApplyQuery(query);
+            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
             var result = queryable.ToList();
             result.Should().NotBeNull();
             result.Count().Should().Be(2);

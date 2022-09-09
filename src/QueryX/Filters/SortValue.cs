@@ -1,4 +1,4 @@
-﻿namespace QueryX
+﻿namespace QueryX.Filters
 {
     public class SortValue
     {

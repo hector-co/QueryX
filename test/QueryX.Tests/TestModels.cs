@@ -28,12 +28,16 @@ namespace QueryX.Tests
     {
         public SampleObject? Prop1 { get; set; } = new SampleObject();
         public SampleObject Prop2 { get; set; } = new SampleObject();
+        public List<SampleObject> Prop3 { get; set; } = new List<SampleObject>();
     }
 
     public class SampleObjectWithRelationshipFilter
     {
         [QueryOptions(ModelPropertyName = "Prop2")]
         public SampleObjectFilter TheProp2 { get; set; } = new SampleObjectFilter();
+
+        [QueryOptions(ModelPropertyName = "Prop3")]
+        public List<SampleObjectFilter> TheProp3 { get; set; } = new List<SampleObjectFilter>();
     }
 
     public class SampleObjectFilter
