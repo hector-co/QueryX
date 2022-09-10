@@ -1,6 +1,6 @@
-﻿namespace QueryX.Samples.WebApi.Models
+﻿namespace QueryX.Samples.WebApi.Dtos
 {
-    public class Address
+    public class AddressDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;

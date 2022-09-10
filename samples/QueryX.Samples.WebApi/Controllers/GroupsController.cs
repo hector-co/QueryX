@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using QueryX.Samples.WebApi.Models;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using QueryX.Samples.WebApi.Dtos;
+using QueryX.Samples.WebApi.Queries.Groups;
 
 namespace QueryX.Samples.WebApi.Controllers
 {
@@ -7,31 +9,35 @@ namespace QueryX.Samples.WebApi.Controllers
     [Route("api/groups")]
     public class GroupsController : Controller
     {
-        private readonly SampleContext _context;
+        private readonly IMediator _mediator;
         private readonly QueryBuilder _queryBuilder;
 
-        public GroupsController(SampleContext context, QueryBuilder queryBuilder)
+        public GroupsController(IMediator mediator, QueryBuilder queryBuilder)
         {
-            _context = context;
             _queryBuilder = queryBuilder;
+            _mediator = mediator;
         }
 
-
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task< IActionResult> Get(int id, CancellationToken cancellationToken)
         {
-            var result = _context.Set<Group>()
-                .FirstOrDefault(g => g.Id == id);
+            var query = new GetGroupDtoById(id);
+
+            var result = await _mediator.Send(query, cancellationToken);
+
+            if (result.Data == null)
+                return NotFound();
+
             return Ok(result);
         }
 
         [HttpGet]
-        public IActionResult Get([FromQuery]QueryModel queryModel)
+        public async Task< IActionResult> Get([FromQuery]QueryModel queryModel, CancellationToken cancellationToken)
         {
-            var query = _queryBuilder.CreateQuery<Group>(queryModel);
-            var result = _context.Set<Group>()
-                .ApplyQuery(query)
-                .ToList();
+            var query = _queryBuilder.CreateQuery<ListGroupDto, GroupDto>(queryModel);
+
+            var result = await _mediator.Send(query, cancellationToken);
+
             return Ok(result);
         }
     }

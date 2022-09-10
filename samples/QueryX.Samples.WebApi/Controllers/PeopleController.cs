@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using QueryX.Samples.WebApi.Models;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using QueryX.Samples.WebApi.Dtos;
+using QueryX.Samples.WebApi.Queries.People;
 
 namespace QueryX.Samples.WebApi.Controllers
 {
@@ -8,34 +9,35 @@ namespace QueryX.Samples.WebApi.Controllers
     [Route("api/people")]
     public class PeopleController : Controller
     {
-        private readonly SampleContext _context;
+        private readonly IMediator _mediator;
         private readonly QueryBuilder _queryBuilder;
 
-        public PeopleController(SampleContext context, QueryBuilder queryBuilder)
+        public PeopleController(IMediator mediator, QueryBuilder queryBuilder)
         {
-            _context = context;
+            _mediator = mediator;
             _queryBuilder = queryBuilder;
         }
 
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id, CancellationToken cancellationToken)
         {
-            var result = _context.Set<Person>()
-                .Include(p => p.Group)
-                .Include(p => p.Addresses)
-                .FirstOrDefault(p => p.Id == id);
+            var query = new GetPersonDtoById(id);
+
+            var result = await _mediator.Send(query, cancellationToken);
+
+            if (result.Data == null)
+                return NotFound();
+
             return Ok(result);
         }
 
         [HttpGet]
-        public IActionResult Get([FromQuery] QueryModel queryModel)
+        public async Task<IActionResult> Get([FromQuery] QueryModel queryModel, CancellationToken cancellationToken)
         {
-            var query = _queryBuilder.CreateQuery<Person>(queryModel);
-            var result = _context.Set<Person>()
-                .Include(p => p.Group)
-                .Include(p => p.Addresses)
-                .ApplyQuery(query)
-                .ToList();
+            var query = _queryBuilder.CreateQuery<ListPersonDto, PersonDto>(queryModel);
+
+            var result = await _mediator.Send(query, cancellationToken);
+
             return Ok(result);
         }
     }

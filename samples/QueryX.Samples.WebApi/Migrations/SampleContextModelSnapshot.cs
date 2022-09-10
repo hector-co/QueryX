@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using QueryX.Samples.WebApi.Models;
+using QueryX.Samples.WebApi.DataAccess;
 
 #nullable disable
 
@@ -22,7 +22,7 @@ namespace QueryX.Samples.WebApi.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("QueryX.Samples.AspNetCore.Models.Address", b =>
+            modelBuilder.Entity("QueryX.Samples.WebApi.Domain.Address", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -48,7 +48,7 @@ namespace QueryX.Samples.WebApi.Migrations
                     b.ToTable("Address", (string)null);
                 });
 
-            modelBuilder.Entity("QueryX.Samples.AspNetCore.Models.Group", b =>
+            modelBuilder.Entity("QueryX.Samples.WebApi.Domain.Group", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -72,7 +72,7 @@ namespace QueryX.Samples.WebApi.Migrations
                     b.ToTable("Group", (string)null);
                 });
 
-            modelBuilder.Entity("QueryX.Samples.AspNetCore.Models.Person", b =>
+            modelBuilder.Entity("QueryX.Samples.WebApi.Domain.Person", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -103,16 +103,16 @@ namespace QueryX.Samples.WebApi.Migrations
                     b.ToTable("Person", (string)null);
                 });
 
-            modelBuilder.Entity("QueryX.Samples.AspNetCore.Models.Address", b =>
+            modelBuilder.Entity("QueryX.Samples.WebApi.Domain.Address", b =>
                 {
-                    b.HasOne("QueryX.Samples.AspNetCore.Models.Person", null)
+                    b.HasOne("QueryX.Samples.WebApi.Domain.Person", null)
                         .WithMany("Addresses")
                         .HasForeignKey("PersonId");
                 });
 
-            modelBuilder.Entity("QueryX.Samples.AspNetCore.Models.Person", b =>
+            modelBuilder.Entity("QueryX.Samples.WebApi.Domain.Person", b =>
                 {
-                    b.HasOne("QueryX.Samples.AspNetCore.Models.Group", "Group")
+                    b.HasOne("QueryX.Samples.WebApi.Domain.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -121,7 +121,7 @@ namespace QueryX.Samples.WebApi.Migrations
                     b.Navigation("Group");
                 });
 
-            modelBuilder.Entity("QueryX.Samples.AspNetCore.Models.Person", b =>
+            modelBuilder.Entity("QueryX.Samples.WebApi.Domain.Person", b =>
                 {
                     b.Navigation("Addresses");
                 });

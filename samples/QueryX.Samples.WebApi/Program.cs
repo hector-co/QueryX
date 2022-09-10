@@ -1,7 +1,8 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QueryX;
 using QueryX.Samples.WebApi;
-using QueryX.Samples.WebApi.Models;
+using QueryX.Samples.WebApi.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<SampleContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("QueryXWebApi"))
 );
+
+builder.Services.AddMediatR(typeof(SampleContext));
 
 builder.Services.AddHostedService<InitDbContext>();
 

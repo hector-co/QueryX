@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using QueryX.Samples.WebApi.Domain;
 
-namespace QueryX.Samples.WebApi.Models
+namespace QueryX.Samples.WebApi.DataAccess
 {
     public class SampleContext : DbContext
     {

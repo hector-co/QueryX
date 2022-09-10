@@ -1,5 +1,6 @@
-﻿using QueryX.Samples.WebApi.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using QueryX.Samples.WebApi.DataAccess;
+using QueryX.Samples.WebApi.Domain;
 
 namespace QueryX.Samples.WebApi
 {
@@ -20,73 +21,25 @@ namespace QueryX.Samples.WebApi
             await context.Database.MigrateAsync(cancellationToken);
             if (!await context.Set<Person>().AnyAsync(cancellationToken))
             {
-                context.AddRange(new Person
+                var group1 = new Group("Group1", "Group1 description");
+                var person1 = new Person(group1, "Person1", new DateTime(2020, 1, 10).ToUniversalTime());
+                person1.AddAddress("add1", "ref1");
+                person1.AddAddress("add2", "ref2");
+                person1.AddAddress("add2", "ref3");
+
+                var group2 = new Group("Group2", "Group2 description");
+                var person2 = new Person(group2, "Person2", new DateTime(2020, 2, 20).ToUniversalTime());
+
+                var person3 = new Person(group2, "Person3", new DateTime(2020, 3, 30).ToUniversalTime());
+                person3.AddAddress("1add", "1ref");
+                person3.AddAddress("2add", "1ref");
+                person3.AddAddress("3add", "1ref");
+
+                context.AddRange(new[]
                 {
-                    Name = "Person1",
-                    Birthday = new DateTime(2020, 1, 10).ToUniversalTime(),
-                    Group = new Group
-                    {
-                        Title = "Group1",
-                        Description = "Group1",
-                        Active = true,
-                    },
-                    Active = true,
-                    CreationDate = DateTime.UtcNow,
-                    Addresses = new List<Address>
-                    {
-                        new Address
-                        {
-                            Name = "add1",
-                            Reference = "ref1"
-                        },
-                        new Address
-                        {
-                            Name = "add2",
-                            Reference = "ref2"
-                        },
-                        new Address
-                        {
-                            Name = "add3",
-                            Reference = "ref3"
-                        }
-                    }
-                },
-                new Person
-                {
-                    Name = "Person2",
-                    Birthday = new DateTime(2021, 2, 20).ToUniversalTime(),
-                    Group = new Group
-                    {
-                        Title = "Group2",
-                        Description = "Group2",
-                        Active = true,
-                    },
-                    Active = true,
-                    CreationDate = DateTime.UtcNow
-                },
-                new Person
-                {
-                    Name = "Person3",
-                    Birthday = new DateTime(2022, 3, 30).ToUniversalTime(),
-                    CreationDate = DateTime.UtcNow,
-                    Addresses = new List<Address>
-                    {
-                        new Address
-                        {
-                            Name = "1add",
-                            Reference = "1ref"
-                        },
-                        new Address
-                        {
-                            Name = "2add",
-                            Reference = "2ref"
-                        },
-                        new Address
-                        {
-                            Name = "3add",
-                            Reference = "3ref"
-                        }
-                    }
+                    person1,
+                    person2,
+                    person3
                 });
 
                 await context.SaveChangesAsync(cancellationToken);
