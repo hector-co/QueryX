@@ -746,5 +746,27 @@ namespace QueryX.Tests
 
             query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeFalse();
         }
+
+        [Fact]
+        public void GetCustomFilterForNestedProperties()
+        {
+            var expectedIntValue = 8;
+            var expectedProp1IntValue = 16;
+
+            var queryModel = new QueryModel
+            {
+                Filter = $"intProperty1 == {expectedIntValue} & prop1.intProperty1 == {expectedProp1IntValue}"
+            };
+
+            var query = _queryBuilder.CreateQuery<TestModelWithRel>(queryModel);
+
+            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            intFilters.Count().Should().Be(1);
+            ((EqualsFilter<int>)intFilters.First()).Value.Should().Be(expectedIntValue);
+
+            query.TryGetCustomFilters(m => m.Prop1.IntProperty1, out var intProp1Filters).Should().BeTrue();
+            intProp1Filters.Count().Should().Be(1);
+            ((EqualsFilter<int>)intProp1Filters.First()).Value.Should().Be(expectedProp1IntValue);
+        }
     }
 }

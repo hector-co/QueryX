@@ -140,7 +140,7 @@ namespace QueryX
             var typeIsCollection = (type.GetInterface(nameof(IEnumerable)) != null);
 
             if (!typeIsCollection)
-                throw new QueryFormatException();
+                throw new QueryFormatException($"Collection expected but got '{type.Name}'");
 
             if (queryAttributeInfo!.IsIgnored || queryAttributeInfo!.CustomFiltering)
                 return null;
@@ -161,7 +161,7 @@ namespace QueryX
                 return null;
 
             if (queryAttributeInfo!.CustomFiltering)
-                customFilters.Add((node, queryAttributeInfo!.PropertyInfo.Name, queryAttributeInfo!.PropertyInfo.PropertyType, queryAttributeInfo!.Operator));
+                customFilters.Add((node, queryAttributeInfo!.FilterPropertyName, queryAttributeInfo!.PropertyInfo.PropertyType, queryAttributeInfo!.Operator));
 
             if (queryAttributeInfo!.IsIgnored || queryAttributeInfo!.CustomFiltering)
                 return null;

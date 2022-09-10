@@ -62,6 +62,7 @@ namespace QueryX.Utils
             Type prevParentType = parentType;
             PropertyInfo? childPropInfo = null;
             QueryAttributeInfo? qai = null;
+            var filterPropertyName = "";
             var modelPropertyName = "";
             foreach (var member in propertyName.Split(PropertyNamesSeparator))
             {
@@ -83,13 +84,15 @@ namespace QueryX.Utils
                     return true;
                 }
 
+                filterPropertyName += qai.PropertyInfo.Name + PropertyNamesSeparator;
                 modelPropertyName += qai!.ModelPropertyName + PropertyNamesSeparator;
                 parentType = childPropInfo.PropertyType;
             }
             parentType = prevParentType;
+            filterPropertyName = filterPropertyName.TrimEnd(PropertyNamesSeparator);
             modelPropertyName = modelPropertyName.TrimEnd(PropertyNamesSeparator);
 
-            queryAttributeInfo = new QueryAttributeInfo(childPropInfo!, false, modelPropertyName, qai!.Operator, qai!.CustomFiltering, qai!.IsSortable);
+            queryAttributeInfo = new QueryAttributeInfo(childPropInfo!, false, filterPropertyName, modelPropertyName, qai!.Operator, qai!.CustomFiltering, qai!.IsSortable);
 
             return true;
         }
@@ -122,6 +125,7 @@ namespace QueryX.Utils
 
             queryAttributeInfo = new QueryAttributeInfo
                 (propertyInfo, false,
+                propertyInfo.Name,
                 string.IsNullOrEmpty(optionsAttr?.ModelPropertyName) ? propertyInfo.Name : optionsAttr.ModelPropertyName,
                 optionsAttr?.Operator ?? Filters.OperatorType.None,
                 optionsAttr?.CustomFiltering ?? false, optionsAttr?.IsSortable ?? true);

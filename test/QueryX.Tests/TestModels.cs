@@ -30,7 +30,7 @@ namespace QueryX.Tests
         public SampleObject Prop2 { get; set; } = new SampleObject();
         public List<SampleObject> Prop3 { get; set; } = new List<SampleObject>();
     }
-    
+
     public class SampleObjectWithRelationshipQuery : Query<SampleObjectWithRelationship>
     {
 
@@ -109,6 +109,15 @@ namespace QueryX.Tests
 
         [QueryOptions(Operator = OperatorType.Equals, CustomFiltering = true)]
         public string StringProperty2 { get; set; } = string.Empty;
+    }
+
+    public class TestModelWithRel
+    {
+        [QueryOptions(CustomFiltering = true)]
+        public TestModel1 Prop1 { get; set; } = new TestModel1();
+
+        [QueryOptions(CustomFiltering = true)]
+        public int IntProperty1 { get; set; }
     }
 
     public enum TestEnum

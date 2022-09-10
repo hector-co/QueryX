@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace QueryX.Utils
 {
-    internal static class PropertyExtensions
+    internal static class TypeExtensions
     {
         internal static ConcurrentDictionary<Type, PropertyInfo[]> Properties { get; set; }
             = new ConcurrentDictionary<Type, PropertyInfo[]>();
