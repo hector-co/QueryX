@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using QueryX.Attributes;
+using QueryX.Filters;
 
 namespace QueryX.Utils
 {
@@ -73,7 +74,7 @@ namespace QueryX.Utils
                 if (childPropInfo == null)
                     return false;
 
-                if (!childPropInfo.TryGetPropertyQueryInfo(parentType, out qai))
+                if (!childPropInfo.TryGetPropertyQueryInfo(parentType, out qai) || qai!.IsCustomFilter)
                 {
                     return false;
                 }
@@ -92,7 +93,7 @@ namespace QueryX.Utils
             filterPropertyName = filterPropertyName.TrimEnd(PropertyNamesSeparator);
             modelPropertyName = modelPropertyName.TrimEnd(PropertyNamesSeparator);
 
-            queryAttributeInfo = new QueryAttributeInfo(childPropInfo!, false, filterPropertyName, modelPropertyName, qai!.Operator, qai!.CustomFiltering, qai!.IsSortable);
+            queryAttributeInfo = new QueryAttributeInfo(childPropInfo!, false, filterPropertyName, modelPropertyName, qai!.Operator, false, null, qai!.IsSortable);
 
             return true;
         }
@@ -121,14 +122,31 @@ namespace QueryX.Utils
                 return true;
             }
 
+            var customFilterAttr = (CustomFilterAttribute)TypesAttributes[parentType][propertyInfo].FirstOrDefault(a => a is CustomFilterAttribute);
+            if (customFilterAttr != null)
+            {
+                queryAttributeInfo = new QueryAttributeInfo
+                (propertyInfo, false,
+                propertyInfo.Name,
+                string.Empty,
+                OperatorType.None,
+                true,
+                customFilterAttr.Type,
+                false);
+
+                return true;
+            }
+
             var optionsAttr = (QueryOptionsAttribute?)TypesAttributes[parentType][propertyInfo].FirstOrDefault(a => a is QueryOptionsAttribute);
 
             queryAttributeInfo = new QueryAttributeInfo
                 (propertyInfo, false,
                 propertyInfo.Name,
                 string.IsNullOrEmpty(optionsAttr?.ModelPropertyName) ? propertyInfo.Name : optionsAttr.ModelPropertyName,
-                optionsAttr?.Operator ?? Filters.OperatorType.None,
-                optionsAttr?.CustomFiltering ?? false, optionsAttr?.IsSortable ?? true);
+                optionsAttr?.Operator ?? OperatorType.None,
+                false,
+                null,
+                optionsAttr?.IsSortable ?? true);
 
             return true;
         }

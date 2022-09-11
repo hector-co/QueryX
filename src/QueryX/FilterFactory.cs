@@ -61,6 +61,20 @@ namespace QueryX
             _filterTypes.Add(@operator, filterType);
         }
 
+        public IFilter CreateCustomFilter(string @operator, Type customFilterType, IEnumerable<string?> values)
+        {
+            if (!_operatorsMapping.ContainsKey(@operator))
+                throw new QueryFormatException($"Operator not found: '{@operator}'");
+
+            var targetType = customFilterType.GetGenericArguments().Any()
+                ? customFilterType.GetGenericArguments()[0]
+                : customFilterType.BaseType.GetGenericArguments()[0];
+
+            var valueType = typeof(IEnumerable<>).MakeGenericType(targetType);
+
+            return CreateFilterInstance(customFilterType, new[] { typeof(OperatorType), valueType }, _operatorsMapping[@operator], ConvertValues(targetType, values));
+        }
+
         public IFilter Create(string @operator, Type valueType, IEnumerable<string?> values, OperatorType defaultOperator = OperatorType.None)
         {
             if (!_operatorsMapping.ContainsKey(@operator))
@@ -84,9 +98,9 @@ namespace QueryX
             : filterType;
 
             if (@operator == OperatorType.In || @operator == OperatorType.NotIn || @operator == OperatorType.CiIn || @operator == OperatorType.CiNotIn)
-                return CreateFilterInstance(completeFilterType, typeof(IEnumerable<>).MakeGenericType(valueType), ConvertValues(valueType, values));
+                return CreateFilterInstance(completeFilterType, new[] { typeof(IEnumerable<>).MakeGenericType(valueType) }, ConvertValues(valueType, values));
             else
-                return CreateFilterInstance(completeFilterType, valueType, ConvertValue(valueType, values.First()));
+                return CreateFilterInstance(completeFilterType, new[] { valueType }, ConvertValue(valueType, values.First()));
         }
 
         private IEnumerable ConvertValues(Type valueType, IEnumerable<string?> values)
@@ -109,11 +123,16 @@ namespace QueryX
             return converted;
         }
 
-        private static IFilter CreateFilterInstance(Type type, Type valueType, object? value)
+        private static IFilter CreateFilterInstance(Type type, IEnumerable<Type> valueTypes, params object?[] values)
         {
-            var ctorInfo = type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, new[] { valueType }, null);
+            var ctorInfo = type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, valueTypes.ToArray(), null);
 
-            NewExpression constructorExpression = Expression.New(ctorInfo, Expression.Constant(value, valueType));
+            var parameters = valueTypes.Select((type, index) =>
+            {
+                return Expression.Constant(values[index], type);
+            }).ToArray();
+
+            NewExpression constructorExpression = Expression.New(ctorInfo, parameters);
             Expression<Func<object>> lambdaExpression = Expression.Lambda<Func<object>>(constructorExpression);
             Func<object> createObjFunc = lambdaExpression.Compile();
             return (IFilter)createObjFunc();

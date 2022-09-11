@@ -1,8 +1,6 @@
-﻿using QueryX.Exceptions;
-using QueryX.Parser.Nodes;
+﻿using QueryX.Parser.Nodes;
 using QueryX.Utils;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -100,14 +98,18 @@ namespace QueryX
                 return;
             }
 
-            var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
-            if (propExp == null)
+            if (queryAttributeInfo.IsCustomFilter)
+                context.Stack.Push(_query.GetFilterInstanceByNode(node).GetExpression(context.Parameter));
+            else
             {
-                context.Stack.Push(null);
-                return;
+                var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
+                if (propExp == null)
+                {
+                    context.Stack.Push(null);
+                    return;
+                }
+                context.Stack.Push(_query.GetFilterInstanceByNode(node).GetExpression(propExp));
             }
-
-            context.Stack.Push(_query.FilterInstances[node].GetExpression(propExp));
         }
 
         public Expression<Func<TModel, bool>>? GetFilterExpression()

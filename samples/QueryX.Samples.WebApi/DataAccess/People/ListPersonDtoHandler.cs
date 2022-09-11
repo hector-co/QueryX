@@ -27,9 +27,9 @@ namespace QueryX.Samples.WebApi.DataAccess.People
                 .Include(p => p.Addresses)
                 .AsNoTracking();
 
-            if (request.TryGetCustomFilters(p => p.WithAddresses, out var filters))
+            if (request.TryGetFilters(p => p.WithAddressesOnly, out var filters))
             {
-                if (((EqualsFilter<bool?>)filters.First()).Value ?? false)
+                if (((CustomFilter<bool?>)filters.First()).Values.FirstOrDefault() ?? false)
                 {
                     queryable = queryable.Where(q => q.Addresses.Any());
                 }

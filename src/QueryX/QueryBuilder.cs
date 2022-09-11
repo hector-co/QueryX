@@ -51,20 +51,19 @@ namespace QueryX
                     throw new QueryFormatException("Error parsing input", ex);
                 }
 
-                var filterNodes = new List<(OperatorNode node, Type type, OperatorType defaultOp)>();
-                var customFilterNodes = new List<(OperatorNode node, string propName, Type type, OperatorType defaultOp)>();
-                var simplifiedNodes = SimplifyNodes(typeof(TFilterModel), root! as dynamic, filterNodes, customFilterNodes);
+                var filterNodes = new List<(OperatorNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter)>();
+                var adjustedNodes = AdjustNodes(typeof(TFilterModel), root! as dynamic, filterNodes);
 
-                var filterNodeInstances = filterNodes
-                    .Select(f => (f.node, filter: _filterFactory.Create(f.node.Operator, f.type, f.node.Values, f.defaultOp)))
-                    .ToList();
-                var customFilters = customFilterNodes
-                    .Select(f => (f.propName, _filterFactory.Create(f.node.Operator, f.type, f.node.Values, f.defaultOp)))
+                var filterInstances = filterNodes
+                    .Select(f => (f.node,
+                        f.propName,
+                        (f.isCustomFilter
+                            ? _filterFactory.CreateCustomFilter(f.node.Operator, f.type, f.node.Values)
+                            : _filterFactory.Create(f.node.Operator, f.type, f.node.Values, f.defaultOp))))
                     .ToList();
 
-                query.Filter = simplifiedNodes;
-                query.FilterInstances = filterNodeInstances.ToDictionary(f => f.node, f => f.filter);
-                query.SetCustomFilters(customFilters);
+                query.Filter = adjustedNodes;
+                query.SetFilterInstances(filterInstances);
             }
 
             query.OrderBy = GetOrderBy<TFilterModel>(queryModel.OrderBy);
@@ -81,7 +80,7 @@ namespace QueryX
                 if (!propName.TryGetPropertyQueryInfo<TFilterModel>(out var queryAttrInfo))
                     continue;
 
-                if (queryAttrInfo!.IsIgnored || !queryAttrInfo!.IsSortable)
+                if (queryAttrInfo!.IsIgnored || !queryAttrInfo!.IsSortable || queryAttrInfo!.IsCustomFilter)
                     continue;
 
                 result.Add(new SortValue
@@ -94,11 +93,11 @@ namespace QueryX
             return result;
         }
 
-        private static NodeBase? SimplifyNodes(Type parentType, AndAlsoNode node,
-            List<(OperatorNode node, Type type, OperatorType defaultOp)> filterNodes, List<(OperatorNode, string, Type, OperatorType defaultOp)> customFilters)
+        private static NodeBase? AdjustNodes(Type parentType, AndAlsoNode node,
+            List<(OperatorNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter)> filterNodes)
         {
-            var left = (NodeBase?)SimplifyNodes(parentType, node.Left as dynamic, filterNodes, customFilters);
-            var right = (NodeBase?)SimplifyNodes(parentType, node.Right as dynamic, filterNodes, customFilters);
+            var left = (NodeBase?)AdjustNodes(parentType, node.Left as dynamic, filterNodes);
+            var right = (NodeBase?)AdjustNodes(parentType, node.Right as dynamic, filterNodes);
 
             if (left == null && right == null)
                 return null;
@@ -112,11 +111,11 @@ namespace QueryX
             return new AndAlsoNode(left, right);
         }
 
-        private static NodeBase? SimplifyNodes(Type parentType, OrElseNode node,
-            List<(OperatorNode node, Type type, OperatorType defaultOp)> filterNodes, List<(OperatorNode, string, Type, OperatorType defaultOp)> customFilters)
+        private static NodeBase? AdjustNodes(Type parentType, OrElseNode node,
+            List<(OperatorNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter)> filterNodes)
         {
-            var left = (NodeBase?)SimplifyNodes(parentType, node.Left as dynamic, filterNodes, customFilters);
-            var right = (NodeBase?)SimplifyNodes(parentType, node.Right as dynamic, filterNodes, customFilters);
+            var left = (NodeBase?)AdjustNodes(parentType, node.Left as dynamic, filterNodes);
+            var right = (NodeBase?)AdjustNodes(parentType, node.Right as dynamic, filterNodes);
 
             if (left == null && right == null)
                 return null;
@@ -130,8 +129,8 @@ namespace QueryX
             return new OrElseNode(left, right);
         }
 
-        private static NodeBase? SimplifyNodes(Type parentType, ObjectFilterNode node,
-            List<(OperatorNode node, Type type, OperatorType defaultOp)> filterNodes, List<(OperatorNode, string, Type, OperatorType defaultOp)> customFilters)
+        private static NodeBase? AdjustNodes(Type parentType, ObjectFilterNode node,
+            List<(OperatorNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter)> filterNodes)
         {
             if (!node.Property.TryGetPropertyQueryInfo(parentType, out var queryAttributeInfo))
                 return null;
@@ -142,31 +141,41 @@ namespace QueryX
             if (!typeIsCollection)
                 throw new QueryFormatException($"Collection expected but got '{type.Name}'");
 
-            if (queryAttributeInfo!.IsIgnored || queryAttributeInfo!.CustomFiltering)
+            if (queryAttributeInfo!.IsIgnored || queryAttributeInfo!.IsCustomFilter)
                 return null;
 
             var targetType = queryAttributeInfo!.PropertyInfo.PropertyType.GenericTypeArguments[0];
 
-            var filter = (NodeBase?)SimplifyNodes(targetType, node.Filter as dynamic, filterNodes, customFilters);
+            var filter = (NodeBase?)AdjustNodes(targetType, node.Filter as dynamic, filterNodes);
             if (filter == null)
                 return null;
 
             return new ObjectFilterNode(node.Property, filter, node.ApplyAll);
         }
 
-        private static NodeBase? SimplifyNodes(Type parentType, OperatorNode node,
-            List<(OperatorNode node, Type type, OperatorType defaultOp)> filterNodes, List<(OperatorNode, string, Type, OperatorType defaultOp)> customFilters)
+        private static NodeBase? AdjustNodes(Type parentType, OperatorNode node,
+            List<(OperatorNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter)> filterNodes)
         {
             if (!node.Property.TryGetPropertyQueryInfo(parentType, out var queryAttributeInfo))
                 return null;
 
-            if (queryAttributeInfo!.CustomFiltering)
-                customFilters.Add((node, queryAttributeInfo!.FilterPropertyName, queryAttributeInfo!.PropertyInfo.PropertyType, queryAttributeInfo!.Operator));
-
-            if (queryAttributeInfo!.IsIgnored || queryAttributeInfo!.CustomFiltering)
+            if (queryAttributeInfo!.IsIgnored)
                 return null;
 
-            filterNodes.Add((node, queryAttributeInfo!.PropertyInfo.PropertyType, queryAttributeInfo!.Operator));
+            if (queryAttributeInfo!.IsCustomFilter)
+            {
+                var customFilterType = queryAttributeInfo.CustomFilterType;
+                if (customFilterType == null)
+                {
+                    customFilterType = typeof(CustomFilter<>).MakeGenericType(queryAttributeInfo.PropertyInfo.PropertyType);
+                }
+
+                filterNodes.Add((node, queryAttributeInfo!.FilterPropertyName, customFilterType, OperatorType.None, true));
+            }
+            else
+            {
+                filterNodes.Add((node, queryAttributeInfo!.FilterPropertyName, queryAttributeInfo!.PropertyInfo.PropertyType, queryAttributeInfo!.Operator, false));
+            }
 
             return node;
         }

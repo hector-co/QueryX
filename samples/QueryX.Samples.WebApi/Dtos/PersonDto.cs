@@ -1,5 +1,7 @@
 ﻿using QueryX.Attributes;
 using QueryX.Filters;
+using QueryX.Samples.WebApi.Domain;
+using QueryX.Samples.WebApi.Queries.People;
 using System.Text.Json.Serialization;
 
 namespace QueryX.Samples.WebApi.Dtos
@@ -15,7 +17,11 @@ namespace QueryX.Samples.WebApi.Dtos
         public List<AddressDto> Addresses { get; set; } = new List<AddressDto>();
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [QueryOptions(CustomFiltering = true, Operator = OperatorType.Equals)]
-        public bool? WithAddresses { get; set; }
+        [CustomFilter]
+        public bool? WithAddressesOnly { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [CustomFilter(Type = typeof(MinimumAgeFilter))]
+        public int? MinimumAge { get; set; }
     }
 }

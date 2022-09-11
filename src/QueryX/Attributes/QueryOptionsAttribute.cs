@@ -10,6 +10,5 @@ namespace QueryX.Attributes
         public string ModelPropertyName { get; set; } = string.Empty;
         public OperatorType Operator { get; set; } = OperatorType.None;
         public bool IsSortable { get; set; } = true;
-        public bool CustomFiltering { get; set; }
     }
 }

@@ -62,13 +62,13 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(1);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<int>));
             ((EqualsFilter<int>)intFilters.ElementAt(0)).Value.Should().Be(expectedIntValue);
 
-            query.TryGetCustomFilters(m => m.BoolProperty1, out var boolFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.BoolProperty1, out var boolFilters).Should().BeTrue();
 
             boolFilters.Count().Should().Be(1);
             boolFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<bool>));
@@ -87,7 +87,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.DateTimeProperty1, out var dateTimeFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.DateTimeProperty1, out var dateTimeFilters).Should().BeTrue();
 
             dateTimeFilters.Count().Should().Be(1);
             dateTimeFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<DateTime>));
@@ -106,7 +106,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.EnumProperty1, out var enumFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.EnumProperty1, out var enumFilters).Should().BeTrue();
 
             enumFilters.Count().Should().Be(1);
             enumFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<TestEnum>));
@@ -125,7 +125,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiEqualsFilter));
@@ -145,13 +145,13 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(1);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(NotEqualsFilter<int>));
             ((NotEqualsFilter<int>)intFilters.ElementAt(0)).Value.Should().Be(expectedIntValue);
 
-            query.TryGetCustomFilters(m => m.BoolProperty1, out var boolFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.BoolProperty1, out var boolFilters).Should().BeTrue();
 
             boolFilters.Count().Should().Be(1);
             boolFilters.ElementAt(0).GetType().Should().Be(typeof(NotEqualsFilter<bool>));
@@ -170,7 +170,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiNotEqualsFilter));
@@ -189,7 +189,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(1);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(LessThanFilter<int>));
@@ -208,7 +208,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(1);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(LessThanOrEqualsFilter<int>));
@@ -227,7 +227,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(1);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(GreaterThanFilter<int>));
@@ -246,7 +246,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(1);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(GreaterThanOrEqualsFilter<int>));
@@ -265,7 +265,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(ContainsFilter));
@@ -284,7 +284,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiContainsFilter));
@@ -321,7 +321,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(StartsWithFilter));
@@ -340,7 +340,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiStartsWithFilter));
@@ -359,7 +359,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(EndsWithFilter));
@@ -378,7 +378,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiEndsWithFilter));
@@ -398,13 +398,13 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(1);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(InFilter<int>));
             ((InFilter<int>)intFilters.First()).Values.Should().BeEquivalentTo(expectedIntValues);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(InFilter<string>));
@@ -423,7 +423,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiInFilter));
@@ -442,7 +442,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(1);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(NotInFilter<int>));
@@ -461,7 +461,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiNotInFilter));
@@ -485,7 +485,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             stringFilters.Count().Should().Be(1);
             stringFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<string>));
@@ -506,7 +506,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(1);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<int>));
@@ -528,7 +528,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty2, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty2, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(1);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<int?>));
@@ -562,7 +562,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel2>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out _).Should().BeFalse();
+            query.TryGetFilters(m => m.StringProperty1, out _).Should().BeFalse();
         }
 
         [Fact]
@@ -589,9 +589,9 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
 
-            query.TryGetCustomFilters(p => p.IntProperty1, out _).Should().BeTrue();
+            query.TryGetFilters(p => p.IntProperty1, out _).Should().BeTrue();
 
-            query.TryGetCustomFilters(p => p.StringProperty1, out _).Should().BeTrue();
+            query.TryGetFilters(p => p.StringProperty1, out _).Should().BeTrue();
         }
 
         [Fact]
@@ -621,9 +621,9 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
 
-            query.TryGetCustomFilters(p => p.IntProperty1, out _).Should().BeTrue();
+            query.TryGetFilters(p => p.IntProperty1, out _).Should().BeTrue();
 
-            query.TryGetCustomFilters(p => p.EnumProperty1, out var enumPropFilters).Should().BeTrue();
+            query.TryGetFilters(p => p.EnumProperty1, out var enumPropFilters).Should().BeTrue();
 
             enumPropFilters.Count().Should().Be(1);
         }
@@ -640,7 +640,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
 
-            query.TryGetCustomFilters(p => p.EnumProperty1, out var enumPropFilters).Should().BeTrue();
+            query.TryGetFilters(p => p.EnumProperty1, out var enumPropFilters).Should().BeTrue();
 
             enumPropFilters.Count().Should().Be(1);
 
@@ -685,7 +685,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
 
             ((EqualsFilter<string>)stringFilters.First()).Value.Should().Be(expectedString);
         }
@@ -703,7 +703,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
 
             intFilters.Count().Should().Be(2);
             intFilters.ElementAt(0).GetType().Should().Be(typeof(GreaterThanFilter<int>));
@@ -727,7 +727,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty2, out var stringFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.StringProperty2, out var stringFilters).Should().BeTrue();
 
             stringFilters.First().GetType().Should().Be(typeof(EqualsFilter<string>));
         }
@@ -744,7 +744,7 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetCustomFilters(m => m.StringProperty1, out var stringFilters).Should().BeFalse();
+            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeFalse();
         }
 
         [Fact]
@@ -760,11 +760,11 @@ namespace QueryX.Tests
 
             var query = _queryBuilder.CreateQuery<TestModelWithRel>(queryModel);
 
-            query.TryGetCustomFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
             intFilters.Count().Should().Be(1);
             ((EqualsFilter<int>)intFilters.First()).Value.Should().Be(expectedIntValue);
 
-            query.TryGetCustomFilters(m => m.Prop1.IntProperty1, out var intProp1Filters).Should().BeTrue();
+            query.TryGetFilters(m => m.Prop1.IntProperty1, out var intProp1Filters).Should().BeTrue();
             intProp1Filters.Count().Should().Be(1);
             ((EqualsFilter<int>)intProp1Filters.First()).Value.Should().Be(expectedProp1IntValue);
         }

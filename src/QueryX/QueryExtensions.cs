@@ -23,6 +23,7 @@ namespace QueryX
             var filterExp = visitor.GetFilterExpression();
 
             source = source.Where(filterExp);
+
             return source;
         }
 

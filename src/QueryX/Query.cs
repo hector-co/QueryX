@@ -9,35 +9,45 @@ namespace QueryX
 {
     public class Query<TFilterModel>
     {
-        private readonly List<(string property, IFilter filter)> _customFilters;
+        private readonly Dictionary<string, List<IFilter>> _filtersByPropName;
+        private readonly Dictionary<OperatorNode, IFilter> _filtersByNode;
 
         public Query()
         {
-            FilterInstances = new Dictionary<OperatorNode, IFilter>();
-            _customFilters = new List<(string property, IFilter filter)>();
+            _filtersByPropName = new Dictionary<string, List<IFilter>>(StringComparer.InvariantCultureIgnoreCase);
+            _filtersByNode = new Dictionary<OperatorNode, IFilter>();
             OrderBy = new List<SortValue>();
         }
 
-        internal Dictionary<OperatorNode, IFilter> FilterInstances { get; set; }
         public NodeBase? Filter { get; set; }
         public List<SortValue> OrderBy { get; set; }
         public int Offset { get; set; }
         public int Limit { get; set; }
 
-        internal void SetCustomFilters(List<(string property, IFilter filter)> filters)
+        internal void SetFilterInstances(List<(OperatorNode node, string propertyName, IFilter filter)> instances)
         {
-            _customFilters.Clear();
-            _customFilters.AddRange(filters);
+            foreach (var instance in instances)
+            {
+                if (!_filtersByPropName.ContainsKey(instance.propertyName))
+                    _filtersByPropName.Add(instance.propertyName, new List<IFilter>());
+
+                _filtersByPropName[instance.propertyName].Add(instance.filter);
+                _filtersByNode.Add(instance.node, instance.filter);
+            }
         }
 
-        public bool TryGetCustomFilters<TValue>(Expression<Func<TFilterModel, TValue>> selector, out IEnumerable<IFilter> filters)
+        internal IFilter GetFilterInstanceByNode(OperatorNode node)
+        {
+            return _filtersByNode[node];
+        }
+
+        public bool TryGetFilters<TValue>(Expression<Func<TFilterModel, TValue>> selector, out List<IFilter> filters)
         {
             //TODO find better way
             var propName = string.Join('.', selector.ToString().Split('.').Skip(1));
 
-            filters = _customFilters
-                .Where(f => f.property.Equals(propName, StringComparison.InvariantCultureIgnoreCase))
-                .Select(f => f.filter);
+            if (!_filtersByPropName.TryGetValue(propName, out filters))
+                return false;
 
             return filters.Count() > 0;
         }

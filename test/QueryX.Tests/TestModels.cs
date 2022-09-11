@@ -59,25 +59,18 @@ namespace QueryX.Tests
 
     public class TestModel1
     {
-        [QueryOptions(CustomFiltering = true)]
         public int IntProperty1 { get; set; }
 
-        [QueryOptions(CustomFiltering = true)]
         public string StringProperty1 { get; set; } = string.Empty;
 
-        [QueryOptions(CustomFiltering = true)]
         public double DoubleProperty1 { get; set; }
 
-        [QueryOptions(CustomFiltering = true)]
         public DateTime DateTimeProperty1 { get; set; }
 
-        [QueryOptions(CustomFiltering = true)]
         public TestEnum EnumProperty1 { get; set; }
 
-        [QueryOptions(CustomFiltering = true)]
         public bool BoolProperty1 { get; set; }
 
-        [QueryOptions(CustomFiltering = true)]
         public int? IntProperty2 { get; set; }
 
         public string StringProperty2 { get; set; } = string.Empty;
@@ -92,31 +85,27 @@ namespace QueryX.Tests
 
     public class TestModel3
     {
-        [QueryOptions(CustomFiltering = true)]
         public int IntProperty1 { get; set; }
 
-        [QueryOptions(ParamsPropertyName = "string_property", CustomFiltering = true)]
+        [QueryOptions(ParamsPropertyName = "string_property")]
         public string StringProperty1 { get; set; } = string.Empty;
 
-        [QueryOptions(ModelPropertyName = "RealDoubleProperty1", CustomFiltering = true)]
+        [QueryOptions(ModelPropertyName = "RealDoubleProperty1")]
         public double DoubleProperty1 { get; set; }
 
-        [QueryOptions(IsSortable = false, CustomFiltering = true)]
+        [QueryOptions(IsSortable = false)]
         public DateTime DateTimeProperty1 { get; set; }
 
-        [QueryOptions(CustomFiltering = true)]
         public TestEnum EnumProperty1 { get; set; }
 
-        [QueryOptions(Operator = OperatorType.Equals, CustomFiltering = true)]
+        [QueryOptions(Operator = OperatorType.Equals)]
         public string StringProperty2 { get; set; } = string.Empty;
     }
 
     public class TestModelWithRel
     {
-        [QueryOptions(CustomFiltering = true)]
         public TestModel1 Prop1 { get; set; } = new TestModel1();
 
-        [QueryOptions(CustomFiltering = true)]
         public int IntProperty1 { get; set; }
     }
 
