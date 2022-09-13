@@ -12,7 +12,7 @@ using QueryX.Samples.WebApi.DataAccess;
 namespace QueryX.Samples.WebApi.Migrations
 {
     [DbContext(typeof(SampleContext))]
-    [Migration("20220910133208_InitDb")]
+    [Migration("20220913024234_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,6 +42,9 @@ namespace QueryX.Samples.WebApi.Migrations
                     b.Property<string>("Reference")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -97,6 +100,9 @@ namespace QueryX.Samples.WebApi.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("TestEnum")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

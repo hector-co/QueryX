@@ -41,6 +41,9 @@ namespace QueryX.Samples.WebApi.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PersonId");
@@ -95,6 +98,9 @@ namespace QueryX.Samples.WebApi.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("TestEnum")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

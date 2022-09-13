@@ -1,6 +1,4 @@
 ﻿using QueryX.Attributes;
-using QueryX.Filters;
-using QueryX.Samples.WebApi.Domain;
 using QueryX.Samples.WebApi.Queries.People;
 using System.Text.Json.Serialization;
 

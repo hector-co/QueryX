@@ -29,10 +29,11 @@
         public bool Active { get; private set; }
         public DateTimeOffset CreationDate { get; private set; }
         public IEnumerable<Address> Addresses => _addresses.AsReadOnly();
+        public int TestEnum { get; set; }
 
-        public Address AddAddress(string name, string reference)
+        public Address AddAddress(string name, string reference, int type)
         {
-            var address = new Address(name, reference);
+            var address = new Address(name, reference, type);
 
             _addresses.Add(address);
 

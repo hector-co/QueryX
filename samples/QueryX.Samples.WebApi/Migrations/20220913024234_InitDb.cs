@@ -35,7 +35,8 @@ namespace QueryX.Samples.WebApi.Migrations
                     Birthday = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     GroupId = table.Column<int>(type: "integer", nullable: false),
                     Active = table.Column<bool>(type: "boolean", nullable: false),
-                    CreationDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    CreationDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    TestEnum = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -56,6 +57,7 @@ namespace QueryX.Samples.WebApi.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Reference = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
                     PersonId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
