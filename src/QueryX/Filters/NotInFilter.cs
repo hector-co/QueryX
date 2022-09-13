@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using QueryX.Utils;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -19,7 +20,7 @@ namespace QueryX.Filters
 
         public Expression GetExpression(Expression property)
         {
-            return Expression.Not(Expression.Call(Expression.Constant(_values), InFilter<TValue>.ListContains, property));
+            return Expression.Not(Expression.Call(Values.CreateConstantFor(property), Methods.GetListContains(typeof(TValue)), property));
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -46,29 +45,13 @@ namespace QueryX.Utils
                 .FirstOrDefault(t => t.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        internal static bool TryConvertTo(this string? value, Type targetType, out object? converted)
+        internal static Expression CreateConstantFor<TValue>(this TValue value, Expression property)
         {
-            converted = null;
+            var propType = ((PropertyInfo)((MemberExpression)property).Member).PropertyType;
 
-            if (value == null)
-                return true;
+            var converted = value.ConvertTo(propType);
 
-            if (targetType.IsEnum)
-            {
-                if (!Enum.TryParse(targetType, value, true, out var enumValue))
-                    return false;
-
-                converted = enumValue;
-                return true;
-            }
-            else
-            {
-                if (!TypeDescriptor.GetConverter(targetType).IsValid(value))
-                    return false;
-
-                converted = TypeDescriptor.GetConverter(targetType).ConvertFrom(value);
-                return true;
-            }
+            return Expression.Constant(converted);
         }
     }
 }

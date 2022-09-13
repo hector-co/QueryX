@@ -22,7 +22,7 @@ namespace QueryX.Filters
             var toLowerExp = Expression.Call(property, Methods.ToLower);
 
             var toLowerValues = _values.Select(v => v.ToLower()).ToList();
-            return Expression.Call(Expression.Constant(toLowerValues), InFilter<string>.ListContains, toLowerExp);
+            return Expression.Call(Expression.Constant(toLowerValues), Methods.GetListContains(typeof(string)), toLowerExp);
         }
     }
 }

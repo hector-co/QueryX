@@ -5,15 +5,12 @@ using System.Linq.Expressions;
 using System.Reflection;
 using QueryX.Exceptions;
 using QueryX.Filters;
-using System.Collections;
 using QueryX.Utils;
 
 namespace QueryX
 {
     public class FilterFactory
     {
-        private static MethodInfo _castMethod = typeof(Enumerable).GetMethod("Cast");
-
         private readonly IEnumerable<OperatorType> StringOperators = new[]
         {
             OperatorType.CiEquals, OperatorType.CiNotEquals, OperatorType.CiIn, OperatorType.CiContains, OperatorType.CiEndsWith,
@@ -72,7 +69,7 @@ namespace QueryX
 
             var valueType = typeof(IEnumerable<>).MakeGenericType(targetType);
 
-            return CreateFilterInstance(customFilterType, new[] { typeof(OperatorType), valueType }, _operatorsMapping[@operator], ConvertValues(targetType, values));
+            return CreateFilterInstance(customFilterType, new[] { typeof(OperatorType), valueType }, _operatorsMapping[@operator], values.ConvertTo(targetType));
         }
 
         public IFilter Create(string @operator, Type valueType, IEnumerable<string?> values, OperatorType defaultOperator = OperatorType.None)
@@ -93,34 +90,16 @@ namespace QueryX
                 throw new QueryFormatException($"'{@operator}' only supports string type.");
 
             var filterType = _filterTypes[@operator];
-            var completeFilterType = filterType.IsGenericType
+            var genericFilterType = filterType.IsGenericType
                 ? filterType.MakeGenericType(valueType)
             : filterType;
 
             if (@operator == OperatorType.In || @operator == OperatorType.NotIn || @operator == OperatorType.CiIn || @operator == OperatorType.CiNotIn)
-                return CreateFilterInstance(completeFilterType, new[] { typeof(IEnumerable<>).MakeGenericType(valueType) }, ConvertValues(valueType, values));
+                return CreateFilterInstance(genericFilterType, new[] { typeof(IEnumerable<>).MakeGenericType(valueType) }, values.ConvertTo(valueType));
             else
-                return CreateFilterInstance(completeFilterType, new[] { valueType }, ConvertValue(valueType, values.First()));
-        }
-
-        private IEnumerable ConvertValues(Type valueType, IEnumerable<string?> values)
-        {
-            var converted = values.Select(v => ConvertValue(valueType, v));
-            return (IEnumerable)_castMethod.MakeGenericMethod(valueType).Invoke(null, new[] { converted })!;
-        }
-
-        private object? ConvertValue(Type valueType, string? value)
-        {
-            if (!value.TryConvertTo(valueType, out var converted))
-                throw new QueryFormatException($"'{value}' is not valid for type {valueType.Name}");
-
-            if (valueType == typeof(DateTime))
-                converted = _queryHelper.ConvertDateTime((DateTime)converted!);
-
-            if (valueType == typeof(DateTimeOffset))
-                converted = _queryHelper.ConvertDateTimeOffset((DateTimeOffset)converted!);
-
-            return converted;
+            {
+                return CreateFilterInstance(genericFilterType, new[] { valueType }, values.First().ConvertTo(valueType));
+            }
         }
 
         private static IFilter CreateFilterInstance(Type type, IEnumerable<Type> valueTypes, params object?[] values)

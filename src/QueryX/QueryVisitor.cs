@@ -137,13 +137,6 @@ namespace QueryX
             public ParameterExpression Parameter { get; set; }
             public Stack<Expression?> Stack { get; set; }
 
-            public void ConcatToPropertyName(string propertyName)
-            {
-                PropertyName = string.IsNullOrEmpty(PropertyName)
-                        ? propertyName
-                        : $"{PropertyName}.{propertyName}";
-            }
-
             public string GetConcatenatedProperty(string propertyName)
             {
                 return string.IsNullOrEmpty(PropertyName)

@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using QueryX.Utils;
+using System.Linq.Expressions;
 
 namespace QueryX.Filters
 {
@@ -14,7 +15,7 @@ namespace QueryX.Filters
 
         public Expression GetExpression(Expression property)
         {
-            return Expression.GreaterThan(property, Expression.Constant(Value, typeof(TValue)));
+            return Expression.GreaterThan(property, Value.CreateConstantFor(property));
         }
     }
 }
