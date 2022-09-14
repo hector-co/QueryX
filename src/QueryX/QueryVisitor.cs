@@ -79,10 +79,9 @@ namespace QueryX
             var methodGeneric = method.MakeGenericMethod(modelTargetType);
 
             var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
-            var notNullExp = Expression.NotEqual(propExp, Expression.Constant(null));
             var anyExp = Expression.Call(null, methodGeneric, propExp, exp);
 
-            context.Stack.Push(Expression.AndAlso(notNullExp, anyExp));
+            context.Stack.Push(anyExp);
             _contexts.Pop();
         }
 
