@@ -55,7 +55,7 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            if (!node.Property.TryGetPropertyQueryInfo<TFilterModel>(out var queryAttributeInfo) || queryAttributeInfo!.IsIgnored)
+            if (!node.Property.TryGetPropertyQueryInfo<TFilterModel>(out var queryAttributeInfo) || queryAttributeInfo == null)
             {
                 context.Stack.Push(null);
                 return;
@@ -91,15 +91,15 @@ namespace QueryX
 
             var propertyName = context.GetConcatenatedProperty(node.Property);
 
-            if (!propertyName.TryGetPropertyQueryInfo(context.ParentType, out var queryAttributeInfo) || queryAttributeInfo!.IsIgnored)
+            if (!propertyName.TryGetPropertyQueryInfo(context.ParentType, out var queryAttributeInfo) || queryAttributeInfo == null)
             {
                 context.Stack.Push(null);
                 return;
             }
 
-            if (queryAttributeInfo.IsCustomFilter)
+            if (queryAttributeInfo.IsCustomFilter && queryAttributeInfo.CustomFilterType != null)
                 context.Stack.Push(_query.GetFilterInstanceByNode(node).GetExpression(context.Parameter));
-            else
+            else if (!queryAttributeInfo.IsCustomFilter)
             {
                 var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
                 if (propExp == null)

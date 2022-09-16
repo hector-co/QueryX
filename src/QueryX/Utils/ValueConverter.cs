@@ -18,12 +18,19 @@ namespace QueryX.Utils
             if (value == null)
                 return null;
 
+            if (value.GetType() == targetType)
+                return value;
+
             var valueIsCollection = value.GetType() != typeof(string) && (value.GetType().GetInterface(nameof(IEnumerable)) != null);
 
             if (!valueIsCollection)
             {
                 return value.ConvertValue(targetType);
             }
+
+            var collectionTargetType = value.GetType().GetGenericArguments()[0];
+            if (collectionTargetType == targetType)
+                return value;
 
             var result = new List<object>();
             foreach (var val in (IEnumerable)value)

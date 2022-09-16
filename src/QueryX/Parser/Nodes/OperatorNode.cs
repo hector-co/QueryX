@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace QueryX.Parser.Nodes
 {
@@ -8,7 +9,7 @@ namespace QueryX.Parser.Nodes
         {
             Property = property;
             Operator = @operator;
-            Values = values;
+            Values = values.ToList();
         }
 
         public string Property { get; set; } = string.Empty;

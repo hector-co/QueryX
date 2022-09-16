@@ -7,16 +7,14 @@ namespace QueryX.Filters
 {
     public class NotInFilter<TValue> : IFilter
     {
-        private readonly List<TValue> _values;
-
         public NotInFilter(IEnumerable<TValue> values)
         {
-            _values = values.ToList();
+            Values = values.ToList();
         }
 
         public OperatorType Operator => OperatorType.NotIn;
 
-        public IEnumerable<TValue> Values => _values.AsReadOnly();
+        public List<TValue> Values { get; set; }
 
         public Expression GetExpression(Expression property)
         {
