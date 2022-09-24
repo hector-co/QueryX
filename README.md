@@ -1,8 +1,15 @@
 # QueryX
 QueryX allows performing filtering, paging and sorting to IQueryable ends using URL query strings.
 
+## Installation
+Install with nuget:
+
+```
+Install-Package QueryX
+```
+
 ## Usage
-Initially it is necessary to add QueryX to the registered services. In ```Program```:
+Initially it is necessary to add QueryX to the registered services. In ```Program.cs```:
 
 ```csharp
 builder.Services.AddQueryX();
@@ -21,7 +28,7 @@ public class Card
     public List<User> Owners { get; set; }
 }
 ```
-By default all properties can be used for filtering and sorting, this could be customized using [attributes](#attributes).
+By default all properties can be used for filtering and sorting, this could be customized using [attributes](#customize-filter-model).
 
 Two classes from QueryX are required for creating filters for the ```Card``` example object:
 
@@ -103,7 +110,7 @@ owners(id==1 | name=='user2')
 
 *Multiple values are specified this way:* ```val1,val2,val3```
 
+## Customize filter model
 ## Custom filters
 ## Sorting and Paging
 ## Using different model for filtering
-## Attributes
