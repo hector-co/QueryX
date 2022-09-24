@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using QueryX.Samples.WebApi.Queries.Cards;
-using QueryX;
 using QueryX.Samples.WebApi.Dtos;
 
 namespace QueryX.Samples.WebApi.Api.Controllers

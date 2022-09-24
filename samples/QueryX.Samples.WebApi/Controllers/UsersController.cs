@@ -1,38 +1,57 @@
 using Microsoft.AspNetCore.Mvc;
-using MediatR;
-using QueryX.Samples.WebApi.Queries.Users;
-using QueryX;
 using QueryX.Samples.WebApi.Dtos;
+using QueryX.Samples.WebApi.DataAccess.EF;
+using QueryX.Samples.WebApi.Domain.Model;
+using Microsoft.EntityFrameworkCore;
+using QueryX.Samples.WebApi.Queries;
+using Mapster;
 
 namespace QueryX.Samples.WebApi.Api.Controllers
 {
     [Route("api/users")]
     public class UsersController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly WorkboardContext _context;
         private readonly QueryBuilder _queryBuilder;
 
-        public UsersController(IMediator mediator, QueryBuilder queryBuilder)
+        public UsersController(WorkboardContext context, QueryBuilder queryBuilder)
         {
-            _mediator = mediator;
+            _context = context;
             _queryBuilder = queryBuilder;
         }
 
         [HttpGet("{id}", Name = "GetUserById")]
         public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
-            var getByIdQuery = new GetUserDtoById(id);
-            var result = await _mediator.Send(getByIdQuery, cancellationToken);
-            if (result.Data == null) return NotFound();
-            return Ok(result);
+            var user = await _context.Set<User>().FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+            if (user == null)
+                return NotFound();
+
+            return Ok(new ResultModel<UserDto>
+            {
+                Data = user.Adapt<UserDto>()
+            });
         }
 
         [HttpGet]
         public async Task<IActionResult> List([FromQuery] QueryModel queryModel, CancellationToken cancellationToken)
         {
-            var query = _queryBuilder.CreateQuery<ListUserDto, UserDto>(queryModel);
-            var result = await _mediator.Send(query, cancellationToken);
-            return Ok(result);
+            var query = _queryBuilder.CreateQuery<UserDto>(queryModel);
+
+            var queryable = _context.Set<User>().AsNoTracking();
+
+            queryable = queryable.ApplyQuery(query, applyOrderingAndPaging: false);
+            var totalCount = queryable.Count();
+            queryable = queryable.ApplyOrderingAndPaging(query);
+
+            var result = (await queryable.ToListAsync(cancellationToken))
+                            .Adapt<List<UserDto>>();
+
+            return Ok(new ResultModel<List<UserDto>>
+            {
+                Data = result,
+                TotalCount = totalCount
+            });
         }
     }
 }
