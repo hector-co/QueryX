@@ -8,7 +8,6 @@
         CiEquals,
         CiIn,
         CiNotEquals,
-        CiNotIn,
         CiStartsWith,
         Contains,
         Equals,
@@ -19,7 +18,6 @@
         LessThan,
         LessThanOrEquals,
         NotEquals,
-        NotIn,
         StartsWith
     }
 }

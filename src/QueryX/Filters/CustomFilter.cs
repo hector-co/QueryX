@@ -8,11 +8,12 @@ namespace QueryX.Filters
     {
         private Expression? _expression;
 
-        public CustomFilter(OperatorType @operator, IEnumerable<TValue> values)
+        public CustomFilter(OperatorType @operator, IEnumerable<TValue> values, bool isNegated)
         {
             Operator = @operator;
             _expression = null;
             Values = values;
+            IsNegated = isNegated;
         }
 
         protected void SetFilterExpression<TModel>(Expression<Func<TModel, bool>> expression)
@@ -22,13 +23,14 @@ namespace QueryX.Filters
 
         public OperatorType Operator { get; }
         public IEnumerable<TValue> Values { get; }
+        public bool IsNegated { get; set; }
 
         public Expression GetExpression(Expression property)
         {
             return ParameterReplacer.Replace((ParameterExpression)property, _expression!);
         }
 
-        class ParameterReplacer : ExpressionVisitor
+        private class ParameterReplacer : ExpressionVisitor
         {
             private readonly ParameterExpression _param;
 

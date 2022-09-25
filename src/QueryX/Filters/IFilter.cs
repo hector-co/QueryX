@@ -6,5 +6,6 @@ namespace QueryX.Filters
     {
         public OperatorType Operator { get; }
         Expression GetExpression(Expression property);
+        public bool IsNegated { get; }
     }
 }

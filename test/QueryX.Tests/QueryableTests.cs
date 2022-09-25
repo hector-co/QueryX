@@ -122,6 +122,21 @@ namespace QueryX.Tests
         }
 
         [Fact]
+        public void TestNotInFilterIntProperty()
+        {
+            var prop1FilterValues = new[] { 2, 4, 5, 8 };
+            const int expectedCount = 2;
+
+            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
+            {
+                Filter = $"!prop1 |= {string.Join(',', prop1FilterValues)}"
+            });
+
+            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
+            result.Count().Should().Be(expectedCount);
+        }
+
+        [Fact]
         public void TestBetweenFilterDateTimeProperty()
         {
             var dateTimeFrom = new DateTime(2017, 3, 1);
@@ -147,6 +162,21 @@ namespace QueryX.Tests
             var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
             {
                 Filter = $"prop2 -=- '{searchValue}'"
+            });
+
+            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
+            result.Count().Should().Be(expectedCount);
+        }
+
+        [Fact]
+        public void TestNotContainsFilter()
+        {
+            const string searchValue = "stringVal";
+            const int expectedCount = 3;
+
+            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
+            {
+                Filter = $"!prop2 -=- '{searchValue}'"
             });
 
             var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
@@ -290,6 +320,21 @@ namespace QueryX.Tests
             var result = queryable.ToList();
             result.Should().NotBeNull();
             result.Count().Should().Be(2);
+        }
+
+        [Fact]
+        public void CombineQueryWithObjectPropertiesAndNegation()
+        {
+            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(
+                new QueryModel
+                {
+                    Filter = "!prop3(prop2-=-'stringVal')|prop2.prop2=='stringVal1'"
+                });
+
+            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
+            var result = queryable.ToList();
+            result.Should().NotBeNull();
+            result.Count().Should().Be(1);
         }
 
         [Fact]

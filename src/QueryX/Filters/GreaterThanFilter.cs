@@ -5,17 +5,24 @@ namespace QueryX.Filters
 {
     public class GreaterThanFilter<TValue> : IFilter
     {
-        public GreaterThanFilter(TValue value)
+        public GreaterThanFilter(TValue value, bool isNegated)
         {
             Value = value;
+            IsNegated = isNegated;
         }
 
         public OperatorType Operator => OperatorType.GreaterThan;
-        public TValue Value { get; set; }
+        public TValue Value { get; }
+        public bool IsNegated { get; }
 
         public Expression GetExpression(Expression property)
         {
-            return Expression.GreaterThan(property, Value.CreateConstantFor(property));
+            var exp = Expression.GreaterThan(property, Value.CreateConstantFor(property));
+
+            if(IsNegated)
+                return Expression.Not(exp);
+
+            return exp;
         }
     }
 }

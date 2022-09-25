@@ -4,13 +4,15 @@ namespace QueryX.Filters
 {
     public class CiEqualsFilter : IFilter
     {
-        public CiEqualsFilter(string value)
+        public CiEqualsFilter(string value, bool isNegated)
         {
             Value = value;
+            IsNegated = isNegated;
         }
 
         public OperatorType Operator => OperatorType.CiEquals;
-        public string Value { get; set; }
+        public string Value { get; }
+        public bool IsNegated { get; }
 
         public Expression GetExpression(Expression property)
         {

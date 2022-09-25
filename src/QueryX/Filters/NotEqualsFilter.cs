@@ -5,17 +5,24 @@ namespace QueryX.Filters
 {
     public class NotEqualsFilter<TValue> : IFilter
     {
-        public NotEqualsFilter(TValue value)
+        public NotEqualsFilter(TValue value, bool isNegated)
         {
             Value = value;
+            IsNegated = isNegated;
         }
 
         public OperatorType Operator => OperatorType.NotEquals;
-        public TValue Value { get; set; }
+        public TValue Value { get; }
+        public bool IsNegated { get; }
 
         public Expression GetExpression(Expression property)
         {
-            return Expression.NotEqual(property, Value.CreateConstantFor(property));
+            var exp = Expression.NotEqual(property, Value.CreateConstantFor(property));
+
+            if(IsNegated)
+                return Expression.Not(exp);
+
+            return exp;
         }
     }
 }

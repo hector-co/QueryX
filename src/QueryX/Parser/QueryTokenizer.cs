@@ -34,6 +34,7 @@ namespace QueryX.Parser
                 .Match(Character.In('&', ';'), QueryToken.And)
                 .Match(Character.EqualTo('|'), QueryToken.Or)
                 .Match(Character.EqualTo(','), QueryToken.Comma)
+                .Match(Character.EqualTo('!'), QueryToken.Exclamation)
                 .Match(QuotedString.SqlStyle, QueryToken.String)
                 .Match(Numerics.Decimal, QueryToken.Number)
                 .Match(CustomIdentifier, QueryToken.Identifier, requireDelimiters: true)

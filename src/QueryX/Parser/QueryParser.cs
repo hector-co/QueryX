@@ -57,16 +57,36 @@ namespace QueryX.Parser
             from values in ValueArray
             select (NodeBase)new OperatorNode(property, op, values);
 
+        private static TokenListParser<QueryToken, NodeBase> NegatedFilter { get; } =
+            from negation in Token.EqualTo(QueryToken.Exclamation)
+            from property in Property
+            from op in Operator
+            from values in ValueArray
+            select (NodeBase)new OperatorNode(property, op, values, isNegated: true);
+
         private static TokenListParser<QueryToken, NodeBase> AnyObjectFilter { get; } =
             from property in Property
             from objectFilter in Parse.Ref(() => Group!)
             select (NodeBase)new ObjectFilterNode(property, objectFilter);
+
+        private static TokenListParser<QueryToken, NodeBase> NotAnyObjectFilter { get; } =
+            from negation in Token.EqualTo(QueryToken.Exclamation)
+            from property in Property
+            from objectFilter in Parse.Ref(() => Group!)
+            select (NodeBase)new ObjectFilterNode(property, objectFilter, isNegated: true);
 
         private static TokenListParser<QueryToken, NodeBase> AllObjectFilter { get; } =
             from property in Property
             from flag in Token.EqualTo(QueryToken.Asterisk)
             from objectFilter in Parse.Ref(() => Group!)
             select (NodeBase)new ObjectFilterNode(property, objectFilter, true);
+
+        private static TokenListParser<QueryToken, NodeBase> NotAllObjectFilter { get; } =
+            from negation in Token.EqualTo(QueryToken.Exclamation)
+            from property in Property
+            from flag in Token.EqualTo(QueryToken.Asterisk)
+            from objectFilter in Parse.Ref(() => Group!)
+            select (NodeBase)new ObjectFilterNode(property, objectFilter, applyAll: true, isNegated: true);
 
         private static TokenListParser<QueryToken, NodeBase> Group { get; } =
             from lParen in Token.EqualTo(QueryToken.LParen)
@@ -76,7 +96,9 @@ namespace QueryX.Parser
 
         private static TokenListParser<QueryToken, NodeBase> OrElse { get; } =
             from filter1 in Parse.Ref(() => AnyObjectFilter).Try()
-                .Or(Parse.Ref(() => AllObjectFilter)).Try()
+                .Or(NotAnyObjectFilter).Try()
+                .Or(AllObjectFilter).Try()
+                .Or(NotAllObjectFilter).Try()
                 .Or(Parse.Ref(() => Filter)).Try()
                 .Or(Parse.Ref(() => Group)).Try()
             from op in Token.EqualTo(QueryToken.Or)
@@ -85,7 +107,9 @@ namespace QueryX.Parser
 
         private static TokenListParser<QueryToken, NodeBase> AndAlso { get; } =
             from filter1 in Parse.Ref(() => AnyObjectFilter).Try()
-                .Or(Parse.Ref(() => AllObjectFilter)).Try()
+                .Or(NotAnyObjectFilter).Try()
+                .Or(AllObjectFilter).Try()
+                .Or(NotAllObjectFilter).Try()
                 .Or(Parse.Ref(() => Filter)).Try()
                 .Or(Parse.Ref(() => Group)).Try()
             from op in Token.EqualTo(QueryToken.And)
@@ -96,8 +120,11 @@ namespace QueryX.Parser
             OrElse.Try()
             .Or(AndAlso).Try()
             .Or(AnyObjectFilter).Try()
+            .Or(NotAnyObjectFilter).Try()
             .Or(AllObjectFilter).Try()
+            .Or(NotAllObjectFilter).Try()
             .Or(Filter).Try()
+            .Or(NegatedFilter).Try()
             .Or(Group).Try()
             .Select(s => s);
 

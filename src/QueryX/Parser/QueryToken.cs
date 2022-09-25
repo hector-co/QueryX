@@ -9,6 +9,7 @@
         Or,
         Comma,
         Asterisk,
+        Exclamation,
         Operator,
         String,
         Number,

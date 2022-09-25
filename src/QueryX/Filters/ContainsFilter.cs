@@ -4,17 +4,24 @@ namespace QueryX.Filters
 {
     public class ContainsFilter : IFilter
     {
-        public ContainsFilter(string value)
+        public ContainsFilter(string value, bool isNegated)
         {
             Value = value;
+            IsNegated = isNegated;
         }
 
         public OperatorType Operator => OperatorType.Contains;
-        public string Value { get; set; }
+        public string Value { get; }
+        public bool IsNegated { get; }
 
         public Expression GetExpression(Expression property)
         {
-            return Expression.Call(property, Methods.Contains, Expression.Constant(Value, typeof(string)));
+            var exp = Expression.Call(property, Methods.Contains, Expression.Constant(Value, typeof(string)));
+
+            if(IsNegated)
+                return Expression.Not(exp);
+
+            return exp;
         }
     }
 }

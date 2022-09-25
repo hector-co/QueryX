@@ -6,23 +6,28 @@ namespace QueryX.Filters
 {
     public class CiInFilter : IFilter
     {
-        private readonly List<string> _values;
-
-        public CiInFilter(IEnumerable<string> values)
+        public CiInFilter(IEnumerable<string> values, bool isNegated)
         {
-            _values = values.ToList();
+            Values = values.ToList();
+            IsNegated = isNegated;
         }
 
         public OperatorType Operator => OperatorType.CiIn;
 
-        public IEnumerable<string> Values => _values.AsReadOnly();
+        public List<string> Values { get; }
+        public bool IsNegated { get; }
 
         public Expression GetExpression(Expression property)
         {
             var toLowerExp = Expression.Call(property, Methods.ToLower);
 
-            var toLowerValues = _values.Select(v => v.ToLower()).ToList();
-            return Expression.Call(Expression.Constant(toLowerValues), Methods.GetListContains(typeof(string)), toLowerExp);
+            var toLowerValues = Values.Select(v => v.ToLower()).ToList();
+            var exp = Expression.Call(Expression.Constant(toLowerValues), Methods.GetListContains(typeof(string)), toLowerExp);
+
+            if (IsNegated)
+                return Expression.Not(exp);
+
+            return exp;
         }
     }
 }

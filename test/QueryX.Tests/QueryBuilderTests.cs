@@ -430,44 +430,6 @@ namespace QueryX.Tests
             ((CiInFilter)stringFilters.ElementAt(0)).Values.Should().BeEquivalentTo(expectedStringValues);
         }
 
-        [Fact]
-        public void NotInFilterTest()
-        {
-            var expectedIntValues = new[] { 3, 8, 15 };
-
-            var queryModel = new QueryModel
-            {
-                Filter = $"intProperty1 !|= {string.Join(',', expectedIntValues)}"
-            };
-
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
-
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
-
-            intFilters.Count().Should().Be(1);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(NotInFilter<int>));
-            ((NotInFilter<int>)intFilters.ElementAt(0)).Values.Should().BeEquivalentTo(expectedIntValues);
-        }
-
-        [Fact]
-        public void CiNoInFilterTest()
-        {
-            var expectedStringValues = new[] { "abc", "d" };
-
-            var queryModel = new QueryModel
-            {
-                Filter = $"stringProperty1 !|=* {string.Join(',', expectedStringValues.Select(s => $"'{s}'"))}"
-            };
-
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
-
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiNotInFilter));
-            ((CiNotInFilter)stringFilters.ElementAt(0)).Values.Should().BeEquivalentTo(expectedStringValues);
-        }
-
         [Theory]
         [InlineData("'value'", "value")]
         [InlineData("'  value '", "  value ")]
