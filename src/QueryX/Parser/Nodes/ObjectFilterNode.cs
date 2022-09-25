@@ -9,7 +9,7 @@
             ApplyAll = applyAll;
         }
 
-        public string Property { get; set; } = string.Empty;
+        public string Property { get; set; }
         public NodeBase Filter { get; set; }
         public bool ApplyAll { get; set; }
 

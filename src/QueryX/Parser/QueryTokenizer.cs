@@ -5,22 +5,22 @@ using Superpower.Tokenizers;
 
 namespace QueryX.Parser
 {
-    static class QueryTokenizer
+    internal static class QueryTokenizer
     {
-        static TextParser<Unit> MultiOperator { get; } =
+        private static TextParser<Unit> MultiOperator { get; } =
             from _ in Span.Regex("[^a-zA-Z0-9_\\s\\;'\\(\\)]{2,}")
             select Unit.Value;
 
-        static TextParser<Unit> SingleOperator { get; } =
+        private static TextParser<Unit> SingleOperator { get; } =
             from _ in Character.In('<', '>').AtLeastOnce()
             select Unit.Value;
 
-        static TextParser<Unit> Operator { get; } =
+        private static TextParser<Unit> Operator { get; } =
             from _ in MultiOperator
                 .Or(SingleOperator)
             select Unit.Value;
 
-        static TextParser<Unit> CustomIdentifier { get; } =
+        private static TextParser<Unit> CustomIdentifier { get; } =
             from _ in Identifier.CStyle.ManyDelimitedBy(Character.EqualTo('.'))
             select Unit.Value;
 
