@@ -111,6 +111,42 @@ owners(id==1 | name=='user2')
 *Multiple values are specified this way:* ```val1,val2,val3```
 
 ## Customize filter model
-## Custom filters
+By default all properties from a filter model can be used for filtering and ordering, but there are some attributes that allows to have control on this
+
+Properties marked wth the ```QueryIgnoreAttribute``` attribute will be ignored for filtering and ordering:
+```csharp
+[QueryIgnore]
+public float EstimatedPoints { get; set; }
+```
+
+Also, with ```QueryOptionsAttribute``` attribute some other options could be specified:
+```csharp
+[QueryOptions(Operator = OperatorType.Equals, IsSortable = false, ParamsPropertyName = "EstimatedPts", ModelPropertyName = "Estimation")]
+public float EstimatedPoints { get; set; }
+```
+* ```Operator``` will set the default operator for this property, ignoring the one sent in the query string
+* ```IsSortable``` determines if this property is sortable or not, true by default
+* ```ParamsPropertyName``` is used for mapping filter names from query string. In this case, in query string will be a filter named ```EstimatedPts``` that will be mapped to the ```EstimatedPoints``` property
+* ```ModelPropertyName``` can be used when the filter model is different than the entity in DbContext and the filter model and the entity model have different property names, especifically, this allows mapping this property to a different one in the entity model. In this example, the value for this property will be used in the ```Estimation``` property in the entity model because the ```IQueryable``` filter needs to be created using the entity model properties
+
 ## Sorting and Paging
-## Using different model for filtering
+The ```OrderBy``` property in ```QueryModel``` object allows specifying ordering.
+
+For ascending order base on property ```Title```:
+```
+title
+```
+
+For descending order:
+```
+-title
+```
+
+It is possible to combine multiple orderings:
+```
+id,-priority,title
+```
+
+Custom filters can not be used for ordering
+
+## Custom filters
