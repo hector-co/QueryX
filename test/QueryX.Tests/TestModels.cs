@@ -9,19 +9,35 @@ namespace QueryX.Tests
         {
         }
 
-        public SampleObject(int prop1, string prop2, bool prop3, DateTime prop4)
+        public SampleObject(int prop1, string prop2, bool prop3, DateTime prop4, TestEnum prop5, int prop6)
         {
             Prop1 = prop1;
             Prop2 = prop2;
             Prop3 = prop3;
             Prop4 = prop4;
+            Prop5 = prop5;
+            Prop6 = prop6;
         }
 
         public int Prop1 { get; set; }
         public string Prop2 { get; set; } = string.Empty;
         public bool Prop3 { get; set; }
         public DateTime Prop4 { get; set; }
+
+        [CustomFilter(Type = typeof(TestEnumCustomFilter))]
         public TestEnum Prop5 { get; set; }
+
+        [CustomFilter]
+        public int Prop6 { get; set; }
+    }
+
+    public class TestEnumCustomFilter : CustomFilter<TestEnum>
+    {
+        public TestEnumCustomFilter(OperatorType @operator, IEnumerable<TestEnum> values) : base(@operator, values)
+        {
+            if (values.Any())
+                SetFilterExpression<SampleObject>(m => m.Prop5 == values.First());
+        }
     }
 
     public class SampleObjectWithRelationship

@@ -5,11 +5,11 @@ namespace QueryX.Tests
 {
     public class QueryableTests
     {
-        private static readonly SampleObject SampleoObject1 = new(1, "stringVal1", true, new DateTime(2018, 1, 1));
-        private static readonly SampleObject SampleoObject2 = new(2, "stringVal2", true, new DateTime(2018, 6, 6));
-        private static readonly SampleObject SampleoObject3 = new(3, "newvalue1", false, new DateTime(2017, 3, 9));
-        private static readonly SampleObject SampleoObject4 = new(4, "newvalue2", false, new DateTime(2017, 12, 11));
-        private static readonly SampleObject SampleoObject5 = new(5, "custom", true, new DateTime(2016, 7, 7));
+        private static readonly SampleObject SampleoObject1 = new(1, "stringVal1", true, new DateTime(2018, 1, 1), TestEnum.Value1, 1);
+        private static readonly SampleObject SampleoObject2 = new(2, "stringVal2", true, new DateTime(2018, 6, 6), TestEnum.Value1, 1);
+        private static readonly SampleObject SampleoObject3 = new(3, "newvalue1", false, new DateTime(2017, 3, 9), TestEnum.Value2, 2);
+        private static readonly SampleObject SampleoObject4 = new(4, "newvalue2", false, new DateTime(2017, 12, 11), TestEnum.Value2, 2);
+        private static readonly SampleObject SampleoObject5 = new(5, "custom", true, new DateTime(2016, 7, 7), TestEnum.Value3, 3);
 
         private static readonly SampleObjectWithRelationship SampleObjectWithRelationship1 = new()
         {
@@ -335,6 +335,21 @@ namespace QueryX.Tests
             var result = queryable.ToList();
             result.Should().NotBeNull();
             result.Count().Should().Be(1);
+        }
+
+        [Fact]
+        public void CustomFilterWithTypesTest()
+        {
+            const TestEnum prop6FilterValue = TestEnum.Value1;
+            const int expectedCount = 2;
+
+            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
+            {
+                Filter = $"prop5 == '{prop6FilterValue}'"
+            });
+
+            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
+            result.Count().Should().Be(expectedCount);
         }
     }
 }
