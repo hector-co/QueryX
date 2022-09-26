@@ -16,8 +16,12 @@ namespace QueryX.Parser.Nodes
         public string Property { get; set; }
         public string Operator { get; set; }
         public IEnumerable<string?> Values { get; set; }
-        public bool IsNegated { get; set; }
 
         public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
+
+        public override NodeBase Negated()
+        {
+            return new OperatorNode(Property, Operator, Values, !IsNegated);
+        }
     }
 }

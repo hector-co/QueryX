@@ -396,5 +396,29 @@ namespace QueryX.Tests
             var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
             result.Count().Should().Be(expectedCount);
         }
+
+        [Fact]
+        public void QueryWithGroupsTest()
+        {
+            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
+            {
+                Filter = "(prop1==1|prop1==2)&prop2-='Val2'"
+            });
+
+            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
+            result.Count().Should().Be(1);
+        }
+
+        [Fact]
+        public void QueryWithNegatedGroupsTest()
+        {
+            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
+            {
+                Filter = "!(prop1==1|prop1==2)&prop2=='newvalue1'"
+            });
+
+            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
+            result.Count().Should().Be(1);
+        }
     }
 }

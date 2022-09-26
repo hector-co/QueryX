@@ -102,8 +102,8 @@ namespace QueryX
             return left switch
             {
                 null when right == null => null,
-                null => right,
-                _ => right == null ? left : new AndAlsoNode(left, right)
+                null => node.IsNegated ? right.Negated() : right,
+                _ => right == null ? node.IsNegated ? left.Negated() : left : new AndAlsoNode(left, right, node.IsNegated)
             };
         }
 
@@ -116,8 +116,8 @@ namespace QueryX
             return left switch
             {
                 null when right == null => null,
-                null => right,
-                _ => right == null ? left : new OrElseNode(left, right)
+                null => node.IsNegated ? right.Negated() : right,
+                _ => right == null ? node.IsNegated ? left.Negated() : left : new OrElseNode(left, right, node.IsNegated)
             };
         }
 

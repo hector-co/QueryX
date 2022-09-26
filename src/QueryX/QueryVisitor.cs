@@ -33,7 +33,12 @@ namespace QueryX
             var right = context.Stack.Pop();
             var left = context.Stack.Pop();
 
-            context.Stack.Push(Expression.OrElse(left, right));
+            Expression exp = Expression.OrElse(left, right);
+
+            if (node.IsNegated)
+                exp = Expression.Not(exp);
+
+            context.Stack.Push(exp);
             return;
         }
 
@@ -47,7 +52,12 @@ namespace QueryX
             var right = context.Stack.Pop();
             var left = context.Stack.Pop();
 
-            context.Stack.Push(Expression.AndAlso(left, right));
+            Expression exp = Expression.AndAlso(left, right);
+
+            if (node.IsNegated)
+                exp = Expression.Not(exp);
+
+            context.Stack.Push(exp);
             return;
         }
 
