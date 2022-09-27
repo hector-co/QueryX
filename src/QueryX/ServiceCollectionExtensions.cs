@@ -7,7 +7,7 @@ namespace QueryX
     {
         public static void AddQueryX(this IServiceCollection services)
         {
-            services.AddSingleton<QueryHelper>();
+            services.AddSingleton<QuerySettings>();
             services.AddSingleton<IFilterFactory, FilterFactory>();
             services.AddSingleton<QueryBuilder>();
         }

@@ -5,11 +5,11 @@ namespace QueryX
 {
     public class QueryXOptions
     {
-        private readonly QueryHelper _queryHelper;
+        private readonly QuerySettings _queryHelper;
 
         public QueryXOptions(IServiceCollection services)
         {
-            _queryHelper = new QueryHelper();
+            _queryHelper = new QuerySettings();
             
             services.AddSingleton(_queryHelper);
             services.AddSingleton<IFilterFactory, FilterFactory>();

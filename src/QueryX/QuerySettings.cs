@@ -2,13 +2,13 @@
 
 namespace QueryX
 {
-    public class QueryHelper
+    public class QuerySettings
     {
 
         private Func<DateTime, DateTime> _dateTimeConverter;
         private Func<DateTimeOffset, DateTimeOffset> _dateTimeOffsetConverter;
 
-        public QueryHelper()
+        public QuerySettings()
         {
             _dateTimeConverter = (date) => date;
             _dateTimeOffsetConverter = (date) => date;
