@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using QueryX.Samples.WebApi.Domain.Model;
 
-namespace QueryX.Samples.WebApi.DataAccess.EF.Boards
+namespace QueryX.Samples.WebApi.DataAccess.Boards
 {
     public class BoardColumnConfiguration : IEntityTypeConfiguration<BoardColumn>
     {

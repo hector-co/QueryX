@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using QueryX.Samples.WebApi.Domain.Model;
 
-namespace QueryX.Samples.WebApi.DataAccess.EF.Users
+namespace QueryX.Samples.WebApi.DataAccess.Users
 {
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {

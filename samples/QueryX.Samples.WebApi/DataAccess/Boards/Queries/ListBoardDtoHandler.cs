@@ -4,10 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using QueryX.Samples.WebApi.Domain.Model;
 using QueryX.Samples.WebApi.Queries;
 using QueryX.Samples.WebApi.Queries.Boards;
-using QueryX;
 using QueryX.Samples.WebApi.Dtos;
 
-namespace QueryX.Samples.WebApi.DataAccess.EF.Boards.Queries
+namespace QueryX.Samples.WebApi.DataAccess.Boards.Queries
 {
     public class ListBoardDtoHandler : IRequestHandler<ListBoardDto, ResultModel<IEnumerable<BoardDto>>>
     {

@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using QueryX.Samples.WebApi.Dtos;
-using QueryX.Samples.WebApi.DataAccess.EF;
+using QueryX.Samples.WebApi.DataAccess;
 using QueryX.Samples.WebApi.Domain.Model;
 using Microsoft.EntityFrameworkCore;
 using QueryX.Samples.WebApi.Queries;
 using Mapster;
 
-namespace QueryX.Samples.WebApi.Api.Controllers
+namespace QueryX.Samples.WebApi.Controllers
 {
     [Route("api/users")]
     public class UsersController : ControllerBase

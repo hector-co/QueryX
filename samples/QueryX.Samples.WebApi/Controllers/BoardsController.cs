@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
 using MediatR;
-using QueryX.Samples.WebApi.Queries.Boards;
+using Microsoft.AspNetCore.Mvc;
 using QueryX.Samples.WebApi.Dtos;
+using QueryX.Samples.WebApi.Queries.Boards;
 
-namespace QueryX.Samples.WebApi.Api.Controllers
+namespace QueryX.Samples.WebApi.Controllers
 {
     [Route("api/boards")]
     public class BoardsController : ControllerBase

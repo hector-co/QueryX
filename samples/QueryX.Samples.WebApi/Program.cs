@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QueryX;
-using QueryX.Samples.WebApi.DataAccess.EF;
-using QueryX.Samples.WebApi.DataAccess.EF.Cards;
+using QueryX.Samples.WebApi.DataAccess;
+using QueryX.Samples.WebApi.DataAccess.Cards;
 using QueryX.Samples.WebApi.Domain.Model;
 using System.Text.Json.Serialization;
 using System.Text.Json;

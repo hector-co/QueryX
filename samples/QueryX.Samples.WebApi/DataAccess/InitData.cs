@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using QueryX.Samples.WebApi.Domain.Model;
 
-namespace QueryX.Samples.WebApi.DataAccess.EF
+namespace QueryX.Samples.WebApi.DataAccess
 {
     public class InitData : IHostedService
     {

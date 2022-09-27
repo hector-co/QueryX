@@ -6,7 +6,7 @@ using QueryX.Samples.WebApi.Dtos;
 using QueryX.Samples.WebApi.Queries;
 using QueryX.Samples.WebApi.Queries.Cards;
 
-namespace QueryX.Samples.WebApi.DataAccess.EF.Cards.Queries
+namespace QueryX.Samples.WebApi.DataAccess.Cards.Queries
 {
     public class GetCardDtoByIdHandler : IRequestHandler<GetCardDtoById, ResultModel<CardDto>>
     {

@@ -1,6 +1,6 @@
 ﻿using QueryX.Samples.WebApi.Domain.Model;
 
-namespace QueryX.Samples.WebApi.DataAccess.EF.Cards
+namespace QueryX.Samples.WebApi.DataAccess.Cards
 {
     public class CardService : ICardService
     {

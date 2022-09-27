@@ -3,7 +3,7 @@ using MediatR;
 using QueryX.Samples.WebApi.Queries.Cards;
 using QueryX.Samples.WebApi.Dtos;
 
-namespace QueryX.Samples.WebApi.Api.Controllers
+namespace QueryX.Samples.WebApi.Controllers
 {
     [Route("api/cards")]
     public class CardsController : ControllerBase

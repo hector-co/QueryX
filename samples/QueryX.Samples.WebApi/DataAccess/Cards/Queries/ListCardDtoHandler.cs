@@ -4,10 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using QueryX.Samples.WebApi.Domain.Model;
 using QueryX.Samples.WebApi.Queries;
 using QueryX.Samples.WebApi.Queries.Cards;
-using QueryX;
 using QueryX.Samples.WebApi.Dtos;
 
-namespace QueryX.Samples.WebApi.DataAccess.EF.Cards.Queries
+namespace QueryX.Samples.WebApi.DataAccess.Cards.Queries
 {
     public class ListCardDtoHandler : IRequestHandler<ListCardDto, ResultModel<IEnumerable<CardDto>>>
     {

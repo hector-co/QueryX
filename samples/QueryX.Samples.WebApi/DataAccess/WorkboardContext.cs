@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using QueryX.Samples.WebApi.DataAccess.EF.Users;
-using QueryX.Samples.WebApi.DataAccess.EF.Boards;
-using QueryX.Samples.WebApi.DataAccess.EF.Cards;
+using QueryX.Samples.WebApi.DataAccess.Users;
+using QueryX.Samples.WebApi.DataAccess.Boards;
+using QueryX.Samples.WebApi.DataAccess.Cards;
 
-namespace QueryX.Samples.WebApi.DataAccess.EF
+namespace QueryX.Samples.WebApi.DataAccess
 {
     public class WorkboardContext : DbContext
     {

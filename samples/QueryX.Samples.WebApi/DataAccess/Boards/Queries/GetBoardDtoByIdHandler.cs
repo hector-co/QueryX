@@ -6,7 +6,7 @@ using QueryX.Samples.WebApi.Dtos;
 using QueryX.Samples.WebApi.Queries;
 using QueryX.Samples.WebApi.Queries.Boards;
 
-namespace QueryX.Samples.WebApi.DataAccess.EF.Boards.Queries
+namespace QueryX.Samples.WebApi.DataAccess.Boards.Queries
 {
     public class GetBoardDtoByIdHandler : IRequestHandler<GetBoardDtoById, ResultModel<BoardDto>>
     {
