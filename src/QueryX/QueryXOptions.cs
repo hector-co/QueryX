@@ -12,7 +12,7 @@ namespace QueryX
             _queryHelper = new QueryHelper();
             
             services.AddSingleton(_queryHelper);
-            services.AddSingleton<FilterFactory>();
+            services.AddSingleton<IFilterFactory, FilterFactory>();
             services.AddSingleton<QueryBuilder>();
         }
 

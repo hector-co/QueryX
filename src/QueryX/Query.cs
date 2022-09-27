@@ -9,13 +9,13 @@ namespace QueryX
 {
     public class Query<TFilterModel>
     {
-        private readonly Dictionary<string, List<IFilter>> _filtersByPropName;
-        private readonly Dictionary<OperatorNode, IFilter> _filtersByNode;
+        private readonly Dictionary<string, List<IFilter>> _customFilters;
+        private readonly Dictionary<OperatorNode, IFilter> _nodeFilters;
 
         public Query()
         {
-            _filtersByPropName = new Dictionary<string, List<IFilter>>(StringComparer.InvariantCultureIgnoreCase);
-            _filtersByNode = new Dictionary<OperatorNode, IFilter>();
+            _customFilters = new Dictionary<string, List<IFilter>>(StringComparer.InvariantCultureIgnoreCase);
+            _nodeFilters = new Dictionary<OperatorNode, IFilter>();
             OrderBy = new List<SortValue>();
         }
 
@@ -24,32 +24,42 @@ namespace QueryX
         public int Offset { get; set; }
         public int Limit { get; set; }
 
-        internal void SetFilterInstances(List<(OperatorNode node, string propertyName, IFilter filter)> instances)
+        internal void SetNodeFilters(List<(OperatorNode node, IFilter filter)> instances)
         {
             foreach (var instance in instances)
             {
-                if (!_filtersByPropName.ContainsKey(instance.propertyName))
-                    _filtersByPropName.Add(instance.propertyName, new List<IFilter>());
+                _nodeFilters.Add(instance.node, instance.filter);
+            }
+        }
 
-                _filtersByPropName[instance.propertyName].Add(instance.filter);
-                _filtersByNode.Add(instance.node, instance.filter);
+        internal void SetCustomFilters(List<(string propertyName, IFilter filter)> instances)
+        {
+            foreach (var instance in instances)
+            {
+                if (!_customFilters.ContainsKey(instance.propertyName))
+                    _customFilters.Add(instance.propertyName, new List<IFilter>());
+
+                _customFilters[instance.propertyName].Add(instance.filter);
             }
         }
 
         internal IFilter GetFilterInstanceByNode(OperatorNode node)
         {
-            return _filtersByNode[node];
+            return _nodeFilters[node];
         }
 
-        public bool TryGetFilters<TValue>(Expression<Func<TFilterModel, TValue>> selector, out List<IFilter> filters)
+        public bool TryGetFilters<TValue>(Expression<Func<TFilterModel, TValue>> selector, out List<CustomFilter<TValue>> filters)
         {
             //TODO find better way
             var propName = string.Join('.', selector.ToString().Split('.').Skip(1));
 
-            if (!_filtersByPropName.TryGetValue(propName, out filters))
+            filters = new List<CustomFilter<TValue>>();
+            if (!_customFilters.TryGetValue(propName, out var result))
                 return false;
 
-            return filters.Count() > 0;
+            filters.AddRange(result.Cast<CustomFilter<TValue>>());
+
+            return filters.Any();
         }
 
     }

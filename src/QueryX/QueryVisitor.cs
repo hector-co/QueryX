@@ -134,7 +134,7 @@ namespace QueryX
             return Expression.Lambda<Func<TModel, bool>>(exp, context.Parameter);
         }
 
-        class Context
+        private class Context
         {
             public Context(Type parentType, string propertyName, ParameterExpression parameter)
             {

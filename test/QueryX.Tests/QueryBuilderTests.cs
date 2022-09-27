@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Moq;
 using QueryX.Exceptions;
 using QueryX.Filters;
 
@@ -6,25 +7,21 @@ namespace QueryX.Tests
 {
     public class QueryBuilderTests
     {
-        private readonly QueryBuilder _queryBuilder;
-
-        public QueryBuilderTests()
-        {
-            _queryBuilder = new QueryBuilder(new FilterFactory(new QueryHelper()));
-
-        }
-
         [Theory]
-        [InlineData("intProperty1,-stringProperty1,doubleProperty1", new[] { "IntProperty1", "StringProperty1", "DoubleProperty1" }, new[] { true, false, true })]
-        [InlineData("-enumProperty1,-dateTimeProperty1,-stringProperty1", new[] { "EnumProperty1", "DateTimeProperty1", "StringProperty1" }, new[] { false, false, false })]
+        [InlineData("intProperty1,-stringProperty1,doubleProperty1",
+            new[] { "IntProperty1", "StringProperty1", "DoubleProperty1" }, new[] { true, false, true })]
+        [InlineData("-enumProperty1,-dateTimeProperty1,-stringProperty1",
+            new[] { "EnumProperty1", "DateTimeProperty1", "StringProperty1" }, new[] { false, false, false })]
         public void OrderByTest(string orderBy, string[] properties, bool[] ascending)
         {
+            var queryBuilder = new QueryBuilder(new FilterFactory());
+
             var queryModel = new QueryModel
             {
                 OrderBy = orderBy
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            var query = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.OrderBy.Count().Should().Be(properties.Length);
             for (var i = 0; i < query.OrderBy.Count(); i++)
@@ -39,12 +36,14 @@ namespace QueryX.Tests
         [InlineData("-enumPropertyx,-dateTimePropertyy,-stringPropertyz")]
         public void OrderByShouldIgnoreNonExistentPropertiesTest(string orderBy)
         {
+            var queryBuilder = new QueryBuilder(new FilterFactory());
+
             var queryModel = new QueryModel
             {
                 OrderBy = orderBy
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            var query = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.OrderBy.Count().Should().Be(0);
         }
@@ -52,32 +51,31 @@ namespace QueryX.Tests
         [Fact]
         public void EqualsFilterTest()
         {
-            var expectedIntValue = 8;
-            var expectedBoolValue = false;
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const int expectedIntValue = 8;
+            const bool expectedBoolValue = false;
 
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 == {expectedIntValue}; boolProperty1 == {expectedBoolValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
-
-            intFilters.Count().Should().Be(1);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<int>));
-            ((EqualsFilter<int>)intFilters.ElementAt(0)).Value.Should().Be(expectedIntValue);
-
-            query.TryGetFilters(m => m.BoolProperty1, out var boolFilters).Should().BeTrue();
-
-            boolFilters.Count().Should().Be(1);
-            boolFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<bool>));
-            ((EqualsFilter<bool>)boolFilters.ElementAt(0)).Value.Should().Be(expectedBoolValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("==", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
+            filterFactory.Verify(m => m.CreateFilter("==", typeof(bool), new[] { $"{expectedBoolValue}".ToLower() },
+                false, OperatorType.None));
         }
 
         [Fact]
         public void EqualsFilterDateTimeTest()
         {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
             var expectedDateTimeValue = new DateTime(2022, 1, 1);
 
             var queryModel = new QueryModel
@@ -85,216 +83,215 @@ namespace QueryX.Tests
                 Filter = $"dateTimeProperty1 == '{expectedDateTimeValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.DateTimeProperty1, out var dateTimeFilters).Should().BeTrue();
-
-            dateTimeFilters.Count().Should().Be(1);
-            dateTimeFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<DateTime>));
-            ((EqualsFilter<DateTime>)dateTimeFilters.ElementAt(0)).Value.Should().Be(expectedDateTimeValue);
+            filterFactory.Verify(m => m.CreateFilter("==", typeof(DateTime),
+                It.Is<IEnumerable<string?>>(s => DateTime.Parse(s.First()) == expectedDateTimeValue), false,
+                OperatorType.None));
         }
 
         [Fact]
         public void EqualsFilterTestWithEnums()
         {
-            var exptectedEnumValue = TestEnum.Value1;
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const TestEnum expectedEnumValue = TestEnum.Value1;
 
             var queryModel = new QueryModel
             {
-                Filter = $"enumProperty1 == '{exptectedEnumValue}'"
+                Filter = $"enumProperty1 == '{expectedEnumValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.EnumProperty1, out var enumFilters).Should().BeTrue();
-
-            enumFilters.Count().Should().Be(1);
-            enumFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<TestEnum>));
-            ((EqualsFilter<TestEnum>)enumFilters.ElementAt(0)).Value.Should().Be(exptectedEnumValue);
+            filterFactory.Verify(m => m.CreateFilter("==", typeof(TestEnum),
+                It.Is<IEnumerable<string?>>(s => Enum.Parse<TestEnum>(s.First()) == expectedEnumValue), false,
+                OperatorType.None));
         }
 
         [Fact]
         public void CiEqualsFilterTest()
         {
-            var exptectedStringValue = "testValue";
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const string expectedStringValue = "testValue";
 
             var queryModel = new QueryModel
             {
-                Filter = $"stringProperty1 ==* '{exptectedStringValue}'"
+                Filter = $"stringProperty1 ==* '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiEqualsFilter));
-            ((CiEqualsFilter)stringFilters.ElementAt(0)).Value.Should().Be(exptectedStringValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("==*", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
         }
 
         [Fact]
         public void NotEqualsFilterTest()
         {
-            var expectedIntValue = 8;
-            var expectedBoolValue = false;
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const int expectedIntValue = 8;
+            const bool expectedBoolValue = false;
 
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 != {expectedIntValue}; boolProperty1 != {expectedBoolValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            filterFactory.Verify(m =>
+                m.CreateFilter("!=", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
 
-            intFilters.Count().Should().Be(1);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(NotEqualsFilter<int>));
-            ((NotEqualsFilter<int>)intFilters.ElementAt(0)).Value.Should().Be(expectedIntValue);
-
-            query.TryGetFilters(m => m.BoolProperty1, out var boolFilters).Should().BeTrue();
-
-            boolFilters.Count().Should().Be(1);
-            boolFilters.ElementAt(0).GetType().Should().Be(typeof(NotEqualsFilter<bool>));
-            ((NotEqualsFilter<bool>)boolFilters.ElementAt(0)).Value.Should().Be(expectedBoolValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("!=", typeof(bool), new[] { $"{expectedBoolValue}".ToLower() }, false,
+                    OperatorType.None));
         }
 
         [Fact]
         public void CiNotEqualsFilterTest()
         {
-            var exptectedStringValue = "testValue";
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const string expectedStringValue = "testValue";
 
             var queryModel = new QueryModel
             {
-                Filter = $"stringProperty1 !=* '{exptectedStringValue}'"
+                Filter = $"stringProperty1 !=* '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiNotEqualsFilter));
-            ((CiNotEqualsFilter)stringFilters.ElementAt(0)).Value.Should().Be(exptectedStringValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("!=*", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
         }
 
         [Fact]
         public void LessThanFilterTest()
         {
-            var expectedIntValue = 8;
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const int expectedIntValue = 8;
 
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 < {expectedIntValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
-
-            intFilters.Count().Should().Be(1);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(LessThanFilter<int>));
-            ((LessThanFilter<int>)intFilters.ElementAt(0)).Value.Should().Be(expectedIntValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("<", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
         }
 
         [Fact]
         public void LessThanOrEqualFilterTest()
         {
-            var expectedIntValue = 8;
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const int expectedIntValue = 8;
 
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 <= {expectedIntValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
-
-            intFilters.Count().Should().Be(1);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(LessThanOrEqualsFilter<int>));
-            ((LessThanOrEqualsFilter<int>)intFilters.ElementAt(0)).Value.Should().Be(expectedIntValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("<=", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
         }
 
         [Fact]
         public void GreaterThanFilterTest()
         {
-            var expectedIntValue = 8;
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const int expectedIntValue = 8;
 
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 > {expectedIntValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
-
-            intFilters.Count().Should().Be(1);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(GreaterThanFilter<int>));
-            ((GreaterThanFilter<int>)intFilters.ElementAt(0)).Value.Should().Be(expectedIntValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter(">", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
         }
 
         [Fact]
         public void GreaterThanOrEqualFilterTest()
         {
-            var expectedIntValue = 8;
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const int expectedIntValue = 8;
 
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 >= {expectedIntValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
-
-            intFilters.Count().Should().Be(1);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(GreaterThanOrEqualsFilter<int>));
-            ((GreaterThanOrEqualsFilter<int>)intFilters.ElementAt(0)).Value.Should().Be(expectedIntValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter(">=", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
         }
 
         [Fact]
         public void ContainsFilterTest()
         {
-            var expectedStringValue = "test-string";
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const string expectedStringValue = "test-string";
 
             var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 -=- '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(ContainsFilter));
-            ((ContainsFilter)stringFilters.ElementAt(0)).Value.Should().Be(expectedStringValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("-=-", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
         }
 
         [Fact]
         public void CiContainsFilterTest()
         {
-            var expectedStringValue = "test-string";
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const string expectedStringValue = "test-string";
 
             var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 -=-* '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiContainsFilter));
-            ((CiContainsFilter)stringFilters.ElementAt(0)).Value.Should().Be(expectedStringValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("-=-*", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
         }
 
         [Fact]
         public void ApplyContainsFilterToNonStringTypeShouldThrowAndExceptionTest()
         {
-            var expectedIntValue = 8;
+            var queryBuilder = new QueryBuilder(new FilterFactory());
+
+            const int expectedIntValue = 8;
 
             var queryModel = new QueryModel
             {
@@ -303,7 +300,7 @@ namespace QueryX.Tests
 
             var act = () =>
             {
-                var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+                var query = queryBuilder.CreateQuery<TestModel1>(queryModel);
             };
 
             act.Should().Throw<QueryException>();
@@ -312,108 +309,109 @@ namespace QueryX.Tests
         [Fact]
         public void StartsWithFilterTest()
         {
-            var expectedStringValue = "test-string";
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const string expectedStringValue = "test-string";
 
             var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 =- '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(StartsWithFilter));
-            ((StartsWithFilter)stringFilters.ElementAt(0)).Value.Should().Be(expectedStringValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("=-", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
         }
 
         [Fact]
         public void CiStartsWithFilterTest()
         {
-            var expectedStringValue = "test-string";
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const string expectedStringValue = "test-string";
 
             var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 =-* '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiStartsWithFilter));
-            ((CiStartsWithFilter)stringFilters.ElementAt(0)).Value.Should().Be(expectedStringValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("=-*", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
         }
 
         [Fact]
         public void EndsWithFilterTest()
         {
-            var expectedStringValue = "test-string";
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const string expectedStringValue = "test-string";
 
             var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 -= '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(EndsWithFilter));
-            ((EndsWithFilter)stringFilters.ElementAt(0)).Value.Should().Be(expectedStringValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("-=", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
         }
 
         [Fact]
         public void CiEndsWithFilterTest()
         {
-            var expectedStringValue = "test-string";
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const string expectedStringValue = "test-string";
 
             var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 -=* '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiEndsWithFilter));
-            ((CiEndsWithFilter)stringFilters.ElementAt(0)).Value.Should().Be(expectedStringValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("-=*", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
         }
 
         [Fact]
         public void InFilterTest()
         {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
             var expectedIntValues = new[] { 3, 8, 15 };
             var expectedStringValues = new[] { "abc", "d" };
 
             var queryModel = new QueryModel
             {
-                Filter = $"intProperty1 |= {string.Join(',', expectedIntValues)}; stringProperty1 |= {string.Join(',', expectedStringValues.Select(s => $"'{s}'"))}"
+                Filter =
+                    $"intProperty1 |= {string.Join(',', expectedIntValues)}; stringProperty1 |= {string.Join(',', expectedStringValues.Select(s => $"'{s}'"))}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            var expectedInts = expectedIntValues.Select(v => v.ToString());
+            filterFactory.Verify(m => m.CreateFilter("|=", typeof(int), expectedInts, false, OperatorType.None));
 
-            intFilters.Count().Should().Be(1);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(InFilter<int>));
-            ((InFilter<int>)intFilters.First()).Values.Should().BeEquivalentTo(expectedIntValues);
-
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(InFilter<string>));
-            ((InFilter<string>)stringFilters.ElementAt(0)).Values.Should().BeEquivalentTo(expectedStringValues);
+            filterFactory.Verify(m =>
+                m.CreateFilter("|=", typeof(string), expectedStringValues, false, OperatorType.None));
         }
 
         [Fact]
         public void CiInFilterTest()
         {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
             var expectedStringValues = new[] { "abc", "d" };
 
             var queryModel = new QueryModel
@@ -421,13 +419,10 @@ namespace QueryX.Tests
                 Filter = $"stringProperty1 |=* {string.Join(',', expectedStringValues.Select(s => $"'{s}'"))}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(CiInFilter));
-            ((CiInFilter)stringFilters.ElementAt(0)).Values.Should().BeEquivalentTo(expectedStringValues);
+            filterFactory.Verify(m =>
+                m.CreateFilter("|=*", typeof(string), expectedStringValues, false, OperatorType.None));
         }
 
         [Theory]
@@ -440,76 +435,89 @@ namespace QueryX.Tests
         [InlineData("null", default(string))]
         public void EqualsFilterStringPropertyTest(string value, string expectedValue)
         {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
             var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 == {value}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            stringFilters.Count().Should().Be(1);
-            stringFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<string>));
-            ((EqualsFilter<string>)stringFilters.ElementAt(0)).Value.Should().Be(expectedValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("==", typeof(string), new[] { expectedValue }, false, OperatorType.None));
         }
 
         [Theory]
         [InlineData("1", 1)]
         [InlineData("  2 ", 2)]
         [InlineData("'3'", 3)]
-        [InlineData("' 4 '", 4)]
         public void EqualsFilterIntPropertyTest(string value, int expectedValue)
         {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 == {value}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
-
-            intFilters.Count().Should().Be(1);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<int>));
-            ((EqualsFilter<int>)intFilters.ElementAt(0)).Value.Should().Be(expectedValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("==", typeof(int), new[] { $"{expectedValue}" }, false, OperatorType.None));
         }
 
         [Theory]
         [InlineData("1", 1)]
         [InlineData("  2 ", 2)]
         [InlineData("'3'", 3)]
-        [InlineData("' 4 '", 4)]
-        [InlineData("null", null)]
         public void EqualsFilterNullableIntPropertyTest(string value, int? expectedValue)
         {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty2 == {value}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty2, out var intFilters).Should().BeTrue();
+            filterFactory.Verify(m =>
+                m.CreateFilter("==", typeof(int?), new[] { $"{expectedValue}" }, false, OperatorType.None));
+        }
 
-            intFilters.Count().Should().Be(1);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(EqualsFilter<int?>));
-            ((EqualsFilter<int?>)intFilters.ElementAt(0)).Value.Should().Be(expectedValue);
+        [Fact]
+        public void EqualsFilterNullableIntPropertyWithNullValueTest()
+        {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            var queryModel = new QueryModel
+            {
+                Filter = $"intProperty2 == null"
+            };
+
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
+
+            filterFactory.Verify(m =>
+                m.CreateFilter("==", typeof(int?), new string?[] { null }, false, OperatorType.None));
         }
 
         [Theory]
         [InlineData("'null'")]
         public void EqualsFilterIntPropertyWithInvalidValueShouldThrowAnExceptionTest(string value)
         {
+            var queryBuilder = new QueryBuilder(new FilterFactory());
+
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 == {value}"
             };
 
-            var act = () =>
-            {
-                var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
-            };
+            var act = () => { _ = queryBuilder.CreateQuery<TestModel1>(queryModel); };
 
             act.Should().Throw<QueryFormatException>();
         }
@@ -517,12 +525,14 @@ namespace QueryX.Tests
         [Fact]
         public void IgnoresPropertiesShouldNotBeIncludedAsFilters()
         {
+            var queryBuilder = new QueryBuilder(new FilterFactory());
+
             var queryModel = new QueryModel
             {
                 Filter = "stringProperty1 == 'testValue'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel2>(queryModel);
+            var query = queryBuilder.CreateQuery<TestModel2>(queryModel);
 
             query.TryGetFilters(m => m.StringProperty1, out _).Should().BeFalse();
         }
@@ -530,36 +540,27 @@ namespace QueryX.Tests
         [Fact]
         public void IgnoresPropertiesShouldNotBeIncludedAsOrderBy()
         {
+            var queryBuilder = new QueryBuilder(new FilterFactory());
+
             var queryModel = new QueryModel
             {
                 OrderBy = "stringProperty1"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel2>(queryModel);
+            var query = queryBuilder.CreateQuery<TestModel2>(queryModel);
 
-            query.OrderBy.Any(o => o.PropertyName.Equals(nameof(TestModel2.StringProperty1), StringComparison.InvariantCultureIgnoreCase))
+            query.OrderBy.Any(o =>
+                    o.PropertyName.Equals(nameof(TestModel2.StringProperty1),
+                        StringComparison.InvariantCultureIgnoreCase))
                 .Should().BeFalse();
-        }
-
-        [Fact]
-        public void QueryOptionAttrMapParamPropertyTest()
-        {
-            var queryModel = new QueryModel
-            {
-                Filter = "intProperty1 == 8; string_property != 'testValue'"
-            };
-
-            var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
-
-            query.TryGetFilters(p => p.IntProperty1, out _).Should().BeTrue();
-
-            query.TryGetFilters(p => p.StringProperty1, out _).Should().BeTrue();
         }
 
         [Fact]
         public void QueryOptionIgnoreNotSortablePropertyTest()
         {
-            var expectedOrderByProperty = "IntProperty1";
+            var queryBuilder = new QueryBuilder(new FilterFactory());
+
+            const string expectedOrderByProperty = "IntProperty1";
 
             var queryModel = new QueryModel
             {
@@ -567,48 +568,32 @@ namespace QueryX.Tests
                 OrderBy = "intProperty1, dateTimeProperty1"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
+            var query = queryBuilder.CreateQuery<TestModel3>(queryModel);
 
             query.OrderBy.Count().Should().Be(1);
             query.OrderBy.First().PropertyName.Should().BeEquivalentTo(expectedOrderByProperty);
         }
 
         [Fact]
-        public void QueryOptionHandleCustomFilterPropertyTest()
-        {
-            var queryModel = new QueryModel
-            {
-                Filter = "intProperty1 == 8; enumProperty1 != 'value2'"
-            };
-
-            var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
-
-            query.TryGetFilters(p => p.IntProperty1, out _).Should().BeTrue();
-
-            query.TryGetFilters(p => p.EnumProperty1, out var enumPropFilters).Should().BeTrue();
-
-            enumPropFilters.Count().Should().Be(1);
-        }
-
-        [Fact]
         public void HandleCusomtFilteringValuesTest()
         {
-            var expectedEnumValue = TestEnum.Value2;
+            var queryBuilder = new QueryBuilder(new FilterFactory());
+
+            const TestEnum expectedEnumValue = TestEnum.Value2;
 
             var queryModel = new QueryModel
             {
                 Filter = $"enumProperty1 != 'value2'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
+            var query = queryBuilder.CreateQuery<TestModel3>(queryModel);
 
             query.TryGetFilters(p => p.EnumProperty1, out var enumPropFilters).Should().BeTrue();
 
-            enumPropFilters.Count().Should().Be(1);
+            enumPropFilters.Count.Should().Be(1);
 
-            enumPropFilters.First().GetType().Should().Be(typeof(NotEqualsFilter<TestEnum>));
-
-            ((NotEqualsFilter<TestEnum>)enumPropFilters.First()).Value.Should().Be(expectedEnumValue);
+            enumPropFilters.First().Operator.Should().Be(OperatorType.NotEquals);
+            enumPropFilters.First().Values.First().Should().Be(expectedEnumValue);
         }
 
         [Theory]
@@ -620,15 +605,14 @@ namespace QueryX.Tests
         [InlineData("stringProperty1 == ''test'")]
         public void FilterWithInvalidFormatShouldThrowException(string invalidFilters)
         {
+            var queryBuilder = new QueryBuilder(new FilterFactory());
+
             var queryModel = new QueryModel
             {
                 Filter = invalidFilters
             };
 
-            var act = () =>
-            {
-                var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
-            };
+            var act = () => { _ = queryBuilder.CreateQuery<TestModel3>(queryModel); };
 
             act.Should().Throw<QueryFormatException>();
         }
@@ -640,39 +624,41 @@ namespace QueryX.Tests
         [InlineData("'te st '", "te st ")]
         public void StringWithQuotesTest(string paramString, string expectedString)
         {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
             var queryModel = new QueryModel
             {
                 Filter = $"stringProperty1 == {paramString}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeTrue();
-
-            ((EqualsFilter<string>)stringFilters.First()).Value.Should().Be(expectedString);
+            filterFactory.Verify(m =>
+                m.CreateFilter("==", typeof(string), new[] { expectedString }, false, OperatorType.None));
         }
 
         [Fact]
         public void MultipleFiltersPerPropertyTest()
         {
-            var intFromExpected = 5;
-            var intToExpected = 15;
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const int intFromExpected = 5;
+            const int intToExpected = 15;
 
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 > {intFromExpected}; intProperty1 <= {intToExpected}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
+            filterFactory.Verify(m =>
+                m.CreateFilter(">", typeof(int), new[] { $"{intFromExpected}" }, false, OperatorType.None));
 
-            intFilters.Count().Should().Be(2);
-            intFilters.ElementAt(0).GetType().Should().Be(typeof(GreaterThanFilter<int>));
-            intFilters.ElementAt(1).GetType().Should().Be(typeof(LessThanOrEqualsFilter<int>));
-            ((GreaterThanFilter<int>)intFilters.ElementAt(0)).Value.Should().Be(intFromExpected);
-            ((LessThanOrEqualsFilter<int>)intFilters.ElementAt(1)).Value.Should().Be(intToExpected);
-
+            filterFactory.Verify(m =>
+                m.CreateFilter("<=", typeof(int), new[] { $"{intToExpected}" }, false, OperatorType.None));
         }
 
         [Theory]
@@ -682,53 +668,59 @@ namespace QueryX.Tests
         [InlineData("=-")]
         public void DefaultOperatorTest(string @operator)
         {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
             var queryModel = new QueryModel
             {
                 Filter = $"stringProperty2 {@operator} 'test value'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel3>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModel3>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty2, out var stringFilters).Should().BeTrue();
-
-            stringFilters.First().GetType().Should().Be(typeof(EqualsFilter<string>));
+            filterFactory.Verify(m =>
+                m.CreateFilter(@operator, It.IsAny<Type>(), It.IsAny<IEnumerable<string?>>(), false,
+                    OperatorType.Equals));
         }
 
         [Fact]
         public void OnlyCustomFiltersShouldBeIncludedAsCustomFilters()
         {
-            var exptectedStringValue = "testValue";
+            var queryBuilder = new QueryBuilder(new FilterFactory());
+
+            const string expectedStringValue = "testValue";
 
             var queryModel = new QueryModel
             {
-                Filter = $"stringProperty2 ==* '{exptectedStringValue}'"
+                Filter = $"stringProperty2 ==* '{expectedStringValue}'"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModel1>(queryModel);
+            var query = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out var stringFilters).Should().BeFalse();
+            query.TryGetFilters(m => m.StringProperty2, out var stringFilters).Should().BeFalse();
         }
 
         [Fact]
-        public void GetCustomFilterForNestedProperties()
+        public void CustomFilterForNestedProperties()
         {
-            var expectedIntValue = 8;
-            var expectedProp1IntValue = 16;
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object);
+
+            const int expectedIntValue = 8;
+            const int expectedProp1IntValue = 16;
 
             var queryModel = new QueryModel
             {
                 Filter = $"intProperty1 == {expectedIntValue} & prop1.intProperty1 == {expectedProp1IntValue}"
             };
 
-            var query = _queryBuilder.CreateQuery<TestModelWithRel>(queryModel);
+            _ = queryBuilder.CreateQuery<TestModelWithRel>(queryModel);
 
-            query.TryGetFilters(m => m.IntProperty1, out var intFilters).Should().BeTrue();
-            intFilters.Count().Should().Be(1);
-            ((EqualsFilter<int>)intFilters.First()).Value.Should().Be(expectedIntValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("==", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
 
-            query.TryGetFilters(m => m.Prop1.IntProperty1, out var intProp1Filters).Should().BeTrue();
-            intProp1Filters.Count().Should().Be(1);
-            ((EqualsFilter<int>)intProp1Filters.First()).Value.Should().Be(expectedProp1IntValue);
+            filterFactory.Verify(m =>
+                m.CreateFilter("==", typeof(int), new[] { $"{expectedProp1IntValue}" }, false, OperatorType.None));
         }
     }
 }

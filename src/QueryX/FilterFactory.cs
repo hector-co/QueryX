@@ -9,7 +9,7 @@ using QueryX.Utils;
 
 namespace QueryX
 {
-    public class FilterFactory
+    public class FilterFactory : IFilterFactory
     {
         private readonly IEnumerable<OperatorType> _stringOperators = new[]
         {
@@ -17,14 +17,12 @@ namespace QueryX
             OperatorType.CiStartsWith, OperatorType.Contains, OperatorType.EndsWith, OperatorType.StartsWith
         };
 
-        private readonly QueryHelper _queryHelper;
         private readonly Dictionary<OperatorType, Type> _filterTypes;
         private readonly Dictionary<string, OperatorType> _operatorsMapping;
 
-        public FilterFactory(QueryHelper queryHelper)
+        public FilterFactory()
         {
             _filterTypes = new Dictionary<OperatorType, Type>();
-            _queryHelper = queryHelper;
 
             _operatorsMapping = new Dictionary<string, OperatorType>
             {
@@ -49,7 +47,7 @@ namespace QueryX
             AddDefaultFilterTypes();
         }
 
-        internal void AddFilterType(OperatorType @operator, Type filterType)
+        private void AddFilterType(OperatorType @operator, Type filterType)
         {
             if (_filterTypes.ContainsKey(@operator))
                 throw new QueryException($"Duplicated filter operator: '{@operator}'");
@@ -82,7 +80,7 @@ namespace QueryX
             return CreateFilter(op, valueType, values, isNegated);
         }
 
-        public IFilter CreateFilter(OperatorType @operator, Type valueType, IEnumerable<string?> values, bool isNegated)
+        private IFilter CreateFilter(OperatorType @operator, Type valueType, IEnumerable<string?> values, bool isNegated)
         {
             if (valueType != typeof(string) && _stringOperators.Any(o => o == @operator))
                 throw new QueryFormatException($"'{@operator}' only supports string type.");

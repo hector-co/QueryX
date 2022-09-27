@@ -105,8 +105,6 @@ owners(id==1 | name=='user2')
 | -=*        |Case insensitive ends with          |String type only |
 | \|=        |In                                  |Allows multiple values |
 | \|=*       |Case insensitive in                 |String type only. Allows multiple values |
-| !\|=       |Not in                              |Allows multiple values |
-| !\|=*      |Case insensitive not in             |String type only. Allows multiple values |
 
 *Multiple values are specified this way:* ```val1,val2,val3```
 
