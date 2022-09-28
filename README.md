@@ -51,32 +51,32 @@ public IActionResult List([FromQuery] QueryModel queryModel)
 Filtering is made using operators, so a filter is defined this way: ```propertyName operator value```. 
 
 It is possible to combine multiple filters using "and" (```&```) and "or" (```|```) connectors:
-```
+```csharp
 id>1 & title=-'test' | priority|=1,2
 ```
 For facilitating writing queries in URL, ```;``` (semicolon) character can be used instead for representing the **and** connector:
-```
+```csharp
 id>1 ; title=-'test' | priority|=1,2
 ```
 ### Filter grouping
 Filters can be also grouped using parentheses to determine how they should be evaluated:
-```
+```csharp
 id>1 ; (title=-'test' | priority|=1,2)
 ```
 
 ### Collection filters
 It is possible to specify filters for collection properties with the following syntax:
-```
+```csharp
 propertyName(childPropertyName operator value)
 ```
 The above code will use the ```Enumerable.Any``` method for applying the conditions. 
 
 For using the ```Enumerable.All``` method:
-```
+```csharp
 propertyName*(childPropertyName operator value)
 ```
 An example using the ```Card``` object would be:
-```
+```csharp
 owners(id==1 | name=='user2')
 ```
 ### Supported value types
@@ -107,6 +107,21 @@ owners(id==1 | name=='user2')
 | \|=*       |Case insensitive in                 |String type only. Allows multiple values |
 
 *Multiple values are specified this way:* ```val1,val2,val3```
+
+### Not Operator
+The not operator (```!```) can be applied to any filter, collection filter or group:
+
+```csharp
+!id>1 ; !title=-'test' | !priority|=1,2
+```
+
+```csharp
+id>1 ; !(title=-'test' | priority|=1,2)
+```
+
+```csharp
+!owners(id==1 | name=='user2')
+```
 
 ## Customize filter model
 By default all properties from a filter model can be used for filtering and ordering, but there are some attributes that allows to have control on this
@@ -148,3 +163,33 @@ id,-priority,title
 Custom filters can not be used for ordering
 
 ## Custom filters
+The ```CustomFilterAttribute``` attribute allows changing the default behavior of filters, it can be done in different ways:
+
+### Decorating a property without a filter type
+```csharp
+[CustomFilter]
+public int Priority { get; set; }
+```
+By default this property will be excluded as part of the filter, custom code needs to be written for doing something with the filter value, after the ```Query``` object is created:
+
+```csharp
+[HttpGet]
+public IActionResult List([FromQuery] QueryModel queryModel)
+{
+    var query = _queryBuilder.CreateQuery<Card>(queryModel);
+    var queryable = _context.Set<Card>();
+
+    // Applying custom filter
+    if (query.TryGetFilters(m => m.Priority, out var filters))
+    {
+        var filterValue = filters.First().Values.First();
+        queryable = queryable.Where(m => m.Priority == filterValue);
+    }
+
+    var result = queryable.ApplyQuery(query).ToList();
+    return Ok(result);
+}
+```
+
+### Decorating a property specifying a filter type
+WIP
