@@ -86,7 +86,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m => m.CreateFilter("==", typeof(DateTime),
-                It.Is<IEnumerable<string?>>(s => DateTime.Parse(s.First()) == expectedDateTimeValue), false,
+                It.Is<IEnumerable<string?>>(s => DateTime.Parse(s.First() ?? string.Empty) == expectedDateTimeValue), false,
                 OperatorType.None));
         }
 
@@ -106,7 +106,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m => m.CreateFilter("==", typeof(TestEnum),
-                It.Is<IEnumerable<string?>>(s => Enum.Parse<TestEnum>(s.First()) == expectedEnumValue), false,
+                It.Is<IEnumerable<string?>>(s => Enum.Parse<TestEnum>(s.First() ?? string.Empty) == expectedEnumValue), false,
                 OperatorType.None));
         }
 
