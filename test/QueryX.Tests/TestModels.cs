@@ -112,6 +112,7 @@ namespace QueryX.Tests
         [QueryOptions(IsSortable = false)]
         public DateTime DateTimeProperty1 { get; set; }
 
+        [CustomFilter]
         public TestEnum EnumProperty1 { get; set; }
 
         [QueryOptions(Operator = OperatorType.Equals)]
