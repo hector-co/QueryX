@@ -9,7 +9,7 @@
       <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
       <Authors>Hector Carballo</Authors>
       <VersionPrefix>1.0.0</VersionPrefix>
-      <VersionSuffix>beta-0005</VersionSuffix>
+      <VersionSuffix>beta-0006</VersionSuffix>
       <Description>Query string queries</Description>
       <RepositoryType>https://github.com/hector-co/QueryX</RepositoryType>
       <PackageTags>query string url</PackageTags>
