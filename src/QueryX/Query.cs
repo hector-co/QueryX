@@ -1,5 +1,5 @@
 ﻿using QueryX.Filters;
-using QueryX.Parser.Nodes;
+using QueryX.Parsing.Nodes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +10,12 @@ namespace QueryX
     public class Query<TFilterModel>
     {
         private readonly Dictionary<string, List<IFilter>> _customFilters;
-        private readonly Dictionary<OperatorNode, IFilter> _nodeFilters;
+        private readonly Dictionary<FilterNode, IFilter> _nodeFilters;
 
         public Query()
         {
             _customFilters = new Dictionary<string, List<IFilter>>(StringComparer.InvariantCultureIgnoreCase);
-            _nodeFilters = new Dictionary<OperatorNode, IFilter>();
+            _nodeFilters = new Dictionary<FilterNode, IFilter>();
             OrderBy = new List<SortValue>();
         }
 
@@ -24,7 +24,7 @@ namespace QueryX
         public int Offset { get; set; }
         public int Limit { get; set; }
 
-        internal void SetNodeFilters(List<(OperatorNode node, IFilter filter)> instances)
+        internal void SetNodeFilters(List<(FilterNode node, IFilter filter)> instances)
         {
             foreach (var instance in instances)
             {
@@ -43,7 +43,7 @@ namespace QueryX
             }
         }
 
-        internal IFilter GetFilterInstanceByNode(OperatorNode node)
+        internal IFilter GetFilterInstanceByNode(FilterNode node)
         {
             return _nodeFilters[node];
         }

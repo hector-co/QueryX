@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace QueryX.Parser.Nodes
+namespace QueryX.Parsing.Nodes
 {
-    public class OperatorNode : NodeBase
+    public class FilterNode : NodeBase
     {
-        public OperatorNode(string property, string @operator, IEnumerable<string?> values, bool isNegated = false)
+        public FilterNode(string property, string @operator, IEnumerable<string?> values, bool isNegated = false)
         {
             Property = property;
             Operator = @operator;
@@ -21,7 +21,7 @@ namespace QueryX.Parser.Nodes
 
         public override NodeBase Negated()
         {
-            return new OperatorNode(Property, Operator, Values, !IsNegated);
+            return new FilterNode(Property, Operator, Values, !IsNegated);
         }
     }
 }

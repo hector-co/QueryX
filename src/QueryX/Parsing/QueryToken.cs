@@ -1,8 +1,8 @@
-﻿namespace QueryX.Parser
+﻿namespace QueryX.Parsing
 {
     internal enum QueryToken
     {
-        None,
+        Unknown,
         LParen,
         RParen,
         And,

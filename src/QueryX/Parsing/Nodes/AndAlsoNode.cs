@@ -1,4 +1,4 @@
-﻿namespace QueryX.Parser.Nodes
+﻿namespace QueryX.Parsing.Nodes
 {
     public class AndAlsoNode : BinaryNode
     {

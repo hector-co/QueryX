@@ -1,10 +1,10 @@
 ﻿using QueryX.Exceptions;
 using QueryX.Utils;
-using QueryX.Parser;
+using QueryX.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using QueryX.Parser.Nodes;
+using QueryX.Parsing.Nodes;
 using QueryX.Filters;
 using System.Collections;
 
@@ -51,7 +51,7 @@ namespace QueryX
                     throw new QueryFormatException("Error parsing input", ex);
                 }
 
-                var filterNodes = new List<(OperatorNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)>();
+                var filterNodes = new List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)>();
                 var adjustedNodes = AdjustNodes(typeof(TFilterModel), root! as dynamic, filterNodes);
 
                 var filterInstances = filterNodes
@@ -96,7 +96,7 @@ namespace QueryX
         }
 
         private static NodeBase? AdjustNodes(Type parentType, AndAlsoNode node,
-            List<(OperatorNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
+            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
         {
             var left = (NodeBase?)AdjustNodes(parentType, node.Left as dynamic, filterNodes);
             var right = (NodeBase?)AdjustNodes(parentType, node.Right as dynamic, filterNodes);
@@ -110,7 +110,7 @@ namespace QueryX
         }
 
         private static NodeBase? AdjustNodes(Type parentType, OrElseNode node,
-            List<(OperatorNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
+            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
         {
             var left = (NodeBase?)AdjustNodes(parentType, node.Left as dynamic, filterNodes);
             var right = (NodeBase?)AdjustNodes(parentType, node.Right as dynamic, filterNodes);
@@ -124,7 +124,7 @@ namespace QueryX
         }
 
         private static NodeBase? AdjustNodes(Type parentType, ObjectFilterNode node,
-            List<(OperatorNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
+            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
         {
             if (!node.Property.TryGetPropertyQueryInfo(parentType, out var queryAttributeInfo))
                 return null;
@@ -145,8 +145,8 @@ namespace QueryX
             return filter == null ? null : new ObjectFilterNode(node.Property, filter, node.ApplyAll, node.IsNegated);
         }
 
-        private static NodeBase? AdjustNodes(Type parentType, OperatorNode node,
-            List<(OperatorNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
+        private static NodeBase? AdjustNodes(Type parentType, FilterNode node,
+            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
         {
             if (!node.Property.TryGetPropertyQueryInfo(parentType, out var queryAttributeInfo))
                 return null;

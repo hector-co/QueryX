@@ -1,4 +1,4 @@
-﻿using QueryX.Parser.Nodes;
+﻿using QueryX.Parsing.Nodes;
 using QueryX.Utils;
 using System;
 using System.Collections.Generic;
@@ -98,7 +98,7 @@ namespace QueryX
             _contexts.Pop();
         }
 
-        public void Visit(OperatorNode node)
+        public void Visit(FilterNode node)
         {
             var context = _contexts.First();
 

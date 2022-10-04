@@ -3,21 +3,21 @@ using Superpower.Model;
 using Superpower.Parsers;
 using Superpower.Tokenizers;
 
-namespace QueryX.Parser
+namespace QueryX.Parsing
 {
     internal static class QueryTokenizer
     {
-        private static TextParser<Unit> MultiOperator { get; } =
+        private static TextParser<Unit> MultiCharOperator { get; } =
             from _ in Span.Regex("[^a-zA-Z0-9_\\s\\;'\\(\\)]{2,}")
             select Unit.Value;
 
-        private static TextParser<Unit> SingleOperator { get; } =
+        private static TextParser<Unit> SingleCharOperator { get; } =
             from _ in Character.In('<', '>').AtLeastOnce()
             select Unit.Value;
 
         private static TextParser<Unit> Operator { get; } =
-            from _ in MultiOperator
-                .Or(SingleOperator)
+            from _ in MultiCharOperator
+                .Or(SingleCharOperator)
             select Unit.Value;
 
         private static TextParser<Unit> CustomIdentifier { get; } =

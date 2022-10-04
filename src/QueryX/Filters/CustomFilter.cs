@@ -23,7 +23,7 @@ namespace QueryX.Filters
 
         public OperatorType Operator { get; }
         public IEnumerable<TValue> Values { get; }
-        public bool IsNegated { get; set; }
+        public bool IsNegated { get; }
 
         public Expression GetExpression(Expression property)
         {
