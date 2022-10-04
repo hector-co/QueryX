@@ -11,7 +11,6 @@ namespace QueryX.Filters
             IsNegated = isNegated;
         }
 
-        public OperatorType Operator => OperatorType.Equals;
         public TValue Value { get; set; }
         public bool IsNegated { get; set; }
 

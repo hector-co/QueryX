@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using QueryX.Utils;
+using System.Linq.Expressions;
 
 namespace QueryX.Filters
 {
@@ -10,15 +11,19 @@ namespace QueryX.Filters
             IsNegated = isNegated;
         }
 
-        public OperatorType Operator => OperatorType.CiEquals;
         public string Value { get; }
         public bool IsNegated { get; }
 
         public Expression GetExpression(Expression property)
         {
-            Expression toLowerExp = Expression.Call(property, Methods.ToLower);
+            var toLowerExp = Expression.Call(property, Methods.ToLower);
 
-            return Expression.Equal(toLowerExp, Expression.Constant(Value?.ToLower(), typeof(string)));
+            var exp = Expression.Equal(toLowerExp, Value.ToLower().CreateConstantFor(property));
+
+            if (IsNegated)
+                return Expression.Not(exp);
+
+            return exp;
         }
     }
 }

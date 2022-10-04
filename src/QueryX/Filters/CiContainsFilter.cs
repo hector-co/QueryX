@@ -9,8 +9,6 @@ namespace QueryX.Filters
             Value = value;
             IsNegated = isNegated;
         }
-
-        public OperatorType Operator => OperatorType.CiContains;
         public string Value { get; }
         public bool IsNegated { get; }
 

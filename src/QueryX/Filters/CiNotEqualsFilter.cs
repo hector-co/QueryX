@@ -9,8 +9,7 @@ namespace QueryX.Filters
             Value = value;
             IsNegated = isNegated;
         }
-
-        public OperatorType Operator => OperatorType.CiNotEquals;
+        
         public string Value { get; }
         public bool IsNegated { get; }
 

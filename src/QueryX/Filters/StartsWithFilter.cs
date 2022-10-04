@@ -10,7 +10,6 @@ namespace QueryX.Filters
             IsNegated = isNegated;
         }
 
-        public OperatorType Operator => OperatorType.StartsWith;
         public string Value { get; }
         public bool IsNegated { get; }
 

@@ -10,8 +10,7 @@ namespace QueryX.Filters
             Value = value;
             IsNegated = isNegated;
         }
-
-        public OperatorType Operator => OperatorType.LessThanOrEquals;
+        
         public TValue Value { get; }
         public bool IsNegated { get; }
 

@@ -12,8 +12,6 @@ namespace QueryX.Filters
             IsNegated = isNegated;
         }
 
-        public OperatorType Operator => OperatorType.CiIn;
-
         public List<string> Values { get; }
         public bool IsNegated { get; }
 

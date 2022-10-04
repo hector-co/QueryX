@@ -11,7 +11,6 @@ namespace QueryX.Filters
         }
 
         public string Value { get; }
-        public OperatorType Operator => OperatorType.CiEndsWith;
         public bool IsNegated { get; }
 
         public Expression GetExpression(Expression property)
