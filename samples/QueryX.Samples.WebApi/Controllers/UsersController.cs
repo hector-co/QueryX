@@ -40,6 +40,11 @@ namespace QueryX.Samples.WebApi.Controllers
 
             var queryable = _context.Set<User>().AsNoTracking();
 
+            var a = queryable.Where(u => u.Id == 1 || u.Id == 2 && u.Id == 3).ToList();
+            var b = queryable.Where(u => u.Id == 3 && u.Id == 1 || u.Id == 2).ToList();
+            var c = queryable.Where(u => (u.Id == 1 || u.Id == 2) && u.Id == 3).ToList();
+            var d = queryable.Where(u => u.Id == 3 && (u.Id == 1 || u.Id == 2)).ToList();
+
             queryable = queryable.ApplyQuery(query, applyOrderingAndPaging: false);
             var totalCount = queryable.Count();
             queryable = queryable.ApplyOrderingAndPaging(query);
