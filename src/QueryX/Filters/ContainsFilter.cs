@@ -1,10 +1,12 @@
-﻿using QueryX.Utils;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using System.Reflection;
 
 namespace QueryX.Filters
 {
     public class ContainsFilter : IFilter
     {
+        private static MethodInfo Contains => typeof(string).GetMethod("Contains", new[] { typeof(string) })!;
+
         public ContainsFilter(string value, bool isNegated, bool isCaseInsensitive)
         {
             Value = value;
@@ -20,7 +22,7 @@ namespace QueryX.Filters
         {
             var (prop, value) = property.GetPropertyAndConstant(Value, IsCaseInsensitive);
 
-            var exp = Expression.Call(prop, Methods.Contains, value);
+            var exp = Expression.Call(prop, Contains, value);
 
             if (IsNegated)
                 return Expression.Not(exp);

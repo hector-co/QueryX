@@ -1,10 +1,12 @@
-﻿using QueryX.Utils;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using System.Reflection;
 
 namespace QueryX.Filters
 {
     public class EndsWithFilter : IFilter
     {
+        private static MethodInfo EndsWith => typeof(string).GetMethod("EndsWith", new[] { typeof(string) })!;
+
         public EndsWithFilter(string value, bool isNegated, bool isCaseInsensitive)
         {
             Value = value;
@@ -20,9 +22,9 @@ namespace QueryX.Filters
         {
             var (prop, value) = property.GetPropertyAndConstant(Value, IsCaseInsensitive);
 
-            var exp =  Expression.Call(prop, Methods.EndsWith, value);
+            var exp = Expression.Call(prop, EndsWith, value);
 
-            if(IsNegated)
+            if (IsNegated)
                 return Expression.Not(exp);
 
             return exp;

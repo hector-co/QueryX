@@ -4,15 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace QueryX
 {
     internal class QueryVisitor<TFilterModel, TModel> : INodeVisitor
     {
-        private static MethodInfo _anyMethod = typeof(Enumerable).GetMethods().First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
-        private static MethodInfo _allMethod = typeof(Enumerable).GetMethods().First(m => m.Name == "All" && m.GetParameters().Count() == 2);
-
         private readonly Query<TFilterModel> _query;
         private readonly Stack<Context> _contexts;
 
@@ -85,7 +81,7 @@ namespace QueryX
 
             var exp = Expression.Lambda(subContext.Stack.Last(), modelParameter);
 
-            var method = node.ApplyAll ? _allMethod : _anyMethod;
+            var method = node.ApplyAll ? TypeHelper.AllMethod : TypeHelper.AnyMethod;
             var methodGeneric = method.MakeGenericMethod(modelTargetType);
 
             var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);

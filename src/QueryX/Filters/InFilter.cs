@@ -1,5 +1,4 @@
-﻿using QueryX.Utils;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -25,7 +24,7 @@ namespace QueryX.Filters
 
             var propType = ((PropertyInfo)((MemberExpression)property).Member).PropertyType;
 
-            var exp = Expression.Call(val, Methods.GetListContains(propType), prop);
+            var exp = Expression.Call(val, propType.GetListContains(), prop);
 
             if(IsNegated)
                 return Expression.Not(exp);

@@ -54,7 +54,7 @@ It is possible to combine multiple filters using "and" (```&```) and "or" (```|`
 ```csharp
 id>1 & title=-'test' | priority|=1,2
 ```
-For facilitating writing queries in URL, ```;``` (semicolon) character can be used instead for representing the **and** connector:
+For facilitating writing queries in URL, ```;``` (semicolon) character can be used instead for representing the **and** logical operators:
 ```csharp
 id>1 ; title=-'test' | priority|=1,2
 ```
@@ -80,11 +80,13 @@ An example using the ```Card``` object would be:
 owners(id==1 | name=='user2')
 ```
 ### Supported value types
-
-- **Number,** integer, float, real, etc.
-- **String,** this values should be wrapped in single quotes. Datetime and enum values needs to be specified as strings.
-- **Booleans,** *true* and *false* keywords.
-- **Null,** according the property type, *null* could be a valid value.
+|Category            |Description                         |
+|--------------------|------------------------------------|
+| Numbers            |integer, float, real, etc.          |
+| String, Char       |should be wrapped in single quotes  |
+| DateTime, Timespan |should be wrapped in single quotes  |
+| Enums              |should be wrapped in single quotes  |
+| Constants          |true, false, null                   |
 
 ### Operators
 |Operator    |Description                         |Comment|
@@ -134,7 +136,8 @@ public float EstimatedPoints { get; set; }
 
 Also, with ```QueryOptionsAttribute``` attribute some other options could be specified:
 ```csharp
-[QueryOptions(Operator = OperatorType.Equals, IsSortable = false, ParamsPropertyName = "EstimatedPts", ModelPropertyName = "Estimation")]
+[QueryOptions(Operator = OperatorType.Equals, IsSortable = false, 
+    ParamsPropertyName = "EstimatedPts", ModelPropertyName = "Estimation")]
 public float EstimatedPoints { get; set; }
 ```
 * ```Operator``` will set the default operator for this property, ignoring the one sent in the query string

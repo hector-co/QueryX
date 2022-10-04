@@ -1,5 +1,4 @@
-﻿using QueryX.Utils;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace QueryX.Filters
 {
