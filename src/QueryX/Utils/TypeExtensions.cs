@@ -1,5 +1,7 @@
-﻿using System;
+﻿using QueryX.Filters;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -52,6 +54,34 @@ namespace QueryX.Utils
             var converted = value.ConvertTo(propType);
 
             return Expression.Constant(converted);
+        }
+
+        internal static (Expression property, Expression values) GetPropertyAndConstant<T>(this Expression property, T value,
+            bool isCaseInsensitive)
+        {
+            var prop = isCaseInsensitive
+                ? Expression.Call(property, Methods.ToLower)
+                : property;
+
+            var val = isCaseInsensitive
+                ? (value as string)!.ToLower().CreateConstantFor(property)
+                : value.CreateConstantFor(property);
+
+            return (prop, val);
+        }
+
+        internal static (Expression property, Expression values) GetPropertyAndConstants<T>(this Expression property, IEnumerable<T> value,
+            bool isCaseInsensitive)
+        {
+            var prop = isCaseInsensitive
+                ? Expression.Call(property, Methods.ToLower)
+                : property;
+
+            var val = isCaseInsensitive
+                ? value.Select(v => (v as string)!.ToLower()).ToList().CreateConstantFor(property)
+                : value.CreateConstantFor(property);
+
+            return (prop, val);
         }
     }
 }

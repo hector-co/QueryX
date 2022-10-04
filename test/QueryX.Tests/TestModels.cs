@@ -33,7 +33,8 @@ namespace QueryX.Tests
 
     public class TestEnumCustomFilter : CustomFilter<TestEnum>
     {
-        public TestEnumCustomFilter(OperatorType @operator, IEnumerable<TestEnum> values, bool isNegated) : base(@operator, values, isNegated)
+        public TestEnumCustomFilter(OperatorType @operator, IEnumerable<TestEnum> values, bool isNegated,
+            bool isCaseInsensitive) : base(@operator, values, isNegated, isCaseInsensitive)
         {
             if (values.Any())
                 SetFilterExpression<SampleObject>(m => m.Prop5 == values.First());

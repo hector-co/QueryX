@@ -8,7 +8,7 @@ namespace QueryX.Parsing
     internal static class QueryTokenizer
     {
         private static TextParser<Unit> MultiCharOperator { get; } =
-            from _ in Span.Regex("[^a-zA-Z0-9_\\s\\;'\\(\\)]{2,}")
+            from _ in Span.Regex("[^a-zA-Z0-9_\\s\\;'\\(\\)\\*]{2,}")
             select Unit.Value;
 
         private static TextParser<Unit> SingleCharOperator { get; } =

@@ -61,8 +61,9 @@ namespace QueryX.Parsing
             from negation in Token.EqualTo(QueryToken.Exclamation).Value(true).OptionalOrDefault()
             from property in Property
             from op in Operator
+            from ciFlag in Token.EqualTo(QueryToken.Asterisk).Value(true).OptionalOrDefault()
             from values in ValueArray
-            select (NodeBase)new FilterNode(property, op, values, isNegated: negation);
+            select (NodeBase)new FilterNode(property, op, values, isNegated: negation, isCaseInsensitive: ciFlag);
 
         private static TokenListParser<QueryToken, NodeBase> CollectionFilter { get; } =
             from negation in Token.EqualTo(QueryToken.Exclamation).Value(true).OptionalOrDefault()

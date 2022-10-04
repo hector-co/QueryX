@@ -1,21 +1,26 @@
-﻿using System.Linq.Expressions;
+﻿using QueryX.Utils;
+using System.Linq.Expressions;
 
 namespace QueryX.Filters
 {
     public class StartsWithFilter : IFilter
     {
-        public StartsWithFilter(string value, bool isNegated)
+        public StartsWithFilter(string value, bool isNegated, bool isCaseInsensitive)
         {
             Value = value;
             IsNegated = isNegated;
+            IsCaseInsensitive = isCaseInsensitive;
         }
 
         public string Value { get; }
         public bool IsNegated { get; }
+        public bool IsCaseInsensitive { get; }
 
         public Expression GetExpression(Expression property)
         {
-            var exp = Expression.Call(property, Methods.StartsWith, Expression.Constant(Value, typeof(string)));
+            var (prop, value) = property.GetPropertyAndConstant(Value, IsCaseInsensitive);
+
+            var exp = Expression.Call(prop, Methods.StartsWith, value);
 
             if(IsNegated)
                 return Expression.Not(exp);

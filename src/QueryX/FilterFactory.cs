@@ -11,12 +11,6 @@ namespace QueryX
 {
     public class FilterFactory : IFilterFactory
     {
-        private readonly IEnumerable<OperatorType> _stringOperators = new[]
-        {
-            OperatorType.CiEquals, OperatorType.CiNotEquals, OperatorType.CiIn, OperatorType.CiContains, OperatorType.CiEndsWith,
-            OperatorType.CiStartsWith, OperatorType.Contains, OperatorType.EndsWith, OperatorType.StartsWith
-        };
-
         private readonly Dictionary<OperatorType, Type> _filterTypes;
         private readonly Dictionary<string, OperatorType> _operatorsMapping;
 
@@ -26,12 +20,6 @@ namespace QueryX
 
             _operatorsMapping = new Dictionary<string, OperatorType>
             {
-                { "-=-*", OperatorType.CiContains },
-                { "-=*", OperatorType.CiEndsWith },
-                { "==*", OperatorType.CiEquals },
-                { "|=*", OperatorType.CiIn },
-                { "!=*", OperatorType.CiNotEquals },
-                { "=-*", OperatorType.CiStartsWith },
                 { "-=-", OperatorType.Contains },
                 { "-=", OperatorType.EndsWith },
                 { "==", OperatorType.Equals },
@@ -54,7 +42,8 @@ namespace QueryX
             _filterTypes.Add(@operator, filterType);
         }
 
-        public IFilter CreateCustomFilter(string @operator, Type customFilterType, IEnumerable<string?> values, bool isNegated)
+        public IFilter CreateCustomFilter(string @operator, Type customFilterType, IEnumerable<string?> values,
+            bool isNegated, bool isCaseInsensitive)
         {
             if (!_operatorsMapping.ContainsKey(@operator))
                 throw new QueryFormatException($"Operator not found: '{@operator}'");
@@ -65,10 +54,12 @@ namespace QueryX
 
             var valueType = typeof(IEnumerable<>).MakeGenericType(targetType);
 
-            return CreateFilterInstance(customFilterType, new[] { typeof(OperatorType), valueType, typeof(bool) }, _operatorsMapping[@operator], values.ConvertTo(targetType), isNegated);
+            return CreateFilterInstance(customFilterType, new[] { typeof(OperatorType), valueType, typeof(bool), typeof(bool) },
+                _operatorsMapping[@operator], values.ConvertTo(targetType), isNegated, isCaseInsensitive);
         }
 
-        public IFilter CreateFilter(string @operator, Type valueType, IEnumerable<string?> values, bool isNegated, OperatorType defaultOperator = OperatorType.None)
+        public IFilter CreateFilter(string @operator, Type valueType, IEnumerable<string?> values, bool isNegated,
+            bool isCaseInsensitive, OperatorType defaultOperator = OperatorType.None)
         {
             if (!_operatorsMapping.ContainsKey(@operator))
                 throw new QueryFormatException($"Operator not found: '{@operator}'");
@@ -77,45 +68,42 @@ namespace QueryX
                 ? _operatorsMapping[@operator]
                 : defaultOperator;
 
-            return CreateFilter(op, valueType, values, isNegated);
+            return CreateFilter(op, valueType, values, isNegated, isCaseInsensitive);
         }
 
-        private IFilter CreateFilter(OperatorType @operator, Type valueType, IEnumerable<string?> values, bool isNegated)
+        private IFilter CreateFilter(OperatorType @operator, Type valueType, IEnumerable<string?> values,
+            bool isNegated, bool isCaseInsensitive)
         {
-            if (valueType != typeof(string) && _stringOperators.Any(o => o == @operator))
-                throw new QueryFormatException($"'{@operator}' only supports string type.");
-
             var filterType = _filterTypes[@operator];
             var genericFilterType = filterType.IsGenericType
                 ? filterType.MakeGenericType(valueType)
-            : filterType;
+                : filterType;
 
-            if (@operator == OperatorType.In || @operator == OperatorType.CiIn)
-                return CreateFilterInstance(genericFilterType, new[] { typeof(IEnumerable<>).MakeGenericType(valueType), typeof(bool) }, values.ConvertTo(valueType), isNegated);
+            if (@operator == OperatorType.In)
+                return CreateFilterInstance(genericFilterType,
+                    new[] { typeof(IEnumerable<>).MakeGenericType(valueType), typeof(bool), typeof(bool) },
+                    values.ConvertTo(valueType), isNegated, isCaseInsensitive);
             else
-                return CreateFilterInstance(genericFilterType, new[] { valueType, typeof(bool) }, values.First().ConvertTo(valueType), isNegated);
+                return CreateFilterInstance(genericFilterType, new[] { valueType, typeof(bool), typeof(bool) },
+                    values.First().ConvertTo(valueType), isNegated, isCaseInsensitive);
         }
 
         private static IFilter CreateFilterInstance(Type type, IEnumerable<Type> valueTypes, params object?[] values)
         {
-            var ctorInfo = type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, valueTypes.ToArray(), null);
+            var ctorInfo = type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, valueTypes.ToArray(),
+                null);
 
-            var parameters = valueTypes.Select((valueType, index) => Expression.Constant(values[index], valueType)).ToArray();
+            var parameters = valueTypes.Select((valueType, index) => Expression.Constant(values[index], valueType))
+                .ToArray();
 
-            NewExpression constructorExpression = Expression.New(ctorInfo, parameters);
-            Expression<Func<object>> lambdaExpression = Expression.Lambda<Func<object>>(constructorExpression);
-            Func<object> createObjFunc = lambdaExpression.Compile();
+            var constructorExpression = Expression.New(ctorInfo, parameters);
+            var lambdaExpression = Expression.Lambda<Func<object>>(constructorExpression);
+            var createObjFunc = lambdaExpression.Compile();
             return (IFilter)createObjFunc();
         }
 
         private void AddDefaultFilterTypes()
         {
-            AddFilterType(OperatorType.CiContains, typeof(CiContainsFilter));
-            AddFilterType(OperatorType.CiEndsWith, typeof(CiEndsWithFilter));
-            AddFilterType(OperatorType.CiEquals, typeof(CiEqualsFilter));
-            AddFilterType(OperatorType.CiIn, typeof(CiInFilter));
-            AddFilterType(OperatorType.CiNotEquals, typeof(CiNotEqualsFilter));
-            AddFilterType(OperatorType.CiStartsWith, typeof(CiStartsWithFilter));
             AddFilterType(OperatorType.Contains, typeof(ContainsFilter));
             AddFilterType(OperatorType.EndsWith, typeof(EndsWithFilter));
             AddFilterType(OperatorType.Equals, typeof(EqualsFilter<>));
@@ -124,7 +112,7 @@ namespace QueryX
             AddFilterType(OperatorType.In, typeof(InFilter<>));
             AddFilterType(OperatorType.LessThan, typeof(LessThanFilter<>));
             AddFilterType(OperatorType.LessThanOrEquals, typeof(LessThanOrEqualsFilter<>));
-            AddFilterType(OperatorType.NotEquals, typeof(NotEqualsFilter<>));;
+            AddFilterType(OperatorType.NotEquals, typeof(NotEqualsFilter<>));
             AddFilterType(OperatorType.StartsWith, typeof(StartsWithFilter));
         }
     }

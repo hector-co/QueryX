@@ -8,12 +8,13 @@ namespace QueryX.Filters
     {
         private Expression? _expression;
 
-        public CustomFilter(OperatorType @operator, IEnumerable<TValue> values, bool isNegated)
+        public CustomFilter(OperatorType @operator, IEnumerable<TValue> values, bool isNegated, bool isCaseInsensitive)
         {
             Operator = @operator;
             _expression = null;
             Values = values;
             IsNegated = isNegated;
+            IsCaseInsensitive = isCaseInsensitive;
         }
 
         protected void SetFilterExpression<TModel>(Expression<Func<TModel, bool>> expression)
@@ -24,6 +25,7 @@ namespace QueryX.Filters
         public OperatorType Operator { get; }
         public IEnumerable<TValue> Values { get; }
         public bool IsNegated { get; }
+        public bool IsCaseInsensitive { get; }
 
         public Expression GetExpression(Expression property)
         {

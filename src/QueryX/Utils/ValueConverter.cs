@@ -10,8 +10,8 @@ namespace QueryX.Utils
 {
     internal static class ValueConverter
     {
-        private static MethodInfo _castMethod = typeof(Enumerable).GetMethod("Cast");
-        private static MethodInfo _toListMethod = typeof(Enumerable).GetMethod("ToList");
+        private static readonly MethodInfo CastMethod = typeof(Enumerable).GetMethod("Cast")!;
+        private static readonly MethodInfo ToListMethod = typeof(Enumerable).GetMethod("ToList")!;
 
         internal static object? ConvertTo(this object? value, Type targetType)
         {
@@ -38,8 +38,8 @@ namespace QueryX.Utils
                 result.Add(val.ConvertValue(targetType));
             }
 
-            var converted = (IEnumerable)_castMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { result })!;
-            converted = (IEnumerable)_toListMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { converted })!;
+            var converted = (IEnumerable)CastMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { result })!;
+            converted = (IEnumerable)ToListMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { converted })!;
 
             return converted;
         }

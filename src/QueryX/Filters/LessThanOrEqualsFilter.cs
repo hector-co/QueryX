@@ -5,18 +5,22 @@ namespace QueryX.Filters
 {
     public class LessThanOrEqualsFilter<TValue> : IFilter
     {
-        public LessThanOrEqualsFilter(TValue value, bool isNegated)
+        public LessThanOrEqualsFilter(TValue value, bool isNegated, bool isCaseInsensitive)
         {
             Value = value;
             IsNegated = isNegated;
+            IsCaseInsensitive = isCaseInsensitive;
         }
         
         public TValue Value { get; }
         public bool IsNegated { get; }
+        public bool IsCaseInsensitive { get; }
 
         public Expression GetExpression(Expression property)
         {
-            var exp = Expression.LessThanOrEqual(property, Value.CreateConstantFor(property));
+            var (prop, value) = property.GetPropertyAndConstant(Value, IsCaseInsensitive);
+
+            var exp = Expression.LessThanOrEqual(prop, value);
 
             if(IsNegated)
                 return Expression.Not(exp);

@@ -8,20 +8,24 @@ namespace QueryX.Filters
 {
     public class InFilter<TValue> : IFilter
     {
-        public InFilter(IEnumerable<TValue> values, bool isNegated)
+        public InFilter(IEnumerable<TValue> values, bool isNegated = false, bool isCaseInsensitive = false)
         {
             Values = values.ToList();
             IsNegated = isNegated;
+            IsCaseInsensitive = isCaseInsensitive;
         }
 
         public List<TValue> Values { get; }
         public bool IsNegated { get; set; }
+        public bool IsCaseInsensitive { get; set; }
 
         public Expression GetExpression(Expression property)
         {
+            var (prop, val) = property.GetPropertyAndConstants(Values, IsCaseInsensitive);
+
             var propType = ((PropertyInfo)((MemberExpression)property).Member).PropertyType;
 
-            var exp = Expression.Call(Values.CreateConstantFor(property), Methods.GetListContains(propType), property);
+            var exp = Expression.Call(val, Methods.GetListContains(propType), prop);
 
             if(IsNegated)
                 return Expression.Not(exp);

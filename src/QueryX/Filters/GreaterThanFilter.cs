@@ -5,18 +5,22 @@ namespace QueryX.Filters
 {
     public class GreaterThanFilter<TValue> : IFilter
     {
-        public GreaterThanFilter(TValue value, bool isNegated)
+        public GreaterThanFilter(TValue value, bool isNegated, bool isCaseInsensitive)
         {
             Value = value;
             IsNegated = isNegated;
+            IsCaseInsensitive = isCaseInsensitive;
         }
 
         public TValue Value { get; }
         public bool IsNegated { get; }
+        public bool IsCaseInsensitive { get; }
 
         public Expression GetExpression(Expression property)
         {
-            var exp = Expression.GreaterThan(property, Value.CreateConstantFor(property));
+            var (prop, value) = property.GetPropertyAndConstant(Value, IsCaseInsensitive);
+
+            var exp = Expression.GreaterThan(prop, value);
 
             if(IsNegated)
                 return Expression.Not(exp);

@@ -43,7 +43,9 @@ namespace QueryX
                 }
                 catch (Superpower.ParseException pex)
                 {
-                    throw new QueryFormatException($"Error parsing input. Invalid token at line {pex.ErrorPosition.Line}, column {pex.ErrorPosition.Column}", pex);
+                    throw new QueryFormatException(
+                        $"Error parsing input. Invalid token at line {pex.ErrorPosition.Line}, column {pex.ErrorPosition.Column}",
+                        pex);
 
                 }
                 catch (Exception ex)
@@ -51,21 +53,25 @@ namespace QueryX
                     throw new QueryFormatException("Error parsing input", ex);
                 }
 
-                var filterNodes = new List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)>();
+                var filterNodes =
+                    new List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter,
+                        bool isInTree, bool isNegated, bool isCi)>();
                 var adjustedNodes = AdjustNodes(typeof(TFilterModel), root! as dynamic, filterNodes);
 
                 var filterInstances = filterNodes
                     .Select(f => (f.node,
                         f.propName,
                         filter: (f.isCustomFilter
-                            ? _filterFactory.CreateCustomFilter(f.node.Operator, f.type, f.node.Values, f.isNegated)
-                            : _filterFactory.CreateFilter(f.node.Operator, f.type, f.node.Values, f.isNegated, f.defaultOp)),
+                            ? _filterFactory.CreateCustomFilter(f.node.Operator, f.type, f.node.Values, f.isNegated, f.isCi)
+                            : _filterFactory.CreateFilter(f.node.Operator, f.type, f.node.Values, f.isNegated, f.isCi,
+                                f.defaultOp)),
                         f.isInTree))
                     .ToList();
 
                 query.Filter = adjustedNodes;
                 query.SetNodeFilters(filterInstances.Where(f => f.isInTree).Select(f => (f.node, f.filter)).ToList());
-                query.SetCustomFilters(filterInstances.Where(f => !f.isInTree).Select(f => (f.propName, f.filter)).ToList());
+                query.SetCustomFilters(filterInstances.Where(f => !f.isInTree).Select(f => (f.propName, f.filter))
+                    .ToList());
             }
 
             query.OrderBy = GetOrderBy<TFilterModel>(queryModel.OrderBy);
@@ -96,7 +102,8 @@ namespace QueryX
         }
 
         private static NodeBase? AdjustNodes(Type parentType, AndAlsoNode node,
-            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
+            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool
+                isInTree, bool isNegated, bool isCi)> filterNodes)
         {
             var left = (NodeBase?)AdjustNodes(parentType, node.Left as dynamic, filterNodes);
             var right = (NodeBase?)AdjustNodes(parentType, node.Right as dynamic, filterNodes);
@@ -105,12 +112,15 @@ namespace QueryX
             {
                 null when right == null => null,
                 null => node.IsNegated ? right.Negated() : right,
-                _ => right == null ? node.IsNegated ? left.Negated() : left : new AndAlsoNode(left, right, node.IsNegated)
+                _ => right == null
+                    ? node.IsNegated ? left.Negated() : left
+                    : new AndAlsoNode(left, right, node.IsNegated)
             };
         }
 
         private static NodeBase? AdjustNodes(Type parentType, OrElseNode node,
-            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
+            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool
+                isInTree, bool isNegated, bool isCi)> filterNodes)
         {
             var left = (NodeBase?)AdjustNodes(parentType, node.Left as dynamic, filterNodes);
             var right = (NodeBase?)AdjustNodes(parentType, node.Right as dynamic, filterNodes);
@@ -119,12 +129,15 @@ namespace QueryX
             {
                 null when right == null => null,
                 null => node.IsNegated ? right.Negated() : right,
-                _ => right == null ? node.IsNegated ? left.Negated() : left : new OrElseNode(left, right, node.IsNegated)
+                _ => right == null
+                    ? node.IsNegated ? left.Negated() : left
+                    : new OrElseNode(left, right, node.IsNegated)
             };
         }
 
         private static NodeBase? AdjustNodes(Type parentType, ObjectFilterNode node,
-            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
+            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool
+                isInTree, bool isNegated, bool isCi)> filterNodes)
         {
             if (!node.Property.TryGetPropertyQueryInfo(parentType, out var queryAttributeInfo))
                 return null;
@@ -146,7 +159,8 @@ namespace QueryX
         }
 
         private static NodeBase? AdjustNodes(Type parentType, FilterNode node,
-            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool isInTree, bool isNegated)> filterNodes)
+            List<(FilterNode node, string propName, Type type, OperatorType defaultOp, bool isCustomFilter, bool
+                isInTree, bool isNegated, bool isCi)> filterNodes)
         {
             if (!node.Property.TryGetPropertyQueryInfo(parentType, out var queryAttributeInfo))
                 return null;
@@ -160,18 +174,22 @@ namespace QueryX
                 var removed = false;
                 if (customFilterType == null)
                 {
-                    customFilterType = typeof(CustomFilter<>).MakeGenericType(queryAttributeInfo.PropertyInfo.PropertyType);
+                    customFilterType =
+                        typeof(CustomFilter<>).MakeGenericType(queryAttributeInfo.PropertyInfo.PropertyType);
                     removed = true;
                 }
 
-                filterNodes.Add((node, queryAttributeInfo!.FilterPropertyName, customFilterType, OperatorType.None, true, !removed, node.IsNegated));
+                filterNodes.Add((node, queryAttributeInfo!.FilterPropertyName, customFilterType, OperatorType.None,
+                    true, !removed, node.IsNegated, node.IsCaseInsensitive));
 
                 if (removed)
                     return null;
             }
             else
             {
-                filterNodes.Add((node, queryAttributeInfo!.FilterPropertyName, queryAttributeInfo!.PropertyInfo.PropertyType, queryAttributeInfo!.Operator, false, true, node.IsNegated));
+                filterNodes.Add((node, queryAttributeInfo!.FilterPropertyName,
+                    queryAttributeInfo!.PropertyInfo.PropertyType, queryAttributeInfo!.Operator, false, true,
+                    node.IsNegated, node.IsCaseInsensitive));
             }
 
             return node;

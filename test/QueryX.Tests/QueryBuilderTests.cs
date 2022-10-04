@@ -65,9 +65,9 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("==", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
+                m.CreateFilter("==", typeof(int), new[] { $"{expectedIntValue}" }, false, false, OperatorType.None));
             filterFactory.Verify(m => m.CreateFilter("==", typeof(bool), new[] { $"{expectedBoolValue}".ToLower() },
-                false, OperatorType.None));
+                false, false, OperatorType.None));
         }
 
         [Fact]
@@ -86,7 +86,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m => m.CreateFilter("==", typeof(DateTime),
-                It.Is<IEnumerable<string?>>(s => DateTime.Parse(s.First() ?? string.Empty) == expectedDateTimeValue), false,
+                It.Is<IEnumerable<string?>>(s => DateTime.Parse(s.First() ?? string.Empty) == expectedDateTimeValue), false, false,
                 OperatorType.None));
         }
 
@@ -106,7 +106,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m => m.CreateFilter("==", typeof(TestEnum),
-                It.Is<IEnumerable<string?>>(s => Enum.Parse<TestEnum>(s.First() ?? string.Empty) == expectedEnumValue), false,
+                It.Is<IEnumerable<string?>>(s => Enum.Parse<TestEnum>(s.First() ?? string.Empty) == expectedEnumValue), false, false,
                 OperatorType.None));
         }
 
@@ -126,7 +126,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("==*", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
+                m.CreateFilter("==", typeof(string), new[] { expectedStringValue }, false, true, OperatorType.None));
         }
 
         [Fact]
@@ -146,10 +146,10 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("!=", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
+                m.CreateFilter("!=", typeof(int), new[] { $"{expectedIntValue}" }, false, false, OperatorType.None));
 
             filterFactory.Verify(m =>
-                m.CreateFilter("!=", typeof(bool), new[] { $"{expectedBoolValue}".ToLower() }, false,
+                m.CreateFilter("!=", typeof(bool), new[] { $"{expectedBoolValue}".ToLower() }, false, false,
                     OperatorType.None));
         }
 
@@ -169,7 +169,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("!=*", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
+                m.CreateFilter("!=", typeof(string), new[] { expectedStringValue }, false, true, OperatorType.None));
         }
 
         [Fact]
@@ -188,7 +188,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("<", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
+                m.CreateFilter("<", typeof(int), new[] { $"{expectedIntValue}" }, false, false, OperatorType.None));
         }
 
         [Fact]
@@ -207,7 +207,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("<=", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
+                m.CreateFilter("<=", typeof(int), new[] { $"{expectedIntValue}" }, false, false, OperatorType.None));
         }
 
         [Fact]
@@ -226,7 +226,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter(">", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
+                m.CreateFilter(">", typeof(int), new[] { $"{expectedIntValue}" }, false, false, OperatorType.None));
         }
 
         [Fact]
@@ -245,7 +245,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter(">=", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
+                m.CreateFilter(">=", typeof(int), new[] { $"{expectedIntValue}" }, false, false, OperatorType.None));
         }
 
         [Fact]
@@ -264,7 +264,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("-=-", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
+                m.CreateFilter("-=-", typeof(string), new[] { expectedStringValue }, false, false, OperatorType.None));
         }
 
         [Fact]
@@ -283,27 +283,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("-=-*", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
-        }
-
-        [Fact]
-        public void ApplyContainsFilterToNonStringTypeShouldThrowAndExceptionTest()
-        {
-            var queryBuilder = new QueryBuilder(new FilterFactory());
-
-            const int expectedIntValue = 8;
-
-            var queryModel = new QueryModel
-            {
-                Filter = $"intProperty1 -=- {expectedIntValue}"
-            };
-
-            var act = () =>
-            {
-                var query = queryBuilder.CreateQuery<TestModel1>(queryModel);
-            };
-
-            act.Should().Throw<QueryException>();
+                m.CreateFilter("-=-", typeof(string), new[] { expectedStringValue }, false, true, OperatorType.None));
         }
 
         [Fact]
@@ -322,7 +302,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("=-", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
+                m.CreateFilter("=-", typeof(string), new[] { expectedStringValue }, false, false, OperatorType.None));
         }
 
         [Fact]
@@ -341,7 +321,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("=-*", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
+                m.CreateFilter("=-", typeof(string), new[] { expectedStringValue }, false, true, OperatorType.None));
         }
 
         [Fact]
@@ -360,7 +340,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("-=", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
+                m.CreateFilter("-=", typeof(string), new[] { expectedStringValue }, false, false, OperatorType.None));
         }
 
         [Fact]
@@ -379,7 +359,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("-=*", typeof(string), new[] { expectedStringValue }, false, OperatorType.None));
+                m.CreateFilter("-=", typeof(string), new[] { expectedStringValue }, false, true, OperatorType.None));
         }
 
         [Fact]
@@ -400,10 +380,10 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             var expectedInts = expectedIntValues.Select(v => v.ToString());
-            filterFactory.Verify(m => m.CreateFilter("|=", typeof(int), expectedInts, false, OperatorType.None));
+            filterFactory.Verify(m => m.CreateFilter("|=", typeof(int), expectedInts, false, false, OperatorType.None));
 
             filterFactory.Verify(m =>
-                m.CreateFilter("|=", typeof(string), expectedStringValues, false, OperatorType.None));
+                m.CreateFilter("|=", typeof(string), expectedStringValues, false, false, OperatorType.None));
         }
 
         [Fact]
@@ -422,7 +402,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("|=*", typeof(string), expectedStringValues, false, OperatorType.None));
+                m.CreateFilter("|=", typeof(string), expectedStringValues, false, true, OperatorType.None));
         }
 
         [Theory]
@@ -446,7 +426,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("==", typeof(string), new[] { expectedValue }, false, OperatorType.None));
+                m.CreateFilter("==", typeof(string), new[] { expectedValue }, false, false, OperatorType.None));
         }
 
         [Theory]
@@ -466,7 +446,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("==", typeof(int), new[] { $"{expectedValue}" }, false, OperatorType.None));
+                m.CreateFilter("==", typeof(int), new[] { $"{expectedValue}" }, false, false, OperatorType.None));
         }
 
         [Theory]
@@ -486,7 +466,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("==", typeof(int?), new[] { $"{expectedValue}" }, false, OperatorType.None));
+                m.CreateFilter("==", typeof(int?), new[] { $"{expectedValue}" }, false, false, OperatorType.None));
         }
 
         [Fact]
@@ -503,7 +483,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("==", typeof(int?), new string?[] { null }, false, OperatorType.None));
+                m.CreateFilter("==", typeof(int?), new string?[] { null }, false, false, OperatorType.None));
         }
 
         [Theory]
@@ -575,7 +555,7 @@ namespace QueryX.Tests
         }
 
         [Fact]
-        public void HandleCusomtFilteringValuesTest()
+        public void HandleCustomFilteringValuesTest()
         {
             var queryBuilder = new QueryBuilder(new FilterFactory());
 
@@ -635,7 +615,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("==", typeof(string), new[] { expectedString }, false, OperatorType.None));
+                m.CreateFilter("==", typeof(string), new[] { expectedString }, false, false, OperatorType.None));
         }
 
         [Fact]
@@ -655,10 +635,10 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter(">", typeof(int), new[] { $"{intFromExpected}" }, false, OperatorType.None));
+                m.CreateFilter(">", typeof(int), new[] { $"{intFromExpected}" }, false, false, OperatorType.None));
 
             filterFactory.Verify(m =>
-                m.CreateFilter("<=", typeof(int), new[] { $"{intToExpected}" }, false, OperatorType.None));
+                m.CreateFilter("<=", typeof(int), new[] { $"{intToExpected}" }, false, false, OperatorType.None));
         }
 
         [Theory]
@@ -679,7 +659,7 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModel3>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter(@operator, It.IsAny<Type>(), It.IsAny<IEnumerable<string?>>(), false,
+                m.CreateFilter(@operator, It.IsAny<Type>(), It.IsAny<IEnumerable<string?>>(), false, false,
                     OperatorType.Equals));
         }
 
@@ -717,10 +697,10 @@ namespace QueryX.Tests
             _ = queryBuilder.CreateQuery<TestModelWithRel>(queryModel);
 
             filterFactory.Verify(m =>
-                m.CreateFilter("==", typeof(int), new[] { $"{expectedIntValue}" }, false, OperatorType.None));
+                m.CreateFilter("==", typeof(int), new[] { $"{expectedIntValue}" }, false, false, OperatorType.None));
 
             filterFactory.Verify(m =>
-                m.CreateFilter("==", typeof(int), new[] { $"{expectedProp1IntValue}" }, false, OperatorType.None));
+                m.CreateFilter("==", typeof(int), new[] { $"{expectedProp1IntValue}" }, false, false, OperatorType.None));
         }
     }
 }

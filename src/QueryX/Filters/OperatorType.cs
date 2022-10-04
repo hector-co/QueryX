@@ -3,12 +3,6 @@
     public enum OperatorType
     {
         None,
-        CiContains,
-        CiEndsWith,
-        CiEquals,
-        CiIn,
-        CiNotEquals,
-        CiStartsWith,
         Contains,
         Equals,
         EndsWith,

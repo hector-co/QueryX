@@ -5,18 +5,22 @@ namespace QueryX.Filters
 {
     public class NotEqualsFilter<TValue> : IFilter
     {
-        public NotEqualsFilter(TValue value, bool isNegated)
+        public NotEqualsFilter(TValue value, bool isNegated, bool isCaseInsensitive)
         {
             Value = value;
             IsNegated = isNegated;
+            IsCaseInsensitive = isCaseInsensitive;
         }
 
         public TValue Value { get; }
         public bool IsNegated { get; }
+        public bool IsCaseInsensitive { get; }
 
         public Expression GetExpression(Expression property)
         {
-            var exp = Expression.NotEqual(property, Value.CreateConstantFor(property));
+            var (prop, value) = property.GetPropertyAndConstant(Value, IsCaseInsensitive);
+
+            var exp = Expression.NotEqual(prop, value);
 
             if(IsNegated)
                 return Expression.Not(exp);
