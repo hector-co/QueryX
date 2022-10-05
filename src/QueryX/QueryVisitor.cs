@@ -54,22 +54,22 @@ namespace QueryX
                 exp = Expression.Not(exp);
 
             context.Stack.Push(exp);
-            return;
         }
 
         public void Visit(ObjectFilterNode node)
         {
             var context = _contexts.First();
 
-            if (!node.Property.TryGetPropertyQueryInfo<TFilterModel>(out var queryAttributeInfo) || queryAttributeInfo == null)
+            var queryInfo = node.Property.GetPropertyQueryInfo<TFilterModel>();
+            if (queryInfo == null)
             {
                 context.Stack.Push(null);
                 return;
             }
 
-            var type = queryAttributeInfo.PropertyInfo.PropertyType;
+            var type = queryInfo.PropertyInfo.PropertyType;
 
-            var modelPropertyType = queryAttributeInfo.ModelPropertyName.GetPropertyInfo<TModel>()!.PropertyType;
+            var modelPropertyType = queryInfo.ModelPropertyName.GetPropertyInfo<TModel>()!.PropertyType;
             var modelTargetType = modelPropertyType.GenericTypeArguments[0];
             var modelFilterTargetType = type.GenericTypeArguments[0];
 
@@ -84,7 +84,7 @@ namespace QueryX
             var method = node.ApplyAll ? TypeHelper.AllMethod : TypeHelper.AnyMethod;
             var methodGeneric = method.MakeGenericMethod(modelTargetType);
 
-            var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
+            var propExp = queryInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
             Expression anyExp = Expression.Call(null, methodGeneric, propExp, exp);
 
             if (node.IsNegated)
@@ -100,17 +100,18 @@ namespace QueryX
 
             var propertyName = context.GetConcatenatedProperty(node.Property);
 
-            if (!propertyName.TryGetPropertyQueryInfo(context.ParentType, out var queryAttributeInfo) || queryAttributeInfo == null)
+            var queryInfo = propertyName.GetPropertyQueryInfo(context.ParentType);
+            if (queryInfo == null)
             {
                 context.Stack.Push(null);
                 return;
             }
 
-            if (queryAttributeInfo.IsCustomFilter && queryAttributeInfo.CustomFilterType != null)
+            if (queryInfo.IsCustomFilter && queryInfo.CustomFilterType != null)
                 context.Stack.Push(_query.GetFilterInstanceByNode(node).GetExpression(context.Parameter));
-            else if (!queryAttributeInfo.IsCustomFilter)
+            else if (!queryInfo.IsCustomFilter)
             {
-                var propExp = queryAttributeInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
+                var propExp = queryInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
                 if (propExp == null)
                 {
                     context.Stack.Push(null);

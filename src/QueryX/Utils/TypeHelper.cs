@@ -26,13 +26,31 @@ namespace QueryX.Utils
             return properties;
         }
 
+        internal static PropertyInfo? GetPropertyInfo(this Type type, string propertyName)
+        {
+            if (Properties.ContainsKey(type))
+            {
+                if (Properties.TryGetValue(type, out var props))
+                    return props.FirstOrDefault(t =>
+                        t.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
+            }
+            var properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            Properties.TryAdd(type, properties);
+            return GetPropertyInfo(type, propertyName);
+        }
+
+        internal static PropertyInfo? GetPropertyInfo<T>(this string propertyName)
+        {
+            return GetPropertyInfo(typeof(T), propertyName);
+        }
+
         internal static Expression? GetPropertyExpression(this string propertyName, Expression modelParameter)
         {
-            Expression property = modelParameter;
+            var property = modelParameter;
 
             foreach (var member in propertyName.Split('.'))
             {
-                var existentProp = property.Type.GetCachedProperties().FirstOrDefault(t => t.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
+                var existentProp = property.Type.GetPropertyInfo(member);
                 if (existentProp == null)
                     return null;
 
@@ -40,12 +58,6 @@ namespace QueryX.Utils
             }
 
             return property;
-        }
-
-        internal static PropertyInfo? GetPropertyInfo<TModel>(this string propertyName)
-        {
-            return typeof(TModel).GetCachedProperties()
-                .FirstOrDefault(t => t.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
         }
     }
 }

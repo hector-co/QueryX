@@ -33,11 +33,12 @@ namespace QueryX
 
             foreach (var sortValue in query.OrderBy)
             {
-                if (!sortValue.PropertyName.TryGetPropertyQueryInfo<TFilterModel>(out var queryAttrInfo))
+                var queryInfo = sortValue.PropertyName.GetPropertyQueryInfo<TFilterModel>();
+                if (queryInfo == null)
                     continue;
 
                 var modelParameter = Expression.Parameter(typeof(TModel), "m");
-                var propExp = queryAttrInfo!.ModelPropertyName.GetPropertyExpression(modelParameter);
+                var propExp = queryInfo!.ModelPropertyName.GetPropertyExpression(modelParameter);
 
                 if (propExp == null)
                     continue;

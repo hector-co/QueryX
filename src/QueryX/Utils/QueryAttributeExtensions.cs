@@ -10,20 +10,18 @@ namespace QueryX.Utils
 {
     internal static class QueryAttributeExtensions
     {
-        const char PropertyNamesSeparator = '.';
+        private const char PropertyNamesSeparator = '.';
 
         internal static ConcurrentDictionary<Type, Dictionary<PropertyInfo, IEnumerable<QueryBaseAttribute>>> TypesAttributes
             = new ConcurrentDictionary<Type, Dictionary<PropertyInfo, IEnumerable<QueryBaseAttribute>>>();
 
-        internal static bool TryGetPropertyQueryInfo<TModel>(this string propertyName, out QueryAttributeInfo? queryAttributeInfo)
+        internal static PropertyQueryInfo? GetPropertyQueryInfo<TModel>(this string propertyName)
         {
-            return propertyName.TryGetPropertyQueryInfo(typeof(TModel), out queryAttributeInfo);
+            return propertyName.GetPropertyQueryInfo(typeof(TModel));
         }
 
-        internal static bool TryGetPropertyQueryInfo(this string propertyName, Type parentType, out QueryAttributeInfo? queryAttributeInfo)
+        internal static PropertyQueryInfo? GetPropertyQueryInfo(this string propertyName, Type parentType)
         {
-            queryAttributeInfo = null;
-
             if (!TypesAttributes.ContainsKey(parentType))
             {
                 TypesAttributes.TryAdd(parentType, parentType
@@ -38,70 +36,53 @@ namespace QueryX.Utils
                 if (TypesAttributes[parentType][key]
                     .Any(a => a is QueryOptionsAttribute attr && attr.ParamsPropertyName.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    return key.TryGetPropertyQueryInfo(parentType, out queryAttributeInfo);
+                    return key.GetPropertyQueryInfo(parentType);
                 }
             }
 
             if (propertyName.Contains(PropertyNamesSeparator))
             {
-                return propertyName.TryGetSubPropertyQueryInfo(parentType, out queryAttributeInfo);
+                return propertyName.GetSubPropertyQueryInfo(parentType);
             }
 
             var propertyInfo = parentType.GetCachedProperties()
                 .FirstOrDefault(t => t.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
 
-            if (propertyInfo == null)
-                return false;
-
-            return propertyInfo.TryGetPropertyQueryInfo(parentType, out queryAttributeInfo);
+            return propertyInfo?.GetPropertyQueryInfo(parentType);
         }
 
-        private static bool TryGetSubPropertyQueryInfo(this string propertyName, Type parentType, out QueryAttributeInfo? queryAttributeInfo)
+        private static PropertyQueryInfo? GetSubPropertyQueryInfo(this string propertyName, Type parentType)
         {
-            queryAttributeInfo = null;
-
-            Type prevParentType = parentType;
             PropertyInfo? childPropInfo = null;
-            QueryAttributeInfo? qai = null;
+            PropertyQueryInfo? qai = null;
             var filterPropertyName = "";
             var modelPropertyName = "";
             foreach (var member in propertyName.Split(PropertyNamesSeparator))
             {
-                prevParentType = parentType;
                 childPropInfo = parentType.GetCachedProperties()
                     .FirstOrDefault(p => p.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
 
                 if (childPropInfo == null)
-                    return false;
+                    return null;
 
-                if (!childPropInfo.TryGetPropertyQueryInfo(parentType, out qai) || qai!.IsCustomFilter)
-                {
-                    return false;
-                }
+                qai = childPropInfo.GetPropertyQueryInfo(parentType);
 
-                if (qai!.IsIgnored)
-                {
-                    queryAttributeInfo = qai;
-                    return true;
-                }
+                if (qai == null || qai!.IsIgnored)
+                    return qai;
 
                 filterPropertyName += qai.PropertyInfo.Name + PropertyNamesSeparator;
                 modelPropertyName += qai!.ModelPropertyName + PropertyNamesSeparator;
                 parentType = childPropInfo.PropertyType;
             }
-            parentType = prevParentType;
             filterPropertyName = filterPropertyName.TrimEnd(PropertyNamesSeparator);
             modelPropertyName = modelPropertyName.TrimEnd(PropertyNamesSeparator);
 
-            queryAttributeInfo = new QueryAttributeInfo(childPropInfo!, false, filterPropertyName, modelPropertyName, qai!.Operator, false, null, qai!.IsSortable);
-
-            return true;
+            return new PropertyQueryInfo(childPropInfo!, false, filterPropertyName, modelPropertyName, qai!.Operator, false,
+                null, qai.IsSortable);
         }
 
-        internal static bool TryGetPropertyQueryInfo(this PropertyInfo propertyInfo, Type parentType, out QueryAttributeInfo? queryAttributeInfo)
+        internal static PropertyQueryInfo? GetPropertyQueryInfo(this PropertyInfo propertyInfo, Type parentType)
         {
-            queryAttributeInfo = null;
-
             if (!TypesAttributes.ContainsKey(parentType))
             {
                 TypesAttributes.TryAdd(parentType, parentType
@@ -112,43 +93,29 @@ namespace QueryX.Utils
             }
 
             if (!TypesAttributes[parentType].ContainsKey(propertyInfo))
-                return false;
+                return null;
 
             var isIgnored = TypesAttributes[parentType][propertyInfo].Any(a => a is QueryIgnoreAttribute);
 
             if (isIgnored)
             {
-                queryAttributeInfo = new QueryAttributeInfo(propertyInfo, true);
-                return true;
+                return new PropertyQueryInfo(propertyInfo, true);
             }
 
-            var customFilterAttr = (CustomFilterAttribute)TypesAttributes[parentType][propertyInfo].FirstOrDefault(a => a is CustomFilterAttribute);
+            var customFilterAttr = (CustomFilterAttribute?)TypesAttributes[parentType][propertyInfo].FirstOrDefault(a => a is CustomFilterAttribute);
             if (customFilterAttr != null)
             {
-                queryAttributeInfo = new QueryAttributeInfo
-                (propertyInfo, false,
-                propertyInfo.Name,
-                string.Empty,
-                OperatorType.None,
-                true,
-                customFilterAttr.Type,
-                false);
-
-                return true;
+                return new PropertyQueryInfo(propertyInfo, false, propertyInfo.Name, string.Empty, OperatorType.None, true,
+                    customFilterAttr.Type, false);
             }
 
             var optionsAttr = (QueryOptionsAttribute?)TypesAttributes[parentType][propertyInfo].FirstOrDefault(a => a is QueryOptionsAttribute);
 
-            queryAttributeInfo = new QueryAttributeInfo
-                (propertyInfo, false,
-                propertyInfo.Name,
-                string.IsNullOrEmpty(optionsAttr?.ModelPropertyName) ? propertyInfo.Name : optionsAttr.ModelPropertyName,
-                optionsAttr?.Operator ?? OperatorType.None,
-                false,
-                null,
+            return new PropertyQueryInfo(propertyInfo, false, propertyInfo.Name,
+                string.IsNullOrEmpty(optionsAttr?.ModelPropertyName)
+                    ? propertyInfo.Name
+                    : optionsAttr.ModelPropertyName, optionsAttr?.Operator ?? OperatorType.None, false, null,
                 optionsAttr?.IsSortable ?? true);
-
-            return true;
         }
     }
 }
