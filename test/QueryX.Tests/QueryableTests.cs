@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using QueryX.Exceptions;
+using QueryX.Filters;
 
 namespace QueryX.Tests
 {
@@ -380,21 +381,6 @@ namespace QueryX.Tests
             var result = queryable.ToList();
             result.Should().NotBeNull();
             result.Count().Should().Be(1);
-        }
-
-        [Fact]
-        public void CustomFilterWithTypesTest()
-        {
-            const TestEnum prop6FilterValue = TestEnum.Value1;
-            const int expectedCount = 2;
-
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
-            {
-                Filter = $"prop5 == '{prop6FilterValue}'"
-            });
-
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
         }
 
         [Fact]

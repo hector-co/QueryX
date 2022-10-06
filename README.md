@@ -166,14 +166,13 @@ id,-priority,title
 Custom filters can not be used for ordering
 
 ## Custom filters
-The ```CustomFilterAttribute``` attribute allows changing the default behavior of filters, it can be done in different ways:
+The ```CustomFilterAttribute``` attribute allows changing the default behavior of filters:
 
-### Decorating a property without a filter type
 ```csharp
 [CustomFilter]
 public int Priority { get; set; }
 ```
-By default this property will be excluded as part of the filter, custom code needs to be written for doing something with the filter value, after the ```Query``` object is created:
+Properties marked with this attribute will be excluded as part of the filter, custom code needs to be written for doing something with the filter value after the ```Query``` object is created:
 
 ```csharp
 [HttpGet]
@@ -183,9 +182,9 @@ public IActionResult List([FromQuery] QueryModel queryModel)
     var queryable = _context.Set<Card>();
 
     // Applying custom filter
-    if (query.TryGetFilters(m => m.Priority, out var filters))
+    if (query.TryGetFilter(m => m.Priority, out var filter))
     {
-        var filterValue = filters.First().Values.First();
+        var filterValue = filter.Values.First();
         queryable = queryable.Where(m => m.Priority == filterValue);
     }
 
@@ -193,6 +192,3 @@ public IActionResult List([FromQuery] QueryModel queryModel)
     return Ok(result);
 }
 ```
-
-### Decorating a property specifying a filter type
-WIP

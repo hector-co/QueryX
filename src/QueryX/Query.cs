@@ -9,12 +9,12 @@ namespace QueryX
 {
     public class Query<TFilterModel>
     {
-        private readonly Dictionary<string, List<IFilter>> _customFilters;
+        private readonly Dictionary<string, IFilter> _customFilters;
         private readonly Dictionary<FilterNode, IFilter> _nodeFilters;
 
         public Query()
         {
-            _customFilters = new Dictionary<string, List<IFilter>>(StringComparer.InvariantCultureIgnoreCase);
+            _customFilters = new Dictionary<string, IFilter>(StringComparer.InvariantCultureIgnoreCase);
             _nodeFilters = new Dictionary<FilterNode, IFilter>();
             OrderBy = new List<SortValue>();
         }
@@ -34,12 +34,12 @@ namespace QueryX
 
         internal void SetCustomFilters(List<(string propertyName, IFilter filter)> instances)
         {
-            foreach (var instance in instances)
+            foreach (var (propertyName, filter) in instances)
             {
-                if (!_customFilters.ContainsKey(instance.propertyName))
-                    _customFilters.Add(instance.propertyName, new List<IFilter>());
+                if (_customFilters.ContainsKey(propertyName))
+                    continue;
 
-                _customFilters[instance.propertyName].Add(instance.filter);
+                _customFilters.Add(propertyName, filter);
             }
         }
 
@@ -48,18 +48,19 @@ namespace QueryX
             return _nodeFilters[node];
         }
 
-        public bool TryGetFilters<TValue>(Expression<Func<TFilterModel, TValue>> selector, out List<CustomFilter<TValue>> filters)
+        public bool TryGetFilter<TValue>(Expression<Func<TFilterModel, TValue>> selector,
+            out CustomFilter<TValue>? filter)
         {
             //TODO find better way
             var propName = string.Join('.', selector.ToString().Split('.').Skip(1));
 
-            filters = new List<CustomFilter<TValue>>();
+            filter = null;
             if (!_customFilters.TryGetValue(propName, out var result))
                 return false;
 
-            filters.AddRange(result.Cast<CustomFilter<TValue>>());
+            filter = (CustomFilter<TValue>)result;
 
-            return filters.Any();
+            return true;
         }
 
     }

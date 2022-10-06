@@ -24,21 +24,11 @@ namespace QueryX.Tests
         public bool Prop3 { get; set; }
         public DateTime Prop4 { get; set; }
 
-        [CustomFilter(Type = typeof(TestEnumCustomFilter))]
+        [CustomFilter]
         public TestEnum Prop5 { get; set; }
 
         [CustomFilter]
         public int Prop6 { get; set; }
-    }
-
-    public class TestEnumCustomFilter : CustomFilter<TestEnum>
-    {
-        public TestEnumCustomFilter(OperatorType @operator, IEnumerable<TestEnum> values, bool isNegated,
-            bool isCaseInsensitive) : base(@operator, values, isNegated, isCaseInsensitive)
-        {
-            if (values.Any())
-                SetFilterExpression<SampleObject>(m => m.Prop5 == values.First());
-        }
     }
 
     public class SampleObjectWithRelationship

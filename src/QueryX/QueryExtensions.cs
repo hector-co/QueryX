@@ -17,12 +17,12 @@ namespace QueryX
                 return source;
             }
 
-            var visitor = new QueryVisitor<TFilterModel, TModel>(query);
+            var expProvider = new QueryExpressionBuilder<TFilterModel, TModel>(query);
 
-            visitor.Visit(query.Filter as dynamic);
-            var filterExp = visitor.GetFilterExpression();
+            var filterExp = expProvider.GetFilterExpression();
 
-            source = source.Where(filterExp);
+            if (filterExp != null)
+                source = source.Where(filterExp);
 
             return source;
         }
@@ -38,7 +38,7 @@ namespace QueryX
                     continue;
 
                 var modelParameter = Expression.Parameter(typeof(TModel), "m");
-                var propExp = queryInfo!.ModelPropertyName.GetPropertyExpression(modelParameter);
+                var propExp = queryInfo.ModelPropertyName.GetPropertyExpression(modelParameter);
 
                 if (propExp == null)
                     continue;
@@ -47,26 +47,14 @@ namespace QueryX
 
                 if (sortValue.Ascending)
                 {
-                    if (!applyThenBy)
-                    {
-                        source = source.OrderBy(sortExp);
-                    }
-                    else
-                    {
-                        source = ((IOrderedQueryable<TModel>)source).ThenBy(sortExp);
-                    }
+                    source = !applyThenBy ? source.OrderBy(sortExp) : ((IOrderedQueryable<TModel>)source).ThenBy(sortExp);
                 }
                 else
                 {
-                    if (!applyThenBy)
-                    {
-                        source = source.OrderByDescending(sortExp);
-                    }
-                    else
-                    {
-                        source = ((IOrderedQueryable<TModel>)source).ThenByDescending(sortExp);
-                    }
+                    source = !applyThenBy ? source.OrderByDescending(sortExp) : ((IOrderedQueryable<TModel>)source).ThenByDescending(sortExp);
                 }
+
+                applyThenBy = true;
             }
 
             if (query.Offset > 0)

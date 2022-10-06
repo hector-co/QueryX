@@ -1,8 +1,7 @@
-﻿using QueryX.Filters;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 
-namespace QueryX
+namespace QueryX.Filters
 {
     public interface IFilterFactory
     {

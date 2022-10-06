@@ -56,17 +56,16 @@ namespace QueryX.Utils
 
                 return enumValue;
             }
-            else if (value.GetType().IsEnum)
+
+            if (value.GetType().IsEnum)
             {
                 return Convert.ChangeType(value, targetType);
             }
-            else
-            {
-                if (!TypeDescriptor.GetConverter(targetType).IsValid(value))
-                    throw new QueryFormatException($"'{value}' is not valid for type {targetType.Name}");
 
-                return TypeDescriptor.GetConverter(targetType).ConvertFrom(value);
-            }
+            if (!TypeDescriptor.GetConverter(targetType).IsValid(value))
+                throw new QueryFormatException($"'{value}' is not valid for type {targetType.Name}");
+
+            return TypeDescriptor.GetConverter(targetType).ConvertFrom(value)!;
         }
     }
 }

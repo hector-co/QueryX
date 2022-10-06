@@ -46,7 +46,6 @@ namespace QueryX
                     throw new QueryFormatException(
                         $"Error parsing input. Invalid token at line {pex.ErrorPosition.Line}, column {pex.ErrorPosition.Column}",
                         pex);
-
                 }
                 catch (Exception ex)
                 {
@@ -156,22 +155,14 @@ namespace QueryX
 
             if (queryInfo.IsCustomFilter)
             {
-                var customFilterType = queryInfo.CustomFilterType;
-                var toRemove = false;
-                if (customFilterType == null)
-                {
-                    customFilterType =
-                        typeof(CustomFilter<>).MakeGenericType(queryInfo.PropertyInfo.PropertyType);
-                    toRemove = true;
-                }
+                var customFilterType = typeof(CustomFilter<>).MakeGenericType(queryInfo.PropertyInfo.PropertyType);
 
                 var customFilter = _filterFactory.CreateCustomFilter(node.Operator, customFilterType, node.Values,
                     node.IsNegated, node.IsCaseInsensitive);
 
-                filterNodes.Add((node, queryInfo.FilterPropertyName, customFilter, toRemove));
+                filterNodes.Add((node, queryInfo.FilterPropertyName, customFilter, true));
 
-                if (toRemove)
-                    return null;
+                return null;
             }
             else
             {

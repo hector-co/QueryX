@@ -4,10 +4,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using QueryX.Exceptions;
-using QueryX.Filters;
 using QueryX.Utils;
 
-namespace QueryX
+namespace QueryX.Filters
 {
     public class FilterFactory : IFilterFactory
     {
@@ -48,9 +47,7 @@ namespace QueryX
             if (!_operatorsMapping.ContainsKey(@operator))
                 throw new QueryFormatException($"Operator not found: '{@operator}'");
 
-            var targetType = customFilterType.GetGenericArguments().Any()
-                ? customFilterType.GetGenericArguments()[0]
-                : customFilterType.BaseType.GetGenericArguments()[0];
+            var targetType = customFilterType.GetGenericArguments()[0];
 
             var valueType = typeof(IEnumerable<>).MakeGenericType(targetType);
 
@@ -90,11 +87,18 @@ namespace QueryX
 
         private static IFilter CreateFilterInstance(Type type, IEnumerable<Type> valueTypes, params object?[] values)
         {
+            valueTypes = valueTypes as Type[] ?? valueTypes.ToArray();
             var ctorInfo = type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, valueTypes.ToArray(),
                 null);
 
-            var parameters = valueTypes.Select((valueType, index) => Expression.Constant(values[index], valueType))
+            if (ctorInfo == null)
+                throw new QueryException($"No constructor found for type '{type.FullName}'");
+
+            Expression[] parameters = valueTypes.Select((valueType, index) => Expression.Constant(values[index], valueType))
                 .ToArray();
+
+            if (ctorInfo == null)
+                throw new QueryException($"No constructor found for type '{type.FullName}'");
 
             var constructorExpression = Expression.New(ctorInfo, parameters);
             var lambdaExpression = Expression.Lambda<Func<object>>(constructorExpression);

@@ -67,18 +67,18 @@ namespace QueryX.Utils
 
                 qai = childPropInfo.GetPropertyQueryInfo(parentType);
 
-                if (qai == null || qai!.IsIgnored)
+                if (qai == null || qai.IsIgnored)
                     return qai;
 
                 filterPropertyName += qai.PropertyInfo.Name + PropertyNamesSeparator;
-                modelPropertyName += qai!.ModelPropertyName + PropertyNamesSeparator;
+                modelPropertyName += qai.ModelPropertyName + PropertyNamesSeparator;
                 parentType = childPropInfo.PropertyType;
             }
             filterPropertyName = filterPropertyName.TrimEnd(PropertyNamesSeparator);
             modelPropertyName = modelPropertyName.TrimEnd(PropertyNamesSeparator);
 
-            return new PropertyQueryInfo(childPropInfo!, false, filterPropertyName, modelPropertyName, qai!.Operator, false,
-                null, qai.IsSortable);
+            return new PropertyQueryInfo(childPropInfo!, false, filterPropertyName, modelPropertyName, qai!.Operator,
+                false, qai.IsSortable);
         }
 
         internal static PropertyQueryInfo? GetPropertyQueryInfo(this PropertyInfo propertyInfo, Type parentType)
@@ -105,8 +105,8 @@ namespace QueryX.Utils
             var customFilterAttr = (CustomFilterAttribute?)TypesAttributes[parentType][propertyInfo].FirstOrDefault(a => a is CustomFilterAttribute);
             if (customFilterAttr != null)
             {
-                return new PropertyQueryInfo(propertyInfo, false, propertyInfo.Name, string.Empty, OperatorType.None, true,
-                    customFilterAttr.Type, false);
+                return new PropertyQueryInfo(propertyInfo, false, propertyInfo.Name, string.Empty, OperatorType.None,
+                    true, false);
             }
 
             var optionsAttr = (QueryOptionsAttribute?)TypesAttributes[parentType][propertyInfo].FirstOrDefault(a => a is QueryOptionsAttribute);
@@ -114,7 +114,7 @@ namespace QueryX.Utils
             return new PropertyQueryInfo(propertyInfo, false, propertyInfo.Name,
                 string.IsNullOrEmpty(optionsAttr?.ModelPropertyName)
                     ? propertyInfo.Name
-                    : optionsAttr.ModelPropertyName, optionsAttr?.Operator ?? OperatorType.None, false, null,
+                    : optionsAttr.ModelPropertyName, optionsAttr?.Operator ?? OperatorType.None, false,
                 optionsAttr?.IsSortable ?? true);
         }
     }

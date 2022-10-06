@@ -24,7 +24,7 @@ namespace QueryX.Tests
             var query = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
             query.OrderBy.Count().Should().Be(properties.Length);
-            for (var i = 0; i < query.OrderBy.Count(); i++)
+            for (var i = 0; i < query.OrderBy.Count; i++)
             {
                 query.OrderBy.ElementAt(i).PropertyName.Should().BeEquivalentTo(properties[i]);
                 query.OrderBy.ElementAt(i).Ascending.Should().Be(ascending[i]);
@@ -45,7 +45,7 @@ namespace QueryX.Tests
 
             var query = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.OrderBy.Count().Should().Be(0);
+            query.OrderBy.Count.Should().Be(0);
         }
 
         [Fact]
@@ -514,7 +514,7 @@ namespace QueryX.Tests
 
             var query = queryBuilder.CreateQuery<TestModel2>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty1, out _).Should().BeFalse();
+            query.TryGetFilter(m => m.StringProperty1, out _).Should().BeFalse();
         }
 
         [Fact]
@@ -550,7 +550,7 @@ namespace QueryX.Tests
 
             var query = queryBuilder.CreateQuery<TestModel3>(queryModel);
 
-            query.OrderBy.Count().Should().Be(1);
+            query.OrderBy.Count.Should().Be(1);
             query.OrderBy.First().PropertyName.Should().BeEquivalentTo(expectedOrderByProperty);
         }
 
@@ -568,12 +568,12 @@ namespace QueryX.Tests
 
             var query = queryBuilder.CreateQuery<TestModel3>(queryModel);
 
-            query.TryGetFilters(p => p.EnumProperty1, out var enumPropFilters).Should().BeTrue();
+            query.TryGetFilter(p => p.EnumProperty1, out var enumPropFilter).Should().BeTrue();
 
-            enumPropFilters.Count.Should().Be(1);
+            enumPropFilter.Should().NotBeNull();
 
-            enumPropFilters.First().Operator.Should().Be(OperatorType.NotEquals);
-            enumPropFilters.First().Values.First().Should().Be(expectedEnumValue);
+            enumPropFilter!.Operator.Should().Be(OperatorType.NotEquals);
+            enumPropFilter.Values.First().Should().Be(expectedEnumValue);
         }
 
         [Theory]
@@ -677,7 +677,7 @@ namespace QueryX.Tests
 
             var query = queryBuilder.CreateQuery<TestModel1>(queryModel);
 
-            query.TryGetFilters(m => m.StringProperty2, out var stringFilters).Should().BeFalse();
+            query.TryGetFilter(m => m.StringProperty2, out var stringFilters).Should().BeFalse();
         }
 
         [Fact]

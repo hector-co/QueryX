@@ -58,7 +58,7 @@ namespace QueryX.Filters
             var methodInfo = typeof(List<>).MakeGenericType(type).GetMethod("Contains");
 
             ListContains.Add(type, methodInfo);
-            return methodInfo;
+            return methodInfo!;
         }
     }
 }

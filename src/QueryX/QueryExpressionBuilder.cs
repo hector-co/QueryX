@@ -4,19 +4,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using QueryX.Exceptions;
 
 namespace QueryX
 {
-    internal class QueryVisitor<TFilterModel, TModel> : INodeVisitor
+    internal class QueryExpressionBuilder<TFilterModel, TModel> : INodeVisitor
     {
         private readonly Query<TFilterModel> _query;
         private readonly Stack<Context> _contexts;
 
-        public QueryVisitor(Query<TFilterModel> query)
+        public QueryExpressionBuilder(Query<TFilterModel> query)
         {
             _query = query;
             _contexts = new Stack<Context>();
             _contexts.Push(new Context(typeof(TFilterModel), string.Empty, Expression.Parameter(typeof(TModel), "m")));
+
+            Visit(query.Filter as dynamic);
         }
 
         public void Visit(OrElseNode node)
@@ -26,8 +29,8 @@ namespace QueryX
             node.Left.Accept(this);
             node.Right.Accept(this);
 
-            var right = context.Stack.Pop();
-            var left = context.Stack.Pop();
+            var right = context.Stack.Pop()!;
+            var left = context.Stack.Pop()!;
 
             Expression exp = Expression.OrElse(left, right);
 
@@ -35,7 +38,6 @@ namespace QueryX
                 exp = Expression.Not(exp);
 
             context.Stack.Push(exp);
-            return;
         }
 
         public void Visit(AndAlsoNode node)
@@ -45,8 +47,8 @@ namespace QueryX
             node.Left.Accept(this);
             node.Right.Accept(this);
 
-            var right = context.Stack.Pop();
-            var left = context.Stack.Pop();
+            var right = context.Stack.Pop()!;
+            var left = context.Stack.Pop()!;
 
             Expression exp = Expression.AndAlso(left, right);
 
@@ -79,12 +81,16 @@ namespace QueryX
 
             Visit(node.Filter as dynamic);
 
-            var exp = Expression.Lambda(subContext.Stack.Last(), modelParameter);
+            var exp = Expression.Lambda(subContext.Stack.Last()!, modelParameter);
 
             var method = node.ApplyAll ? TypeHelper.AllMethod : TypeHelper.AnyMethod;
             var methodGeneric = method.MakeGenericMethod(modelTargetType);
 
             var propExp = queryInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
+
+            if (propExp == null)
+                throw new QueryException($"Property not found in model type: '{typeof(TModel).Name}.{queryInfo.ModelPropertyName}'");
+
             Expression anyExp = Expression.Call(null, methodGeneric, propExp, exp);
 
             if (node.IsNegated)
@@ -107,18 +113,13 @@ namespace QueryX
                 return;
             }
 
-            if (queryInfo.IsCustomFilter && queryInfo.CustomFilterType != null)
-                context.Stack.Push(_query.GetFilterInstanceByNode(node).GetExpression(context.Parameter));
-            else if (!queryInfo.IsCustomFilter)
+            var propExp = queryInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
+            if (propExp == null)
             {
-                var propExp = queryInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
-                if (propExp == null)
-                {
-                    context.Stack.Push(null);
-                    return;
-                }
-                context.Stack.Push(_query.GetFilterInstanceByNode(node).GetExpression(propExp));
+                context.Stack.Push(null);
+                return;
             }
+            context.Stack.Push(_query.GetFilterInstanceByNode(node).GetExpression(propExp));
         }
 
         public Expression<Func<TModel, bool>>? GetFilterExpression()
@@ -128,7 +129,7 @@ namespace QueryX
             if (context.Stack.Count == 0 || context.Stack.TryPop(out var exp) && exp == null)
                 return null;
 
-            return Expression.Lambda<Func<TModel, bool>>(exp, context.Parameter);
+            return Expression.Lambda<Func<TModel, bool>>(exp!, context.Parameter);
         }
 
         private class Context
