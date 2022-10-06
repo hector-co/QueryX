@@ -50,33 +50,33 @@ public IActionResult List([FromQuery] QueryModel queryModel)
 ## Filtering
 Filtering is made using operators, so a filter is defined this way: ```propertyName operator value```. 
 
-It is possible to combine multiple filters using "and" (```&```) and "or" (```|```) connectors:
-```csharp
+It is possible to combine multiple filters using "and" (```&```) and "or" (```|```) logical operators:
+```
 id>1 & title=-'test' | priority|=1,2
 ```
-For facilitating writing queries in URL, ```;``` (semicolon) character can be used instead for representing the **and** logical operators:
-```csharp
+For facilitating writing queries in URL, ```;``` (semicolon) character can be used instead for representing the **and** logical operator:
+```
 id>1 ; title=-'test' | priority|=1,2
 ```
 ### Filter grouping
 Filters can be also grouped using parentheses to determine how they should be evaluated:
-```csharp
+```
 id>1 ; (title=-'test' | priority|=1,2)
 ```
 
 ### Collection filters
 It is possible to specify filters for collection properties with the following syntax:
-```csharp
+```
 propertyName(childPropertyName operator value)
 ```
 The above code will use the ```Enumerable.Any``` method for applying the conditions. 
 
 For using the ```Enumerable.All``` method:
-```csharp
+```
 propertyName*(childPropertyName operator value)
 ```
 An example using the ```Card``` object would be:
-```csharp
+```
 owners(id==1 | name=='user2')
 ```
 ### Supported value types
@@ -92,36 +92,39 @@ owners(id==1 | name=='user2')
 |Operator    |Description                         |Comment|
 |:----------:|------------------------------------|------------------|
 | ==         |Equals operator                     | |
-| ==*        |Case insensitive equals             |String type only |
 | !=         |Not equals                          | |
-| !=*        |Case insensitive not equals         |String type only |
 | <          |Less than                           | |
 | <=         |Less than or equals                 | |
 | >          |Greater than                        | |
 | >=         |Greater than or equals              | |
 | -=-        |Contains                            |String type only |
-| -=-*       |Case insensitive contains           |String type only |
 | =-         |Starts with                         |String type only |
-| =-*        |Case insensitive starts with        |String type only |
 | -=         |Ends with                           |String type only |
-| -=*        |Case insensitive ends with          |String type only |
 | \|=        |In                                  |Allows multiple values |
-| \|=*       |Case insensitive in                 |String type only. Allows multiple values |
 
-*Multiple values are specified this way:* ```val1,val2,val3```
+*Multiple values are specified this way:* ```0,1,2``` *or* ```'val1','val2','val3'``` *if the values are strings*
+
+### Case insensitive operator
+All operators can be combined with the case insensitive operator (```*```) for ignoring case when comparing strings:
+
+```
+title ==* 'TeSt VaLuE'
+```
+
+This operator is intended to work only with string properties
 
 ### Not Operator
 The not operator (```!```) can be applied to any filter, collection filter or group:
 
-```csharp
+```
 !id>1 ; !title=-'test' | !priority|=1,2
 ```
 
-```csharp
+```
 id>1 ; !(title=-'test' | priority|=1,2)
 ```
 
-```csharp
+```
 !owners(id==1 | name=='user2')
 ```
 

@@ -1,8 +1,8 @@
 ﻿namespace QueryX.Parsing.Nodes
 {
-    public class ObjectFilterNode : NodeBase
+    public class CollectionFilterNode : NodeBase
     {
-        public ObjectFilterNode(string property, NodeBase filter, bool applyAll = false, bool isNegated = false)
+        public CollectionFilterNode(string property, NodeBase filter, bool applyAll = false, bool isNegated = false)
         {
             Property = property;
             Filter = filter;
@@ -18,7 +18,7 @@
 
         public override NodeBase Negated()
         {
-            return new ObjectFilterNode(Property, Filter, ApplyAll, !IsNegated);
+            return new CollectionFilterNode(Property, Filter, ApplyAll, !IsNegated);
         }
     }
 }

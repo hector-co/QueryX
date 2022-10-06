@@ -70,7 +70,7 @@ namespace QueryX.Parsing
             from property in Property
             from allFlag in Token.EqualTo(QueryToken.Asterisk).Value(true).OptionalOrDefault()
             from objectFilter in Group!
-            select (NodeBase)new ObjectFilterNode(property, objectFilter, applyAll: allFlag, isNegated: negation);
+            select (NodeBase)new CollectionFilterNode(property, objectFilter, applyAll: allFlag, isNegated: negation);
 
         private static TokenListParser<QueryToken, NodeBase> Group { get; } =
             from negation in Token.EqualTo(QueryToken.Exclamation).Value(true).OptionalOrDefault()

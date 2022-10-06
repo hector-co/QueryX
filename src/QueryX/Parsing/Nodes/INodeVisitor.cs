@@ -5,6 +5,6 @@
         void Visit(OrElseNode node);
         void Visit(AndAlsoNode node);
         void Visit(FilterNode node);
-        void Visit(ObjectFilterNode node);
+        void Visit(CollectionFilterNode node);
     }
 }

@@ -120,7 +120,7 @@ namespace QueryX
             };
         }
 
-        private NodeBase? AdjustNodes(Type parentType, ObjectFilterNode node,
+        private NodeBase? AdjustNodes(Type parentType, CollectionFilterNode node,
             List<(FilterNode node, string propName, IFilter filter, bool isCustom)> filterNodes)
         {
             var queryInfo = node.Property.GetPropertyQueryInfo(parentType);
@@ -140,7 +140,7 @@ namespace QueryX
 
             var filter = (NodeBase?)AdjustNodes(targetType, node.Filter as dynamic, filterNodes);
 
-            return filter == null ? null : new ObjectFilterNode(node.Property, filter, node.ApplyAll, node.IsNegated);
+            return filter == null ? null : new CollectionFilterNode(node.Property, filter, node.ApplyAll, node.IsNegated);
         }
 
         private NodeBase? AdjustNodes(Type parentType, FilterNode node,

@@ -58,7 +58,7 @@ namespace QueryX
             context.Stack.Push(exp);
         }
 
-        public void Visit(ObjectFilterNode node)
+        public void Visit(CollectionFilterNode node)
         {
             var context = _contexts.First();
 
