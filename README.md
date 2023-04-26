@@ -33,7 +33,7 @@ By default all properties can be used for filtering and sorting, this could be c
 Two classes from QueryX are required for creating filters for the ```Card``` example object:
 
 - **QueryBuilder,** this class should be injected in controllers or where the queries needs to be created.
-- **QuerModel,** this class is used for capturing queries from URL query strings, it provides ```Filter```, ```OrderBy```, ```Offset``` and ```Limit``` properties for this purpose.
+- **QueryModel,** this class is used for capturing queries from URL query strings, it provides ```Filter```, ```OrderBy```, ```Offset``` and ```Limit``` properties for this purpose.
 
 Additionally, an entity framework context is required for applying the queries:
 
