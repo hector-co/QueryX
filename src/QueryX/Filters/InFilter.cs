@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace QueryX.Filters
 {
-    public class InFilter<TValue> : IFilter
+    internal class InFilter<TValue> : IFilter
     {
         public InFilter(IEnumerable<TValue> values, bool isNegated = false, bool isCaseInsensitive = false)
         {

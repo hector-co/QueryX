@@ -2,7 +2,7 @@
 
 namespace QueryX.Filters
 {
-    public class NotEqualsFilter<TValue> : IFilter
+    internal class NotEqualsFilter<TValue> : IFilter
     {
         public NotEqualsFilter(TValue value, bool isNegated, bool isCaseInsensitive)
         {

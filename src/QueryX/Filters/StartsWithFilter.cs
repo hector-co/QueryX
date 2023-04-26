@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace QueryX.Filters
 {
-    public class StartsWithFilter : IFilter
+    internal class StartsWithFilter : IFilter
     {
         private static MethodInfo StartsWith => typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!;
 

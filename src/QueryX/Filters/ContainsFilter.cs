@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace QueryX.Filters
 {
-    public class ContainsFilter : IFilter
+    internal class ContainsFilter : IFilter
     {
         private static MethodInfo Contains => typeof(string).GetMethod("Contains", new[] { typeof(string) })!;
 

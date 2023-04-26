@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace QueryX.Filters
 {
-    public class EndsWithFilter : IFilter
+    internal class EndsWithFilter : IFilter
     {
         private static MethodInfo EndsWith => typeof(string).GetMethod("EndsWith", new[] { typeof(string) })!;
 

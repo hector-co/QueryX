@@ -2,7 +2,7 @@
 
 namespace QueryX.Filters
 {
-    public class GreaterThanFilter<TValue> : IFilter
+    internal class GreaterThanFilter<TValue> : IFilter
     {
         public GreaterThanFilter(TValue value, bool isNegated, bool isCaseInsensitive)
         {
