@@ -130,7 +130,7 @@ namespace QueryX
             var type = queryInfo.PropertyInfo.PropertyType;
             var typeIsCollection = (type.GetInterface(nameof(IEnumerable)) != null);
 
-            if (!typeIsCollection)
+            if (!typeIsCollection || type == typeof(string))
                 throw new QueryFormatException($"Collection expected but got '{type.Name}'");
 
             if (queryInfo.IsIgnored || queryInfo.IsCustomFilter)
