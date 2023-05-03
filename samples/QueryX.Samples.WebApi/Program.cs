@@ -1,4 +1,3 @@
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QueryX;
 using QueryX.Samples.WebApi.DataAccess;
@@ -30,7 +29,10 @@ builder.Services.AddDbContext<WorkboardContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("QueryXWebApi"))
 );
 
-builder.Services.AddMediatR(typeof(WorkboardContext));
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssemblies(typeof(WorkboardContext).Assembly);
+});
 
 builder.Services.AddHostedService<InitData>();
 
