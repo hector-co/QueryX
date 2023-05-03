@@ -29,8 +29,8 @@ namespace QueryX
         {
             var query = new TQuery
             {
-                Offset = queryModel.Offset,
-                Limit = queryModel.Limit
+                Offset = queryModel.Offset ?? 0,
+                Limit = queryModel.Limit ?? 0
             };
 
             if (!string.IsNullOrEmpty(queryModel.Filter))
