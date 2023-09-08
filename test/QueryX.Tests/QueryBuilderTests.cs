@@ -14,7 +14,7 @@ namespace QueryX.Tests
             new[] { "EnumProperty1", "DateTimeProperty1", "StringProperty1" }, new[] { false, false, false })]
         public void OrderByTest(string orderBy, string[] properties, bool[] ascending)
         {
-            var queryBuilder = new QueryBuilder(new FilterFactory());
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -36,7 +36,7 @@ namespace QueryX.Tests
         [InlineData("-enumPropertyx,-dateTimePropertyy,-stringPropertyz")]
         public void OrderByShouldIgnoreNonExistentPropertiesTest(string orderBy)
         {
-            var queryBuilder = new QueryBuilder(new FilterFactory());
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -52,7 +52,7 @@ namespace QueryX.Tests
         public void EqualsFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const int expectedIntValue = 8;
             const bool expectedBoolValue = false;
@@ -74,7 +74,7 @@ namespace QueryX.Tests
         public void EqualsFilterDateTimeTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             var expectedDateTimeValue = new DateTime(2022, 1, 1);
 
@@ -94,7 +94,7 @@ namespace QueryX.Tests
         public void EqualsFilterTestWithEnums()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const TestEnum expectedEnumValue = TestEnum.Value1;
 
@@ -114,7 +114,7 @@ namespace QueryX.Tests
         public void CiEqualsFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const string expectedStringValue = "testValue";
 
@@ -133,7 +133,7 @@ namespace QueryX.Tests
         public void NotEqualsFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const int expectedIntValue = 8;
             const bool expectedBoolValue = false;
@@ -157,7 +157,7 @@ namespace QueryX.Tests
         public void CiNotEqualsFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const string expectedStringValue = "testValue";
 
@@ -176,7 +176,7 @@ namespace QueryX.Tests
         public void LessThanFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const int expectedIntValue = 8;
 
@@ -195,7 +195,7 @@ namespace QueryX.Tests
         public void LessThanOrEqualFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const int expectedIntValue = 8;
 
@@ -214,7 +214,7 @@ namespace QueryX.Tests
         public void GreaterThanFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const int expectedIntValue = 8;
 
@@ -233,7 +233,7 @@ namespace QueryX.Tests
         public void GreaterThanOrEqualFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const int expectedIntValue = 8;
 
@@ -252,7 +252,7 @@ namespace QueryX.Tests
         public void ContainsFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const string expectedStringValue = "test-string";
 
@@ -271,7 +271,7 @@ namespace QueryX.Tests
         public void CiContainsFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const string expectedStringValue = "test-string";
 
@@ -290,7 +290,7 @@ namespace QueryX.Tests
         public void StartsWithFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const string expectedStringValue = "test-string";
 
@@ -309,7 +309,7 @@ namespace QueryX.Tests
         public void CiStartsWithFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const string expectedStringValue = "test-string";
 
@@ -328,7 +328,7 @@ namespace QueryX.Tests
         public void EndsWithFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const string expectedStringValue = "test-string";
 
@@ -347,7 +347,7 @@ namespace QueryX.Tests
         public void CiEndsWithFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const string expectedStringValue = "test-string";
 
@@ -366,7 +366,7 @@ namespace QueryX.Tests
         public void InFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             var expectedIntValues = new[] { 3, 8, 15 };
             var expectedStringValues = new[] { "abc", "d" };
@@ -390,7 +390,7 @@ namespace QueryX.Tests
         public void CiInFilterTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             var expectedStringValues = new[] { "abc", "d" };
 
@@ -416,7 +416,7 @@ namespace QueryX.Tests
         public void EqualsFilterStringPropertyTest(string value, string expectedValue)
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -436,7 +436,7 @@ namespace QueryX.Tests
         public void EqualsFilterIntPropertyTest(string value, int expectedValue)
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -456,7 +456,7 @@ namespace QueryX.Tests
         public void EqualsFilterNullableIntPropertyTest(string value, int? expectedValue)
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -473,7 +473,7 @@ namespace QueryX.Tests
         public void EqualsFilterNullableIntPropertyWithNullValueTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -490,7 +490,7 @@ namespace QueryX.Tests
         [InlineData("'null'")]
         public void EqualsFilterIntPropertyWithInvalidValueShouldThrowAnExceptionTest(string value)
         {
-            var queryBuilder = new QueryBuilder(new FilterFactory());
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -505,7 +505,7 @@ namespace QueryX.Tests
         [Fact]
         public void IgnoresPropertiesShouldNotBeIncludedAsFilters()
         {
-            var queryBuilder = new QueryBuilder(new FilterFactory());
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -520,7 +520,7 @@ namespace QueryX.Tests
         [Fact]
         public void IgnoresPropertiesShouldNotBeIncludedAsOrderBy()
         {
-            var queryBuilder = new QueryBuilder(new FilterFactory());
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -538,7 +538,7 @@ namespace QueryX.Tests
         [Fact]
         public void QueryOptionIgnoreNotSortablePropertyTest()
         {
-            var queryBuilder = new QueryBuilder(new FilterFactory());
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
 
             const string expectedOrderByProperty = "IntProperty1";
 
@@ -557,7 +557,7 @@ namespace QueryX.Tests
         [Fact]
         public void HandleCustomFilteringValuesTest()
         {
-            var queryBuilder = new QueryBuilder(new FilterFactory());
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
 
             const TestEnum expectedEnumValue = TestEnum.Value2;
 
@@ -585,7 +585,7 @@ namespace QueryX.Tests
         [InlineData("stringProperty1 == ''test'")]
         public void FilterWithInvalidFormatShouldThrowException(string invalidFilters)
         {
-            var queryBuilder = new QueryBuilder(new FilterFactory());
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -605,7 +605,7 @@ namespace QueryX.Tests
         public void StringWithQuotesTest(string paramString, string expectedString)
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -622,7 +622,7 @@ namespace QueryX.Tests
         public void MultipleFiltersPerPropertyTest()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const int intFromExpected = 5;
             const int intToExpected = 15;
@@ -649,7 +649,7 @@ namespace QueryX.Tests
         public void DefaultOperatorTest(string @operator)
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             var queryModel = new QueryModel
             {
@@ -666,7 +666,7 @@ namespace QueryX.Tests
         [Fact]
         public void OnlyCustomFiltersShouldBeIncludedAsCustomFilters()
         {
-            var queryBuilder = new QueryBuilder(new FilterFactory());
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
 
             const string expectedStringValue = "testValue";
 
@@ -684,7 +684,7 @@ namespace QueryX.Tests
         public void CustomFilterForNestedProperties()
         {
             var filterFactory = new Mock<IFilterFactory>();
-            var queryBuilder = new QueryBuilder(filterFactory.Object);
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration());
 
             const int expectedIntValue = 8;
             const int expectedProp1IntValue = 16;
@@ -701,6 +701,59 @@ namespace QueryX.Tests
 
             filterFactory.Verify(m =>
                 m.CreateFilter("==", typeof(int), new[] { $"{expectedProp1IntValue}" }, false, false, OperatorType.None));
+        }
+
+        [Fact]
+        public void InvalidFilteringPropertyShouldThrowExceptionAccordingConfiguration()
+        {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration { ThrowQueryExceptions = true });
+
+            const string InvalidPropertyName = "invalidProperty";
+
+            var queryModel = new QueryModel
+            {
+                Filter = $"{InvalidPropertyName} == 8"
+            };
+
+            var act = () => { _ = queryBuilder.CreateQuery<TestModel1>(queryModel); };
+
+            act.Should().Throw<InvalidFilterPropertyException>().Which.PropertyName.Should().Be(InvalidPropertyName);
+        }
+
+        [Fact]
+        public void InvalidFilteringPropertyShouldThrowExceptionAccordingConfiguration2()
+        {
+            var filterFactory = new Mock<IFilterFactory>();
+            var queryBuilder = new QueryBuilder(filterFactory.Object, new QueryConfiguration { ThrowQueryExceptions = true });
+
+            const string InvalidPropertyName = "invalidProperty";
+
+            var queryModel = new QueryModel
+            {
+                Filter = $"IntProperty1 == 5; {InvalidPropertyName} == 8"
+            };
+
+            var act = () => { _ = queryBuilder.CreateQuery<TestModel1>(queryModel); };
+
+            act.Should().Throw<InvalidFilterPropertyException>().Which.PropertyName.Should().Be(InvalidPropertyName);
+        }
+
+        [Fact]
+        public void InvalidOrderingPropertyShouldThrowExceptionAccordingConfiguration()
+        {
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration { ThrowQueryExceptions = true });
+
+            const string InvalidPropertyName = "invalidProperty";
+
+            var queryModel = new QueryModel
+            {
+                OrderBy = $"intProperty1,-stringProperty1,doubleProperty1,{InvalidPropertyName}"
+            };
+
+            var act = () => { _ = queryBuilder.CreateQuery<TestModel1>(queryModel); };
+
+            act.Should().Throw<InvalidOrderingPropertyException>().Which.PropertyName.Should().Be(InvalidPropertyName);
         }
     }
 }

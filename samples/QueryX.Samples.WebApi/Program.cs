@@ -38,8 +38,8 @@ builder.Services.AddHostedService<InitData>();
 
 builder.Services.AddQueryX(o =>
 {
-    o.SetDateTimeConverter((dateTime) => dateTime.ToUniversalTime());
-    o.SetDateTimeOffsetConverter((dateTime) => dateTime.ToUniversalTime());
+    o.DateTimeConverter = (dateTime) => dateTime.ToUniversalTime();
+    o.DateTimeOffsetConverter = (dateTime) => dateTime.ToUniversalTime();
 });
 
 builder.Services.AddScoped<ICardService, CardService>();

@@ -6,16 +6,14 @@ namespace QueryX
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddQueryX(this IServiceCollection services)
+        public static void AddQueryX(this IServiceCollection services, Action<QueryConfiguration>? options = null)
         {
-            services.AddSingleton<QuerySettings>();
+            var configuration = new QueryConfiguration();
+            options?.Invoke(configuration);
+
+            services.AddSingleton(configuration);
             services.AddSingleton<IFilterFactory, FilterFactory>();
             services.AddSingleton<QueryBuilder>();
-        }
-
-        public static void AddQueryX(this IServiceCollection services, Action<QueryXOptions> options)
-        {
-            options(new QueryXOptions(services));
         }
     }
 }

@@ -195,3 +195,14 @@ public IActionResult List([FromQuery] QueryModel queryModel)
     return Ok(result);
 }
 ```
+## Query exceptions
+By default invalid properties will be ignored for filtering and ordering but it is possible to  change this behavior by setting ```ThrowQueryExceptions``` to true when registering QueryX:
+
+```csharp
+builder.Services.AddQueryX(o => o.ThrowQueryExceptions = true);
+```
+
+These exceptions will be thrown as appropriate:
+* ```InvalidFilterPropertyException``` for filtering errors
+* ```InvalidOrderingPropertyException``` for ordering errors
+

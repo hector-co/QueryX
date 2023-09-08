@@ -13,10 +13,12 @@ namespace QueryX
     public class QueryBuilder
     {
         private readonly IFilterFactory _filterFactory;
+        private readonly QueryConfiguration _queryConfiguration;
 
-        public QueryBuilder(IFilterFactory filterFactory)
+        public QueryBuilder(IFilterFactory filterFactory, QueryConfiguration queryConfiguration)
         {
             _filterFactory = filterFactory;
+            _queryConfiguration = queryConfiguration;
         }
 
         public Query<TFilterModel> CreateQuery<TFilterModel>(QueryModel queryModel)
@@ -60,20 +62,26 @@ namespace QueryX
                 query.SetCustomFilters(filterNodes.Where(f => f.isCustom).Select(f => (f.propName, f.filter)).ToList());
             }
 
-            query.OrderBy = GetOrderBy<TFilterModel>(queryModel.OrderBy);
+            query.OrderBy = GetOrderBy<TFilterModel>(queryModel?.OrderBy, _queryConfiguration.ThrowQueryExceptions);
 
             return query;
         }
 
-        private static List<SortValue> GetOrderBy<TFilterModel>(string orderBy)
+        private static List<SortValue> GetOrderBy<TFilterModel>(string? orderBy, bool throwException)
         {
             var result = new List<SortValue>();
+            if (string.IsNullOrEmpty(orderBy)) return result;
+
             var orderingTokens = QueryParser.GetOrderingTokens(orderBy);
             foreach (var (propName, ascending) in orderingTokens)
             {
                 var queryInfo = propName.GetPropertyQueryInfo<TFilterModel>();
                 if (queryInfo == null)
+                {
+                    if (throwException)
+                        throw new InvalidOrderingPropertyException(propName);
                     continue;
+                }
 
                 if (queryInfo.IsIgnored || !queryInfo.IsSortable || queryInfo.IsCustomFilter)
                     continue;
@@ -125,7 +133,11 @@ namespace QueryX
         {
             var queryInfo = node.Property.GetPropertyQueryInfo(parentType);
             if (queryInfo == null)
+            {
+                if (_queryConfiguration.ThrowQueryExceptions)
+                    throw new InvalidFilterPropertyException(node.Property);
                 return null;
+            }
 
             var type = queryInfo.PropertyInfo.PropertyType;
             var typeIsCollection = (type.GetInterface(nameof(IEnumerable)) != null);
@@ -148,7 +160,11 @@ namespace QueryX
         {
             var queryInfo = node.Property.GetPropertyQueryInfo(parentType);
             if (queryInfo == null)
+            {
+                if (_queryConfiguration.ThrowQueryExceptions)
+                    throw new InvalidFilterPropertyException(node.Property);
                 return null;
+            }
 
             if (queryInfo.IsIgnored)
                 return null;

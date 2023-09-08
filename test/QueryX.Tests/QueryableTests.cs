@@ -54,7 +54,7 @@ namespace QueryX.Tests
 
         public QueryableTests()
         {
-            _queryBuilder = new QueryBuilder(new FilterFactory());
+            _queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
 
         }
 
