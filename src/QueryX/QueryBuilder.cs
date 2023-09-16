@@ -35,7 +35,7 @@ namespace QueryX
                 Limit = queryModel.Limit ?? 0
             };
 
-            if (!string.IsNullOrEmpty(queryModel.Filter))
+            if (!string.IsNullOrEmpty(queryModel?.Filter))
             {
                 NodeBase? root;
 
@@ -62,15 +62,18 @@ namespace QueryX
                 query.SetCustomFilters(filterNodes.Where(f => f.isCustom).Select(f => (f.propName, f.filter)).ToList());
             }
 
-            query.OrderBy = GetOrderBy<TFilterModel>(queryModel?.OrderBy, _queryConfiguration.ThrowQueryExceptions);
+            (var orderBy, var customOrderBy) = GetOrderBy<TFilterModel>(queryModel?.OrderBy, _queryConfiguration.ThrowQueryExceptions);
+            query.OrderBy = orderBy;
+            query.SetCustomOrderBy(customOrderBy);
 
             return query;
         }
 
-        private static List<SortValue> GetOrderBy<TFilterModel>(string? orderBy, bool throwException)
+        private static (List<SortValue> OrderBy, List<SortValue> CustomOrderBy) GetOrderBy<TFilterModel>(string? orderBy, bool throwException)
         {
-            var result = new List<SortValue>();
-            if (string.IsNullOrEmpty(orderBy)) return result;
+            var sorts = new List<SortValue>();
+            var customSorts = new List<SortValue>();
+            if (string.IsNullOrEmpty(orderBy)) return (sorts, customSorts);
 
             var orderingTokens = QueryParser.GetOrderingTokens(orderBy);
             foreach (var (propName, ascending) in orderingTokens)
@@ -83,17 +86,28 @@ namespace QueryX
                     continue;
                 }
 
-                if (queryInfo.IsIgnored || !queryInfo.IsSortable || queryInfo.IsCustomFilter)
+                if (queryInfo.IsIgnored || !queryInfo.IsSortable)
                     continue;
 
-                result.Add(new SortValue
+                if (!queryInfo.IsCustomFilter)
                 {
-                    PropertyName = propName,
-                    Ascending = ascending
-                });
+                    sorts.Add(new SortValue
+                    {
+                        PropertyName = propName,
+                        Ascending = ascending
+                    });
+                }
+                else
+                {
+                    customSorts.Add(new SortValue
+                    {
+                        PropertyName = propName,
+                        Ascending = ascending
+                    });
+                }
             }
 
-            return result;
+            return (sorts, customSorts);
         }
 
         private NodeBase? AdjustNodes(Type parentType, AndAlsoNode node,

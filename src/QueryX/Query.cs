@@ -11,11 +11,13 @@ namespace QueryX
     {
         private readonly Dictionary<string, IFilter> _customFilters;
         private readonly Dictionary<FilterNode, IFilter> _nodeFilters;
+        private readonly List<SortValue> _customOrderBy;
 
         public Query()
         {
             _customFilters = new Dictionary<string, IFilter>(StringComparer.InvariantCultureIgnoreCase);
             _nodeFilters = new Dictionary<FilterNode, IFilter>();
+            _customOrderBy = new List<SortValue>();
             OrderBy = new List<SortValue>();
         }
 
@@ -26,9 +28,9 @@ namespace QueryX
 
         internal void SetNodeFilters(List<(FilterNode node, IFilter filter)> instances)
         {
-            foreach (var instance in instances)
+            foreach (var (node, filter) in instances)
             {
-                _nodeFilters.Add(instance.node, instance.filter);
+                _nodeFilters.Add(node, filter);
             }
         }
 
@@ -41,6 +43,11 @@ namespace QueryX
 
                 _customFilters.Add(propertyName, filter);
             }
+        }
+
+        internal void SetCustomOrderBy(List<SortValue> orderBy)
+        {
+            _customOrderBy.AddRange(orderBy);
         }
 
         internal IFilter GetFilterInstanceByNode(FilterNode node)
@@ -61,6 +68,17 @@ namespace QueryX
             filter = (CustomFilter<TValue>)result;
 
             return true;
+        }
+
+        public bool TryGetOrderBy<TValue>(Expression<Func<TFilterModel, TValue>> selector,
+            out SortValue? sort)
+        {
+            //TODO find better way
+            var propName = string.Join('.', selector.ToString().Split('.').Skip(1));
+
+            sort = _customOrderBy.FirstOrDefault(o => o.PropertyName.Equals(propName, StringComparison.InvariantCultureIgnoreCase));
+
+            return sort != null;
         }
 
     }

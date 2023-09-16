@@ -703,6 +703,59 @@ namespace QueryX.Tests
                 m.CreateFilter("==", typeof(int), new[] { $"{expectedProp1IntValue}" }, false, false, OperatorType.None));
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void HandleCustomOrderByTest(bool ascending)
+        {
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
+
+            const string PropertyName = "enumProperty1";
+
+            var queryModel = new QueryModel
+            {
+                OrderBy = $"{(ascending ? "" : "-")}{PropertyName}'"
+            };
+
+            var query = queryBuilder.CreateQuery<TestModel3>(queryModel);
+
+            query.TryGetOrderBy(p => p.EnumProperty1, out var enumPropOrderBy).Should().BeTrue();
+
+            enumPropOrderBy.Should().NotBeNull();
+            enumPropOrderBy.PropertyName.Should().BeEquivalentTo(PropertyName);
+            enumPropOrderBy.Ascending.Should().Be(ascending);
+        }
+
+        [Fact]
+        public void OnlyCustomFiltersShouldBeIncludedAsCustomOrderBy()
+        {
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
+
+            var queryModel = new QueryModel
+            {
+                OrderBy = $"stringProperty2"
+            };
+
+            var query = queryBuilder.CreateQuery<TestModel1>(queryModel);
+
+            query.TryGetOrderBy(m => m.StringProperty2, out var stringFilters).Should().BeFalse();
+        }
+
+        [Fact]
+        public void CustomFilterCanBeMarkedAsNotSortable()
+        {
+            var queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
+
+            var queryModel = new QueryModel
+            {
+                OrderBy = $"enumProperty2"
+            };
+
+            var query = queryBuilder.CreateQuery<TestModel3>(queryModel);
+
+            query.TryGetOrderBy(m => m.EnumProperty2, out var stringFilters).Should().BeFalse();
+        }
+
         [Fact]
         public void InvalidFilteringPropertyShouldThrowExceptionAccordingConfiguration()
         {

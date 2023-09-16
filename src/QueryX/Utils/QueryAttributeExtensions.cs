@@ -103,18 +103,14 @@ namespace QueryX.Utils
             }
 
             var customFilterAttr = (CustomFilterAttribute?)TypesAttributes[parentType][propertyInfo].FirstOrDefault(a => a is CustomFilterAttribute);
-            if (customFilterAttr != null)
-            {
-                return new PropertyQueryInfo(propertyInfo, false, propertyInfo.Name, string.Empty, OperatorType.None,
-                    true, false);
-            }
+            var isCustomFilter = customFilterAttr != null;
 
             var optionsAttr = (QueryOptionsAttribute?)TypesAttributes[parentType][propertyInfo].FirstOrDefault(a => a is QueryOptionsAttribute);
 
             return new PropertyQueryInfo(propertyInfo, false, propertyInfo.Name,
                 string.IsNullOrEmpty(optionsAttr?.ModelPropertyName)
                     ? propertyInfo.Name
-                    : optionsAttr.ModelPropertyName, optionsAttr?.Operator ?? OperatorType.None, false,
+                    : optionsAttr.ModelPropertyName, optionsAttr?.Operator ?? OperatorType.None, isCustomFilter,
                 optionsAttr?.IsSortable ?? true);
         }
     }

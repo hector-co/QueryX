@@ -106,6 +106,10 @@ namespace QueryX.Tests
         [CustomFilter]
         public TestEnum EnumProperty1 { get; set; }
 
+        [CustomFilter]
+        [QueryOptions(IsSortable = false)]
+        public TestEnum EnumProperty2 { get; set; }
+
         [QueryOptions(Operator = OperatorType.Equals)]
         public string StringProperty2 { get; set; } = string.Empty;
     }
