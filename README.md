@@ -195,6 +195,26 @@ public IActionResult List([FromQuery] QueryModel queryModel)
     return Ok(result);
 }
 ```
+Custom filters are also ignored in the sorting process but it is possible to know if they were passed as part of the sort string:
+
+```csharp
+[HttpGet]
+public IActionResult List([FromQuery] QueryModel queryModel)
+{
+    var query = _queryBuilder.CreateQuery<Card>(queryModel);
+    var queryable = _context.Set<Card>();
+
+    // Get custom order by
+    if (query.TryGetOrderBy(m => m.Priority, out var orderBy))
+    {
+        // apply order by manually using orderBy.Ascending and orderBy.PropertyName as needed
+    }
+
+    var result = queryable.ApplyQuery(query).ToList();
+    return Ok(result);
+}
+```
+
 ## Query exceptions
 By default invalid properties will be ignored for filtering and ordering but it is possible to  change this behavior by setting ```ThrowQueryExceptions``` to true when registering QueryX:
 
