@@ -42,7 +42,7 @@ namespace QueryX.Utils
             return (prop, value.GetValueExpression(propType, !isCaseInsensitive));
         }
 
-        internal static (Expression property, Expression values) GetPropertyAndConstant(this Expression property, IEnumerable<string?> values, bool isCaseInsensitive)
+        internal static (Expression property, Expression values) GetPropertyAndConstant(this Expression property, string?[] values, bool isCaseInsensitive)
         {
             var propType = ((PropertyInfo)((MemberExpression)property).Member).PropertyType;
 
@@ -68,7 +68,7 @@ namespace QueryX.Utils
             return Expression.Constant(value.ConvertValue(targetType));
         }
 
-        private static Expression GetAllValueExpression(this IEnumerable<string?> value, Type targetType, bool isCaseSensitive)
+        private static Expression GetAllValueExpression(this string?[] value, Type targetType, bool isCaseSensitive)
         {
             if (targetType == typeof(string))
             {

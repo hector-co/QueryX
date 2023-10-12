@@ -78,9 +78,6 @@ namespace QueryX
 
             var propertyName = context.GetConcatenatedProperty(node.Property);
 
-            var propertyInfo = context.ParentType.GetPropertyInfo(propertyName)
-                ?? throw new InvalidFilterPropertyException(node.Property);
-
             var propExp = propertyName.GetPropertyExpression(context.Parameter)
                 ?? throw new InvalidFilterPropertyException(node.Property);
 

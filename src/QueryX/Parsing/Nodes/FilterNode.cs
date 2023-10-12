@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace QueryX.Parsing.Nodes
+﻿namespace QueryX.Parsing.Nodes
 {
     public class FilterNode : NodeBase
     {
-        public FilterNode(string property, string @operator, IEnumerable<string?> values, bool isNegated = false, bool isCaseInsensitive = false)
+        public FilterNode(string property, string @operator, string?[] values, bool isNegated = false, bool isCaseInsensitive = false)
         {
             Property = property;
             Operator = @operator;
-            Values = values.ToList();
+            Values = values;
             IsNegated = isNegated;
             IsCaseInsensitive = isCaseInsensitive;
         }
@@ -17,7 +14,7 @@ namespace QueryX.Parsing.Nodes
         public string Property { get; }
         public string Operator { get; }
         public bool IsCaseInsensitive { get; }
-        public IEnumerable<string?> Values { get; }
+        public string?[] Values { get; }
 
         public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
 

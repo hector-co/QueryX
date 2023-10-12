@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using QueryX.Parsing.Nodes;
+using System;
 
 namespace QueryX.Parsing
 {
@@ -103,22 +104,18 @@ namespace QueryX.Parsing
 
         private const string CommaSeparatedValuesSplit = @",(?=(?:[^']*'[^']*')*[^']*$)";
 
-        internal static IEnumerable<(string PropName, bool Ascending)> GetOrderingTokens(string orderByString)
+        internal static (string PropName, bool Ascending)[] GetOrderingTokens(string? orderByString)
         {
-            var result = new List<(string PropName, bool Ascending)>();
-
             if (string.IsNullOrEmpty(orderByString))
-                return result;
+                return Array.Empty<(string PropName, bool Ascending)>();
 
             var orderings = SplitCommaSeparatedValues(orderByString)
                 .Where(s => !string.IsNullOrEmpty(s))
                 .Select(s => s!.Trim());
 
-            result.AddRange(
-                orderings.Select(
-                    order => order.StartsWith('-') ? (order[1..], false) : (order, true)));
-
-            return result;
+            return orderings
+                .Select(order => order.StartsWith('-') ? (order[1..], false) : (order, true))
+                .ToArray();
         }
 
         private static IEnumerable<string?> SplitCommaSeparatedValues(string values)

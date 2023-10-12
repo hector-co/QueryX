@@ -1,68 +1,58 @@
-﻿//using System;
-//using System.Linq;
-//using System.Linq.Expressions;
-//using QueryX.Utils;
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
+using QueryX.Exceptions;
+using QueryX.Parsing;
+using QueryX.Utils;
 
-//namespace QueryX
-//{
-//    public static class QueryExtensions
-//    {
-//        public static IQueryable<TModel> ApplyQuery<TFilterModel, TModel>(this IQueryable<TModel> source, Query<TFilterModel> query, bool applyOrderingAndPaging = true)
-//            where TModel : class
-//        {
-//            if (query.Filter == null)
-//            {
-//                if (applyOrderingAndPaging)
-//                    source = ApplyOrderingAndPaging(source, query);
-//                return source;
-//            }
+namespace QueryX
+{
+    public static class QueryExtensions
+    {
+        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, QueryModel queryModel, bool applyOrderingAndPaging = true)
+            where TModel : class
+        {
+            var expProvider = new QueryExpressionBuilder<TModel>(queryModel);
 
-//            var expProvider = new QueryExpressionBuilder<TFilterModel, TModel>(query);
+            var filterExp = expProvider.GetFilterExpression();
 
-//            var filterExp = expProvider.GetFilterExpression();
+            if (filterExp != null)
+                source = source.Where(filterExp);
 
-//            if (filterExp != null)
-//                source = source.Where(filterExp);
+            if (applyOrderingAndPaging)
+                source = ApplyOrderingAndPaging(source, queryModel);
 
-//            return source;
-//        }
+            return source;
+        }
 
-//        public static IQueryable<TModel> ApplyOrderingAndPaging<TFilterModel, TModel>(this IQueryable<TModel> source, Query<TFilterModel> query)
-//        {
-//            var applyThenBy = false;
+        public static IQueryable<TModel> ApplyOrderingAndPaging<TModel>(this IQueryable<TModel> source, QueryModel queryModel)
+        {
+            var orderingTokens = QueryParser.GetOrderingTokens(queryModel.OrderBy);
 
-//            foreach (var sortValue in query.OrderBy)
-//            {
-//                var queryInfo = sortValue.PropertyName.GetPropertyQueryInfo<TFilterModel>();
-//                if (queryInfo == null)
-//                    continue;
+            var applyThenBy = false;
 
-//                var modelParameter = Expression.Parameter(typeof(TModel), "m");
-//                var propExp = queryInfo.ModelPropertyName.GetPropertyExpression(modelParameter);
+            foreach (var (PropName, Ascending) in orderingTokens)
+            {
+                var modelParameter = Expression.Parameter(typeof(TModel), "m");
 
-//                if (propExp == null)
-//                    continue;
+                var propExp = PropName.GetPropertyExpression(modelParameter) ?? throw new InvalidOrderingPropertyException(PropName);
 
-//                var sortExp = Expression.Lambda<Func<TModel, object>>(Expression.Convert(propExp, typeof(object)), modelParameter);
+                var sortExp = Expression.Lambda<Func<TModel, object>>(Expression.Convert(propExp, typeof(object)), modelParameter);
 
-//                if (sortValue.Ascending)
-//                {
-//                    source = !applyThenBy ? source.OrderBy(sortExp) : ((IOrderedQueryable<TModel>)source).ThenBy(sortExp);
-//                }
-//                else
-//                {
-//                    source = !applyThenBy ? source.OrderByDescending(sortExp) : ((IOrderedQueryable<TModel>)source).ThenByDescending(sortExp);
-//                }
+                if (Ascending)
+                    source = !applyThenBy ? source.OrderBy(sortExp) : ((IOrderedQueryable<TModel>)source).ThenBy(sortExp);
+                else
+                    source = !applyThenBy ? source.OrderByDescending(sortExp) : ((IOrderedQueryable<TModel>)source).ThenByDescending(sortExp);
 
-//                applyThenBy = true;
-//            }
+                applyThenBy = true;
+            }
 
-//            if (query.Offset > 0)
-//                source = source.Skip(query.Offset);
-//            if (query.Limit > 0)
-//                source = source.Take(query.Limit);
+            if (queryModel.Offset.HasValue && queryModel.Offset > 0)
+                source = source.Skip(queryModel.Offset.Value);
+            if (queryModel.Limit.HasValue && queryModel.Limit > 0)
+                source = source.Take(queryModel.Limit.Value);
 
-//            return source;
-//        }
-//    }
-//}
+            return source;
+        }
+    }
+}

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using QueryX.Filters;
 using System;
 
 namespace QueryX
