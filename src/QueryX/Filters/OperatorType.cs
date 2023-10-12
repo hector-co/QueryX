@@ -7,10 +7,10 @@
         Equals,
         EndsWith,
         GreaterThan,
-        GreaterThanOrEquals,
+        GreaterThanOrEqual,
         In,
         LessThan,
-        LessThanOrEquals,
+        LessThanOrEqual,
         NotEquals,
         StartsWith
     }
