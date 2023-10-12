@@ -2,7 +2,7 @@
 {
     public abstract class NodeBase
     {
-        public bool IsNegated { get; set; }
+        public bool IsNegated { get; protected set; }
 
         public abstract void Accept(INodeVisitor visitor);
 

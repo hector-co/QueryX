@@ -14,10 +14,10 @@ namespace QueryX.Parsing.Nodes
             IsCaseInsensitive = isCaseInsensitive;
         }
 
-        public string Property { get; set; }
-        public string Operator { get; set; }
-        public bool IsCaseInsensitive { get; set; }
-        public IEnumerable<string?> Values { get; set; }
+        public string Property { get; }
+        public string Operator { get; }
+        public bool IsCaseInsensitive { get; }
+        public IEnumerable<string?> Values { get; }
 
         public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
 

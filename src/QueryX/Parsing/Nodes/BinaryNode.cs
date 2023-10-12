@@ -9,7 +9,7 @@
             IsNegated = isNegated;
         }
 
-        public NodeBase Left { get; set; }
-        public NodeBase Right { get; set; }
+        public NodeBase Left { get; }
+        public NodeBase Right { get; }
     }
 }
