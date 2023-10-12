@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 
 namespace QueryX.Utils
 {
-    internal static class TypeHelper
+    internal static class TypeCaching
     {
-        internal static MethodInfo AnyMethod => typeof(Enumerable).GetMethods().First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
-        internal static MethodInfo AllMethod => typeof(Enumerable).GetMethods().First(m => m.Name == "All" && m.GetParameters().Count() == 2);
-
         internal static ConcurrentDictionary<Type, PropertyInfo[]> Properties { get; set; }
             = new ConcurrentDictionary<Type, PropertyInfo[]>();
 
@@ -48,22 +44,6 @@ namespace QueryX.Utils
                 currentType = currentProp.PropertyType;
             }
             return currentProp;
-        }
-
-        internal static Expression? GetPropertyExpression(this string propertyName, Expression modelParameter)
-        {
-            var property = modelParameter;
-
-            foreach (var member in propertyName.Split('.'))
-            {
-                var existentProp = property.Type.GetPropertyInfo(member);
-                if (existentProp == null)
-                    return null;
-
-                property = Expression.Property(property, existentProp.Name);
-            }
-
-            return property;
         }
     }
 }

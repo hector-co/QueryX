@@ -38,10 +38,10 @@ namespace QueryX.Tests
         public List<SampleObject> Prop3 { get; set; } = new List<SampleObject>();
     }
 
-    public class SampleObjectWithRelationshipQuery : Query<SampleObjectWithRelationship>
-    {
+    //public class SampleObjectWithRelationshipQuery : Query<SampleObjectWithRelationship>
+    //{
 
-    }
+    //}
 
     public class SampleObjectWithRelationshipFilter
     {

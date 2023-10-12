@@ -12,8 +12,6 @@ namespace QueryX
             options?.Invoke(configuration);
 
             services.AddSingleton(configuration);
-            services.AddSingleton<IFilterFactory, FilterFactory>();
-            services.AddSingleton<QueryBuilder>();
         }
     }
 }
