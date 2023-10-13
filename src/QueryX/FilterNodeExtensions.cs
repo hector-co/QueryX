@@ -46,7 +46,7 @@ namespace QueryX
 
         private static Expression GetContainsExpression(this FilterNode filterNode, Expression property)
         {
-            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.First(), filterNode.IsCaseInsensitive);
+            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.FirstOrDefault(), filterNode.IsCaseInsensitive);
 
             var exp = Expression.Call(prop, Contains, expValue);
 
@@ -58,7 +58,7 @@ namespace QueryX
 
         private static Expression GetEndsWithExpression(this FilterNode filterNode, Expression property)
         {
-            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.First(), filterNode.IsCaseInsensitive);
+            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.FirstOrDefault(), filterNode.IsCaseInsensitive);
 
             var exp = Expression.Call(prop, EndsWith, expValue);
 
@@ -70,7 +70,7 @@ namespace QueryX
 
         private static Expression GetEqualsExpression(this FilterNode filterNode, Expression property)
         {
-            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.First(), filterNode.IsCaseInsensitive);
+            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.FirstOrDefault(), filterNode.IsCaseInsensitive);
 
             var exp = Expression.Equal(prop, expValue);
 
@@ -82,7 +82,7 @@ namespace QueryX
 
         private static Expression GetGreaterThanExpression(this FilterNode filterNode, Expression property)
         {
-            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.First(), filterNode.IsCaseInsensitive);
+            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.FirstOrDefault(), filterNode.IsCaseInsensitive);
 
             var exp = Expression.GreaterThan(prop, expValue);
 
@@ -94,7 +94,7 @@ namespace QueryX
 
         private static Expression GetGreaterThanOrEqualExpression(this FilterNode filterNode, Expression property)
         {
-            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.First(), filterNode.IsCaseInsensitive);
+            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.FirstOrDefault(), filterNode.IsCaseInsensitive);
 
             var exp = Expression.GreaterThanOrEqual(prop, expValue);
 
@@ -120,7 +120,7 @@ namespace QueryX
 
         private static Expression GetLessThanExpression(this FilterNode filterNode, Expression property)
         {
-            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.First(), filterNode.IsCaseInsensitive);
+            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.FirstOrDefault(), filterNode.IsCaseInsensitive);
 
             var exp = Expression.LessThan(prop, expValue);
 
@@ -132,7 +132,7 @@ namespace QueryX
 
         private static Expression GetLessThanOrEqualExpression(this FilterNode filterNode, Expression property)
         {
-            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.First(), filterNode.IsCaseInsensitive);
+            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.FirstOrDefault(), filterNode.IsCaseInsensitive);
 
             var exp = Expression.LessThanOrEqual(prop, expValue);
 
@@ -144,7 +144,7 @@ namespace QueryX
 
         private static Expression GetStartsWithExpression(this FilterNode filterNode, Expression property)
         {
-            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.First(), filterNode.IsCaseInsensitive);
+            var (prop, expValue) = property.GetPropertyAndConstant(filterNode.Values.FirstOrDefault(), filterNode.IsCaseInsensitive);
 
             var exp = Expression.Call(prop, StartsWith, expValue);
 

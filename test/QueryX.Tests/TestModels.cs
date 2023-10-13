@@ -1,130 +1,115 @@
-﻿using QueryX.Attributes;
-using QueryX.Filters;
-
-namespace QueryX.Tests
+﻿namespace QueryX.Tests
 {
-    public class SampleObject
+    public class Product
     {
-        public SampleObject()
-        {
-        }
-
-        public SampleObject(int prop1, string prop2, bool prop3, DateTime prop4, TestEnum prop5, int prop6)
-        {
-            Prop1 = prop1;
-            Prop2 = prop2;
-            Prop3 = prop3;
-            Prop4 = prop4;
-            Prop5 = prop5;
-            Prop6 = prop6;
-        }
-
-        public int Prop1 { get; set; }
-        public string Prop2 { get; set; } = string.Empty;
-        public bool Prop3 { get; set; }
-        public DateTime Prop4 { get; set; }
-
-        [CustomFilter]
-        public TestEnum Prop5 { get; set; }
-
-        [CustomFilter]
-        public int Prop6 { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public float Price { get; set; }
+        public float Stock { get; set; }
+        public DateTime RegisteredAt { get; set; }
+        public bool Active { get; set; }
     }
 
-    public class SampleObjectWithRelationship
+    public static class Collections
     {
-        public SampleObject? Prop1 { get; set; } = new SampleObject();
-        public SampleObject Prop2 { get; set; } = new SampleObject();
-        public List<SampleObject> Prop3 { get; set; } = new List<SampleObject>();
-    }
-
-    //public class SampleObjectWithRelationshipQuery : Query<SampleObjectWithRelationship>
-    //{
-
-    //}
-
-    public class SampleObjectWithRelationshipFilter
-    {
-        [QueryOptions(ModelPropertyName = "Prop1")]
-        public SampleObjectFilter TheProp1 { get; set; } = new SampleObjectFilter();
-
-        [QueryOptions(ModelPropertyName = "Prop2")]
-        public SampleObjectFilter TheProp2 { get; set; } = new SampleObjectFilter();
-
-        [QueryOptions(ModelPropertyName = "Prop3")]
-        public List<SampleObjectFilter> TheProp3 { get; set; } = new List<SampleObjectFilter>();
-    }
-
-    public class SampleObjectFilter
-    {
-        [QueryOptions(ModelPropertyName = "Prop1")]
-        public int TheProp1 { get; set; }
-
-        [QueryOptions(ModelPropertyName = "Prop2")]
-        public string TheProp2 { get; set; } = string.Empty;
-    }
-
-    public class TestModel1
-    {
-        public int IntProperty1 { get; set; }
-
-        public string StringProperty1 { get; set; } = string.Empty;
-
-        public double DoubleProperty1 { get; set; }
-
-        public DateTime DateTimeProperty1 { get; set; }
-
-        public TestEnum EnumProperty1 { get; set; }
-
-        public bool BoolProperty1 { get; set; }
-
-        public int? IntProperty2 { get; set; }
-
-        public string StringProperty2 { get; set; } = string.Empty;
-    }
-
-    public class TestModel2
-    {
-        public int IntProperty1 { get; set; }
-        [QueryIgnore]
-        public string StringProperty1 { get; set; } = string.Empty;
-    }
-
-    public class TestModel3
-    {
-        public int IntProperty1 { get; set; }
-
-        [QueryOptions(ParamsPropertyName = "string_property")]
-        public string StringProperty1 { get; set; } = string.Empty;
-
-        [QueryOptions(ModelPropertyName = "RealDoubleProperty1")]
-        public double DoubleProperty1 { get; set; }
-
-        [QueryOptions(IsSortable = false)]
-        public DateTime DateTimeProperty1 { get; set; }
-
-        [CustomFilter]
-        public TestEnum EnumProperty1 { get; set; }
-
-        [CustomFilter]
-        [QueryOptions(IsSortable = false)]
-        public TestEnum EnumProperty2 { get; set; }
-
-        [QueryOptions(Operator = OperatorType.Equals)]
-        public string StringProperty2 { get; set; } = string.Empty;
-    }
-
-    public class TestModelWithRel
-    {
-        public TestModel1 Prop1 { get; set; } = new TestModel1();
-
-        public int IntProperty1 { get; set; }
-    }
-
-    public enum TestEnum
-    {
-        Value1,
-        Value2,
-        Value3
+        public static Product[] Products =>
+            new[]
+            {
+                new Product
+                {
+                    Id = 1,
+                    Name = "Product1",
+                    Description = "Description1",
+                    Price = 10,
+                    Stock = 0,
+                    RegisteredAt = DateTime.Parse("2023-6-1"),
+                    Active = true
+                },
+                new Product
+                {
+                    Id = 2,
+                    Name = "Product2",
+                    Description = "Description2",
+                    Price = 20,
+                    Stock = 0,
+                    RegisteredAt = DateTime.Parse("2023-6-15"),
+                    Active = true
+                },
+                new Product
+                {
+                    Id = 3,
+                    Name = "Product3",
+                    Description = "description3",
+                    Price = 30,
+                    Stock = 10,
+                    RegisteredAt = DateTime.Parse("2023-6-30"),
+                    Active = true
+                },
+                new Product
+                {
+                    Id = 4,
+                    Name = "new Product1",
+                    Description = "description4",
+                    Price = 40,
+                    Stock = 10,
+                    RegisteredAt = DateTime.Parse("2023-7-1"),
+                    Active = true
+                },
+                new Product
+                {
+                    Id = 5,
+                    Name = "new Product2",
+                    Price = 50,
+                    Stock = 20,
+                    RegisteredAt = DateTime.Parse("2023-7-15"),
+                    Active = true
+                },
+                new Product
+                {
+                    Id = 6,
+                    Name = "new Product3",
+                    Price = 60,
+                    Stock = 20,
+                    RegisteredAt = DateTime.Parse("2023-7-30"),
+                    Active = false
+                },
+                new Product
+                {
+                    Id = 7,
+                    Name = "Custom1",
+                    Price = 70,
+                    Stock = 30,
+                    RegisteredAt = DateTime.Parse("2023-8-1"),
+                    Active = false
+                },
+                new Product
+                {
+                    Id = 8,
+                    Name = "Custom2",
+                    Price = 80,
+                    Stock = 30,
+                    RegisteredAt = DateTime.Parse("2023-8-15"),
+                    Active = false
+                },
+                new Product
+                {
+                    Id = 9,
+                    Name = "custom3",
+                    Price = 90,
+                    Stock = 40,
+                    RegisteredAt = DateTime.Parse("2023-8-30"),
+                    Active = false
+                },
+                new Product
+                {
+                    Id = 10,
+                    Name = "custom4",
+                    Price = 100,
+                    Stock = 40,
+                    RegisteredAt = DateTime.Parse("2023-9-1"),
+                    Active = false
+                }
+            };
     }
 }

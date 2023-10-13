@@ -62,7 +62,7 @@ namespace QueryX.Utils
 
                 return isCaseSensitive
                     ? Expression.Constant(value)
-                    : Expression.Constant(value);
+                    : Expression.Constant(value.ToLower());
             }
 
             return Expression.Constant(value.ConvertValue(targetType));
