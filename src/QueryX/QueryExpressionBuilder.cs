@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace QueryX
 {
-    public class QueryExpressionBuilder<TModel> : INodeVisitor
+    internal class QueryExpressionBuilder<TModel> : INodeVisitor
     {
         internal static MethodInfo AnyMethod => typeof(Enumerable).GetMethods().First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
         internal static MethodInfo AllMethod => typeof(Enumerable).GetMethods().First(m => m.Name == "All" && m.GetParameters().Count() == 2);

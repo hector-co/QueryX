@@ -1,6 +1,6 @@
 ﻿namespace QueryX.Parsing.Nodes
 {
-    public class CollectionFilterNode : NodeBase
+    internal class CollectionFilterNode : NodeBase
     {
         public CollectionFilterNode(string property, NodeBase filter, bool applyAll = false, bool isNegated = false)
         {

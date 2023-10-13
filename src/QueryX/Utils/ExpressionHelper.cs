@@ -81,7 +81,7 @@ namespace QueryX.Utils
             }
 
             var result = new List<object?>();
-            foreach (var val in (IEnumerable)value)
+            foreach (var val in value)
             {
                 result.Add(val.ConvertValue(targetType));
             }

@@ -1,6 +1,6 @@
 ﻿namespace QueryX.Parsing.Nodes
 {
-    public abstract class NodeBase
+    internal abstract class NodeBase
     {
         public bool IsNegated { get; protected set; }
 

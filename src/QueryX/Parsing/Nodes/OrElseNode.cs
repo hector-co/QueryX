@@ -1,6 +1,6 @@
 ﻿namespace QueryX.Parsing.Nodes
 {
-    public class OrElseNode : BinaryNode
+    internal class OrElseNode : BinaryNode
     {
         public OrElseNode(NodeBase left, NodeBase right, bool isNegated = false) : base(left, right, isNegated)
         {

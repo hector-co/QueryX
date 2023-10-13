@@ -1,6 +1,6 @@
 ﻿namespace QueryX.Parsing.Nodes
 {
-    public class FilterNode : NodeBase
+    internal class FilterNode : NodeBase
     {
         public FilterNode(string property, string @operator, string?[] values, bool isNegated = false, bool isCaseInsensitive = false)
         {

@@ -1,6 +1,6 @@
 ﻿namespace QueryX.Parsing.Nodes
 {
-    public interface INodeVisitor
+    internal interface INodeVisitor
     {
         void Visit(OrElseNode node);
         void Visit(AndAlsoNode node);
