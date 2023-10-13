@@ -76,7 +76,15 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            var propertyName = context.GetConcatenatedProperty(node.Property);
+            var modelMapping = QueryMappingConfig.GetMapping(context.ParentType);
+            var propertyName = modelMapping.GetPropertyMapping(node.Property);
+            if (modelMapping.PropertyIsIgnored(propertyName))
+            {
+                context.Stack.Push(null);
+                return;
+            }
+
+            propertyName = context.GetConcatenatedProperty(propertyName);
 
             var propExp = propertyName.GetPropertyExpression(context.Parameter)
                 ?? throw new InvalidFilterPropertyException(node.Property);
