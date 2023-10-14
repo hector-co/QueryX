@@ -32,5 +32,17 @@ namespace QueryX
         {
             return _ignoredProperties.Contains(propertyName);
         }
+
+        internal ModelMapping Clone()
+        {
+            var clone = new ModelMapping();
+            foreach (var mapping in _propertyMapping)
+                clone._propertyMapping.Add(mapping.Key, mapping.Value);
+
+            foreach (var ignoredProperty in _ignoredProperties)
+                clone._ignoredProperties.Add(ignoredProperty);
+
+            return clone;
+        }
     }
 }

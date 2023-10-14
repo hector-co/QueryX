@@ -24,10 +24,21 @@ namespace QueryX
             return this;
         }
 
-        public void Clear<TModel>()
+        public QueryMappingConfig Clear<TModel>()
         {
             if (_mappings.ContainsKey(typeof(TModel)))
                 _mappings.TryRemove(typeof(TModel), out _);
+
+            return this;
+        }
+
+        public QueryMappingConfig Clone()
+        {
+            var clone = new QueryMappingConfig();
+            foreach (var mapping in _mappings)
+                clone._mappings.TryAdd(mapping.Key, mapping.Value.Clone());
+
+            return clone;
         }
 
         internal ModelMapping GetMapping<TModel>() =>
