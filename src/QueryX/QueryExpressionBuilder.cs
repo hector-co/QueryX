@@ -16,11 +16,13 @@ namespace QueryX
 
         private readonly QueryModel _queryModel;
         private readonly Stack<Context> _contexts;
+        private readonly QueryMappingConfig? _mappingConfig;
 
-        public QueryExpressionBuilder(QueryModel queryModel)
+        public QueryExpressionBuilder(QueryModel queryModel, QueryMappingConfig? mappingConfig = null)
         {
             _queryModel = queryModel;
             _contexts = new Stack<Context>();
+            _mappingConfig = mappingConfig;
             _contexts.Push(new Context(typeof(TModel), string.Empty, Expression.Parameter(typeof(TModel), "m")));
 
             if (!string.IsNullOrEmpty(queryModel.Filter))
@@ -76,7 +78,7 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            if (!node.Property.TryResolvePropertyName(context.ParentType, out var propertyName))
+            if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var propertyName))
             {
                 throw new InvalidFilterPropertyException(node.Property);
             }
@@ -97,7 +99,7 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            if (!node.Property.TryResolvePropertyName(context.ParentType, out var propertyName))
+            if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var propertyName))
             {
                 throw new InvalidFilterPropertyException(node.Property);
             }

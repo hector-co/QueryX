@@ -27,7 +27,7 @@ namespace QueryX.Utils
             return GetPropertyInfo(propertyName, typeof(T));
         }
 
-        internal static bool TryResolvePropertyName(this string propertyPath, Type baseType, out string? resolvedName)
+        internal static bool TryResolvePropertyName(this string propertyPath, Type baseType, QueryMappingConfig? mappingConfig, out string? resolvedName)
         {
             const char Separator = '.';
 
@@ -35,7 +35,7 @@ namespace QueryX.Utils
             var currentType = baseType;
             foreach (var propertyName in propertyPath.Split(Separator))
             {
-                var mapping = QueryMappingConfig.GetMapping(currentType);
+                var mapping = mappingConfig?.GetMapping(currentType) ?? QueryMappingConfig.Global.GetMapping(currentType);
                 var mappedName = mapping.GetPropertyMapping(propertyName);
 
                 var propInfo = mappedName.GetPropertyInfo(currentType);

@@ -1,34 +1,39 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 
 namespace QueryX
 {
-    public static class QueryMappingConfig
+    public class QueryMappingConfig
     {
-        private static readonly Dictionary<Type, ModelMapping> _mappings = new Dictionary<Type, ModelMapping>();
+        private static readonly QueryMappingConfig _instance = new QueryMappingConfig();
         private static readonly ModelMapping _defaultMapping = new ModelMapping();
+        private readonly ConcurrentDictionary<Type, ModelMapping> _mappings = new ConcurrentDictionary<Type, ModelMapping>();
 
-        public static ModelMappingConfig<TModel> For<TModel>()
+        public static QueryMappingConfig Global => _instance;
+
+        public QueryMappingConfig For<TModel>(Action<ModelMappingConfig<TModel>> modelMappingConfig)
         {
             if (_mappings.TryGetValue(typeof(TModel), out var mapping))
-                return new ModelMappingConfig<TModel>(mapping);
+                modelMappingConfig(new ModelMappingConfig<TModel>(mapping));
 
             mapping = new ModelMapping();
-            _mappings.Add(typeof(TModel), mapping);
-            return new ModelMappingConfig<TModel>(mapping);
+            _mappings.TryAdd(typeof(TModel), mapping);
+            modelMappingConfig(new ModelMappingConfig<TModel>(mapping));
+
+            return this;
         }
 
-        public static void Clear<TModel>()
+        public void Clear<TModel>()
         {
             if (_mappings.ContainsKey(typeof(TModel)))
-                _mappings.Remove(typeof(TModel));
+                _mappings.TryRemove(typeof(TModel), out _);
         }
 
-        internal static ModelMapping GetMapping<TModel>() =>
+        internal ModelMapping GetMapping<TModel>() =>
             GetMapping(typeof(TModel));
 
-        internal static ModelMapping GetMapping(Type modelType) =>
+        internal ModelMapping GetMapping(Type modelType) =>
             _mappings.TryGetValue(modelType, out var mapping)
                     ? mapping
                     : _defaultMapping;

@@ -48,20 +48,17 @@ namespace QueryX.Tests
         [Fact]
         public void OrderingWithMapping()
         {
-            QueryMappingConfig
-              .Clear<Product>();
-
-            var productConfig = QueryMappingConfig
-               .For<Product>();
-            productConfig
-                .Property(p => p.Price).MapFrom("customPrice");
-            productConfig
-                .Property(p => p.Stock).MapFrom("customStock");
+            var config = new QueryMappingConfig();
+            config.For<Product>(cfg =>
+            {
+                cfg.Property(p => p.Price).MapFrom("customPrice");
+                cfg.Property(p => p.Stock).MapFrom("customStock");
+            });
 
             var expected = Collections.Products.AsQueryable().OrderByDescending(p => p.Price).ThenBy(p => p.Stock).ToArray();
             var query = new QueryModel { OrderBy = "-customPrice,customStock" };
 
-            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var result = Collections.Products.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
 
             result.Should().NotBeEmpty();
             result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
@@ -70,30 +67,24 @@ namespace QueryX.Tests
         [Fact]
         public void NestedOrderingWithMapping()
         {
-            QueryMappingConfig
-               .Clear<ShoppingCartLine>();
-            QueryMappingConfig
-               .Clear<Product>();
-
-            var lineConfig = QueryMappingConfig
-                .For<ShoppingCartLine>();
-            lineConfig
-                .Property(l => l.Quantity).MapFrom("quant");
-            lineConfig
-                .Property(l => l.Product).MapFrom("prod");
-
-            var productConfig = QueryMappingConfig
-               .For<Product>();
-            productConfig
-                .Property(p => p.Price).MapFrom("customPrice");
-            productConfig
-                .Property(p => p.Stock).MapFrom("customStock");
+            var config = new QueryMappingConfig();
+            config
+                .For<ShoppingCartLine>(cfg =>
+                {
+                    cfg.Property(l => l.Quantity).MapFrom("quant");
+                    cfg.Property(l => l.Product).MapFrom("prod");
+                })
+                .For<Product>(cfg =>
+                {
+                    cfg.Property(p => p.Price).MapFrom("customPrice");
+                    cfg.Property(p => p.Stock).MapFrom("customStock");
+                });
 
             var expected = Collections.ShoppingCartLines.AsQueryable()
                 .OrderByDescending(l => l.Quantity).ThenByDescending(l => l.Product.Price).ThenBy(l => l.Product.Stock).ToArray();
             var query = new QueryModel { OrderBy = "-quant,-prod.customPrice,prod.customStock" };
 
-            var result = Collections.ShoppingCartLines.AsQueryable().ApplyQuery(query).ToArray();
+            var result = Collections.ShoppingCartLines.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
 
             result.Should().NotBeEmpty();
             result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());

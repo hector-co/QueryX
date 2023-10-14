@@ -9,10 +9,10 @@ namespace QueryX
 {
     public static class QueryExtensions
     {
-        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, QueryModel queryModel, bool applyOrderingAndPaging = true)
+        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, QueryModel queryModel, bool applyOrderingAndPaging = true, QueryMappingConfig? mappingConfig = null)
             where TModel : class
         {
-            var expProvider = new QueryExpressionBuilder<TModel>(queryModel);
+            var expProvider = new QueryExpressionBuilder<TModel>(queryModel, mappingConfig);
 
             var filterExp = expProvider.GetFilterExpression();
 
@@ -20,12 +20,12 @@ namespace QueryX
                 source = source.Where(filterExp);
 
             if (applyOrderingAndPaging)
-                source = ApplyOrderingAndPaging(source, queryModel);
+                source = ApplyOrderingAndPaging(source, queryModel, mappingConfig);
 
             return source;
         }
 
-        public static IQueryable<TModel> ApplyOrderingAndPaging<TModel>(this IQueryable<TModel> source, QueryModel queryModel)
+        public static IQueryable<TModel> ApplyOrderingAndPaging<TModel>(this IQueryable<TModel> source, QueryModel queryModel, QueryMappingConfig? mappingConfig = null)
         {
             var orderingTokens = QueryParser.GetOrderingTokens(queryModel.OrderBy);
 
@@ -33,7 +33,7 @@ namespace QueryX
 
             foreach (var (PropName, Ascending) in orderingTokens)
             {
-                if (!PropName.TryResolvePropertyName(typeof(TModel), out var propertyName))
+                if (!PropName.TryResolvePropertyName(typeof(TModel), mappingConfig, out var propertyName))
                 {
                     throw new InvalidFilterPropertyException(PropName);
                 }
