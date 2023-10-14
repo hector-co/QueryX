@@ -33,9 +33,19 @@ namespace QueryX
 
             foreach (var (PropName, Ascending) in orderingTokens)
             {
+                if (!PropName.TryResolvePropertyName(typeof(TModel), out var propertyName))
+                {
+                    throw new InvalidFilterPropertyException(PropName);
+                }
+
+                if (string.IsNullOrEmpty(propertyName))
+                {
+                    continue;
+                }
+
                 var modelParameter = Expression.Parameter(typeof(TModel), "m");
 
-                var propExp = PropName.GetPropertyExpression(modelParameter) ?? throw new InvalidOrderingPropertyException(PropName);
+                var propExp = propertyName.GetPropertyExpression(modelParameter) ?? throw new InvalidOrderingPropertyException(propertyName);
 
                 var sortExp = Expression.Lambda<Func<TModel, object>>(Expression.Convert(propExp, typeof(object)), modelParameter);
 

@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace QueryX.Utils
 {
-    internal static class TypeCaching
+    internal static class PropertyHelper
     {
         internal static ConcurrentDictionary<Type, PropertyInfo[]> Properties { get; set; }
             = new ConcurrentDictionary<Type, PropertyInfo[]>();
@@ -25,6 +25,38 @@ namespace QueryX.Utils
         internal static PropertyInfo? GetPropertyInfo<T>(this string propertyName)
         {
             return GetPropertyInfo(propertyName, typeof(T));
+        }
+
+        internal static bool TryResolvePropertyName(this string propertyPath, Type baseType, out string? resolvedName)
+        {
+            const char Separator = '.';
+
+            var resultPropertyPath = "";
+            var currentType = baseType;
+            foreach (var propertyName in propertyPath.Split(Separator))
+            {
+                var mapping = QueryMappingConfig.GetMapping(currentType);
+                var mappedName = mapping.GetPropertyMapping(propertyName);
+
+                var propInfo = mappedName.GetPropertyInfo(currentType);
+                if (propInfo == null)
+                {
+                    resolvedName = null;
+                    return false;
+                }
+
+                if (mapping.PropertyIsIgnored(propInfo.Name))
+                {
+                    resolvedName = null;
+                    return true;
+                }
+
+                resultPropertyPath += $"{propInfo.Name}{Separator}";
+                currentType = propInfo.PropertyType;
+            }
+
+            resolvedName = resultPropertyPath.TrimEnd(Separator);
+            return true;
         }
 
         internal static PropertyInfo? GetPropertyInfo(this string propertyName, Type type)

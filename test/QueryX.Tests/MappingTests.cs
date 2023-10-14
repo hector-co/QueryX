@@ -271,14 +271,13 @@ namespace QueryX.Tests
 
             var productConfig = QueryMappingConfig
                .For<Product>();
-
             productConfig
                 .Property(p => p.Price).MapFrom("customPrice");
             productConfig
                 .Property(p => p.Stock).MapFrom("customStock");
 
-            const float PriceFrom = 50;
-            const float StockFrom = 35;
+            const float PriceFrom = 10;
+            const float StockFrom = 25;
             Expression<Func<Product, bool>> expectedFilter = x => x.Price > PriceFrom && x.Stock > StockFrom;
             var query = new QueryModel
             {

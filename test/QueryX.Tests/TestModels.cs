@@ -43,7 +43,7 @@
                     Name = "Product1",
                     Description = "Description1",
                     Price = 10,
-                    Stock = 0,
+                    Stock = 40,
                     RegisteredAt = DateTime.Parse("2023-6-1"),
                     Active = true
                 },
@@ -53,7 +53,7 @@
                     Name = "Product2",
                     Description = "Description2",
                     Price = 20,
-                    Stock = 0,
+                    Stock = 35,
                     RegisteredAt = DateTime.Parse("2023-6-15"),
                     Active = true
                 },
@@ -63,7 +63,7 @@
                     Name = "Product3",
                     Description = "description3",
                     Price = 30,
-                    Stock = 10,
+                    Stock = 30,
                     RegisteredAt = DateTime.Parse("2023-6-30"),
                     Active = true
                 },
@@ -73,7 +73,7 @@
                     Name = "new Product1",
                     Description = "description4",
                     Price = 40,
-                    Stock = 10,
+                    Stock = 25,
                     RegisteredAt = DateTime.Parse("2023-7-1"),
                     Active = true
                 },
@@ -91,7 +91,7 @@
                     Id = 6,
                     Name = "new Product3",
                     Price = 60,
-                    Stock = 20,
+                    Stock = 15,
                     RegisteredAt = DateTime.Parse("2023-7-30"),
                     Active = false
                 },
@@ -100,7 +100,7 @@
                     Id = 7,
                     Name = "Custom1",
                     Price = 70,
-                    Stock = 30,
+                    Stock = 10,
                     RegisteredAt = DateTime.Parse("2023-8-1"),
                     Active = false
                 },
@@ -109,7 +109,7 @@
                     Id = 8,
                     Name = "Custom2",
                     Price = 80,
-                    Stock = 30,
+                    Stock = 5,
                     RegisteredAt = DateTime.Parse("2023-8-15"),
                     Active = false
                 },
@@ -118,7 +118,7 @@
                     Id = 9,
                     Name = "custom3",
                     Price = 90,
-                    Stock = 40,
+                    Stock = 0,
                     RegisteredAt = DateTime.Parse("2023-8-30"),
                     Active = false
                 },
@@ -127,10 +127,69 @@
                     Id = 10,
                     Name = "custom4",
                     Price = 100,
-                    Stock = 40,
+                    Stock = 2,
                     RegisteredAt = DateTime.Parse("2023-9-1"),
                     Active = false
                 }
+            };
+
+        public static ShoppingCartLine[] ShoppingCartLines =>
+            new[]
+            {
+                new ShoppingCartLine
+                    {
+                        Id = 1,
+                        Product = Products[0],
+                        Quantity = 5
+                    },
+                    new ShoppingCartLine
+                    {
+                        Id = 2,
+                        Product = Products[1],
+                        Quantity = 10
+                    },
+                    new ShoppingCartLine
+                    {
+                        Id = 3,
+                        Product = Products[2],
+                        Quantity = 15
+                    },
+                    new ShoppingCartLine
+                    {
+                        Id = 4,
+                        Product = Products[0],
+                        Quantity = 20
+                    },
+                    new ShoppingCartLine
+                    {
+                        Id = 5,
+                        Product = Products[2],
+                        Quantity = 25
+                    },
+                    new ShoppingCartLine
+                    {
+                        Id = 6,
+                        Product = Products[4],
+                        Quantity = 30
+                    },
+                    new ShoppingCartLine
+                    {
+                        Id = 7,
+                        Product = Products[0],
+                        Quantity = 35
+                    },
+                    new ShoppingCartLine
+                    {
+                        Id = 8,
+                        Product = Products[3],
+                        Quantity = 40
+                    },
+                    new ShoppingCartLine
+                    {
+                        Id = 9,
+                        Product = Products[6],
+                        Quantity = 45
+                    }
             };
 
         public static ShoppingCart[] ShoppingCarts =>
@@ -142,24 +201,9 @@
                     Status = ShoppingCartStatus.Pending,
                     Lines = new[]
                     {
-                        new ShoppingCartLine
-                        {
-                            Id = 1,
-                            Product = Products[0],
-                            Quantity = 5
-                        },
-                        new ShoppingCartLine
-                        {
-                            Id = 2,
-                            Product = Products[1],
-                            Quantity = 10
-                        },
-                        new ShoppingCartLine
-                        {
-                            Id = 3,
-                            Product = Products[2],
-                            Quantity = 15
-                        }
+                        ShoppingCartLines[0],
+                        ShoppingCartLines[1],
+                        ShoppingCartLines[2]
                     }.ToList()
                 },
                 new ShoppingCart
@@ -168,24 +212,9 @@
                     Status = ShoppingCartStatus.Confirmed,
                     Lines = new[]
                     {
-                        new ShoppingCartLine
-                        {
-                            Id = 4,
-                            Product = Products[0],
-                            Quantity = 20
-                        },
-                        new ShoppingCartLine
-                        {
-                            Id = 5,
-                            Product = Products[2],
-                            Quantity = 25
-                        },
-                        new ShoppingCartLine
-                        {
-                            Id = 6,
-                            Product = Products[4],
-                            Quantity = 30
-                        }
+                        ShoppingCartLines[3],
+                        ShoppingCartLines[4],
+                        ShoppingCartLines[5]
                     }.ToList()
                 },
                 new ShoppingCart
@@ -194,24 +223,9 @@
                     Status = ShoppingCartStatus.Canceled,
                     Lines = new[]
                     {
-                        new ShoppingCartLine
-                        {
-                            Id = 7,
-                            Product = Products[0],
-                            Quantity = 35
-                        },
-                        new ShoppingCartLine
-                        {
-                            Id = 8,
-                            Product = Products[3],
-                            Quantity = 40
-                        },
-                        new ShoppingCartLine
-                        {
-                            Id = 9,
-                            Product = Products[6],
-                            Quantity = 45
-                        }
+                        ShoppingCartLines[6],
+                        ShoppingCartLines[7],
+                        ShoppingCartLines[8]
                     }.ToList()
                 }
             };

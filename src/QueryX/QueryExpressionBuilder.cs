@@ -76,8 +76,12 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            var propertyName = ResolvePropertyName(node.Property, context.ParentType);
-            if (propertyName == null)
+            if (!node.Property.TryResolvePropertyName(context.ParentType, out var propertyName))
+            {
+                throw new InvalidFilterPropertyException(node.Property);
+            }
+
+            if (string.IsNullOrEmpty(propertyName))
             {
                 context.Stack.Push(null);
                 return;
@@ -93,8 +97,12 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            var propertyName = ResolvePropertyName(node.Property, context.ParentType);
-            if (propertyName == null)
+            if (!node.Property.TryResolvePropertyName(context.ParentType, out var propertyName))
+            {
+                throw new InvalidFilterPropertyException(node.Property);
+            }
+
+            if (string.IsNullOrEmpty(propertyName))
             {
                 context.Stack.Push(null);
                 return;
@@ -135,30 +143,6 @@ namespace QueryX
 
             context.Stack.Push(anyExp);
             _contexts.Pop();
-        }
-
-        private string? ResolvePropertyName(string propertyPath, Type baseType)
-        {
-            const char Separator = '.';
-
-            var resultPropertyPath = "";
-            var currentType = baseType;
-            foreach (var propertyName in propertyPath.Split(Separator))
-            {
-                var mapping = QueryMappingConfig.GetMapping(currentType);
-                var mappedName = mapping.GetPropertyMapping(propertyName);
-
-                var propInfo = mappedName.GetPropertyInfo(currentType)
-                    ?? throw new InvalidFilterPropertyException(mappedName);
-
-                if (mapping.PropertyIsIgnored(propInfo.Name))
-                    return null;
-
-                resultPropertyPath += $"{propInfo.Name}{Separator}";
-                currentType = propInfo.PropertyType;
-            }
-
-            return resultPropertyPath.TrimEnd(Separator);
         }
 
         public Expression<Func<TModel, bool>>? GetFilterExpression()
