@@ -89,6 +89,32 @@ namespace QueryX.Tests
             result.Should().NotBeEmpty();
             result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
         }
+
+        [Fact]
+        public void NestedOrderingWithMappingAndIgnore()
+        {
+            var config = new QueryMappingConfig();
+            config
+                .For<ShoppingCartLine>(cfg =>
+                {
+                    cfg.Property(l => l.Quantity).MapFrom("quant").Ignore();
+                    cfg.Property(l => l.Product).MapFrom("prod");
+                })
+                .For<Product>(cfg =>
+                {
+                    cfg.Property(p => p.Id).MapFrom("prodId").Ignore();
+                    cfg.Property(p => p.Stock);
+                });
+
+            var expected = Collections.ShoppingCartLines.AsQueryable()
+                .OrderByDescending(l => l.Product.Price).ThenBy(l => l.Product.Stock).ToArray();
+            var query = new QueryModel { OrderBy = "-quant,-prod.price,prod.stock,-prod.prodId" };
+
+            var result = Collections.ShoppingCartLines.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
     }
 
     public class OrderData : IEnumerable<object[]>
