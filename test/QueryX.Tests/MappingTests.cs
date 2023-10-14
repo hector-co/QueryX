@@ -5,6 +5,13 @@ namespace QueryX.Tests
 {
     public class MappingTests
     {
+        public MappingTests()
+        {
+            QueryMappingConfig.Global.Clear<ShoppingCart>();
+            QueryMappingConfig.Global.Clear<ShoppingCartLine>();
+            QueryMappingConfig.Global.Clear<Product>();
+        }
+
         [Fact]
         public void PropertyMapping()
         {
@@ -289,6 +296,82 @@ namespace QueryX.Tests
             };
 
             var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GlobalMappingWithMultipleObjects()
+        {
+            QueryMappingConfig.Global.Clear<ShoppingCart>();
+            QueryMappingConfig.Global.Clear<ShoppingCartLine>();
+            QueryMappingConfig.Global.Clear<Product>();
+
+            QueryMappingConfig.Global
+                .For<ShoppingCart>(cfg =>
+                {
+                    cfg.Property(s => s.Lines).MapFrom("detail");
+                })
+                .For<ShoppingCartLine>(cfg =>
+                {
+                    cfg.Property(l => l.Product).MapFrom("prod");
+                })
+                .For<Product>(cfg =>
+                {
+                    cfg.Property(p => p.Price).MapFrom("customPrice");
+                });
+
+            const float QuantityFrom = 35;
+            const float PriceFrom = 50;
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Lines.Any(l => l.Quantity > QuantityFrom && l.Product.Price > PriceFrom);
+            var query = new QueryModel
+            {
+                Filter = $"detail(quantity > {QuantityFrom}; prod.customPrice > {PriceFrom})"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void OverrideGlobalMapping()
+        {
+            QueryMappingConfig.Global
+                .For<ShoppingCart>(cfg =>
+                {
+                    cfg.Property(s => s.Lines).MapFrom("detail");
+                })
+                .For<ShoppingCartLine>(cfg =>
+                {
+                    cfg.Property(l => l.Product).MapFrom("prod");
+                })
+                .For<Product>(cfg =>
+                {
+                    cfg.Property(p => p.Price).MapFrom("customPrice");
+                });
+
+            var localConfig = new QueryMappingConfig();
+            localConfig
+                .For<ShoppingCart>(cfg =>
+                {
+                    cfg.Property(s => s.Lines).MapFrom("detail2");
+                })
+                .For<Product>(cfg => { });
+
+            const float QuantityFrom = 35;
+            const float PriceFrom = 50;
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Lines.Any(l => l.Quantity > QuantityFrom && l.Product.Price > PriceFrom);
+            var query = new QueryModel
+            {
+                Filter = $"detail2(quantity > {QuantityFrom}; product.price > {PriceFrom})"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query, mappingConfig: localConfig).ToArray();
             var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
 
             result.Should().NotBeEmpty();

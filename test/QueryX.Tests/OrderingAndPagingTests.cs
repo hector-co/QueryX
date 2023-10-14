@@ -5,6 +5,13 @@ namespace QueryX.Tests
 {
     public class OrderingAndPagingTests
     {
+        public OrderingAndPagingTests()
+        {
+            QueryMappingConfig.Global.Clear<ShoppingCart>();
+            QueryMappingConfig.Global.Clear<ShoppingCartLine>();
+            QueryMappingConfig.Global.Clear<Product>();
+        }
+
         [Theory]
         [ClassData(typeof(OrderData))]
         public void Ordering(QueryModel query, Product[] source, Product[] expected)
