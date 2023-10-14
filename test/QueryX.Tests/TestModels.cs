@@ -11,6 +11,27 @@
         public bool Active { get; set; }
     }
 
+    public class ShoppingCart
+    {
+        public int Id { get; set; }
+        public List<ShoppingCartLine> Lines { get; set; }
+        public ShoppingCartStatus Status { get; set; }
+    }
+
+    public class ShoppingCartLine
+    {
+        public int Id { get; set; }
+        public Product Product { get; set; }
+        public float Quantity { get; set; }
+    }
+
+    public enum ShoppingCartStatus
+    {
+        Pending,
+        Confirmed,
+        Canceled
+    }
+
     public static class Collections
     {
         public static Product[] Products =>
@@ -109,6 +130,89 @@
                     Stock = 40,
                     RegisteredAt = DateTime.Parse("2023-9-1"),
                     Active = false
+                }
+            };
+
+        public static ShoppingCart[] ShoppingCarts =>
+            new[]
+            {
+                new ShoppingCart
+                {
+                    Id = 1,
+                    Status = ShoppingCartStatus.Pending,
+                    Lines = new[]
+                    {
+                        new ShoppingCartLine
+                        {
+                            Id = 1,
+                            Product = Products[0],
+                            Quantity = 5
+                        },
+                        new ShoppingCartLine
+                        {
+                            Id = 2,
+                            Product = Products[1],
+                            Quantity = 10
+                        },
+                        new ShoppingCartLine
+                        {
+                            Id = 3,
+                            Product = Products[2],
+                            Quantity = 15
+                        }
+                    }.ToList()
+                },
+                new ShoppingCart
+                {
+                    Id = 2,
+                    Status = ShoppingCartStatus.Confirmed,
+                    Lines = new[]
+                    {
+                        new ShoppingCartLine
+                        {
+                            Id = 4,
+                            Product = Products[0],
+                            Quantity = 20
+                        },
+                        new ShoppingCartLine
+                        {
+                            Id = 5,
+                            Product = Products[2],
+                            Quantity = 25
+                        },
+                        new ShoppingCartLine
+                        {
+                            Id = 6,
+                            Product = Products[4],
+                            Quantity = 30
+                        }
+                    }.ToList()
+                },
+                new ShoppingCart
+                {
+                    Id = 3,
+                    Status = ShoppingCartStatus.Canceled,
+                    Lines = new[]
+                    {
+                        new ShoppingCartLine
+                        {
+                            Id = 7,
+                            Product = Products[0],
+                            Quantity = 35
+                        },
+                        new ShoppingCartLine
+                        {
+                            Id = 8,
+                            Product = Products[3],
+                            Quantity = 40
+                        },
+                        new ShoppingCartLine
+                        {
+                            Id = 9,
+                            Product = Products[6],
+                            Quantity = 45
+                        }
+                    }.ToList()
                 }
             };
     }

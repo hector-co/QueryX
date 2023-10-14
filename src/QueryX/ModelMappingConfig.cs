@@ -43,11 +43,6 @@ namespace QueryX
             _mapping = mapping;
         }
 
-        public PropertyMappingConfig<TModel> Property(string propertyName)
-        {
-            return new PropertyMappingConfig<TModel>(_mapping, propertyName);
-        }
-
         public PropertyMappingConfig<TModel> Property<TValue>(Expression<Func<TModel, TValue>> propertyName)
         {
             return !(propertyName.Body is MemberExpression member)
@@ -73,10 +68,9 @@ namespace QueryX
             return this;
         }
 
-        public PropertyMappingConfig<TModel> Ignore()
+        public void Ignore()
         {
             _mapping.IgnoreProperty(_propertyName);
-            return this;
         }
     }
 }

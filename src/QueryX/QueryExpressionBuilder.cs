@@ -76,15 +76,12 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            var modelMapping = QueryMappingConfig.GetMapping(context.ParentType);
-            var propertyName = modelMapping.GetPropertyMapping(node.Property);
-            if (modelMapping.PropertyIsIgnored(propertyName))
+            var propertyName = ResolvePropertyName(node.Property, context.ParentType);
+            if (propertyName == null)
             {
                 context.Stack.Push(null);
                 return;
             }
-
-            propertyName = context.GetConcatenatedProperty(propertyName);
 
             var propExp = propertyName.GetPropertyExpression(context.Parameter)
                 ?? throw new InvalidFilterPropertyException(node.Property);
@@ -96,11 +93,18 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            var propertyInfo = node.Property.GetPropertyInfo<TModel>()
-                ?? throw new InvalidFilterPropertyException(node.Property);
+            var propertyName = ResolvePropertyName(node.Property, context.ParentType);
+            if (propertyName == null)
+            {
+                context.Stack.Push(null);
+                return;
+            }
+
+            var propertyInfo = propertyName.GetPropertyInfo<TModel>()
+                ?? throw new InvalidFilterPropertyException(propertyName);
 
             if (propertyInfo.PropertyType.GetGenericArguments().Count() == 0)
-                throw new InvalidFilterPropertyException(node.Property);
+                throw new InvalidFilterPropertyException(propertyName);
 
             var genericTargetType = propertyInfo.PropertyType.GetGenericArguments()[0];
 
@@ -110,13 +114,20 @@ namespace QueryX
 
             Visit(node.Filter as dynamic);
 
-            var exp = Expression.Lambda(subContext.Stack.Last(), modelParameter);
+            var lastExp = subContext.Stack.Last();
+            if (lastExp == null)
+            {
+                context.Stack.Push(null);
+                _contexts.Pop();
+                return;
+            }
+            var exp = Expression.Lambda(lastExp, modelParameter);
 
             var method = node.ApplyAll ? AllMethod : AnyMethod;
             var methodGeneric = method.MakeGenericMethod(genericTargetType);
 
-            var propExp = node.Property.GetPropertyExpression(context.Parameter)
-                ?? throw new InvalidFilterPropertyException(node.Property);
+            var propExp = propertyName.GetPropertyExpression(context.Parameter)
+                ?? throw new InvalidFilterPropertyException(propertyName);
             Expression anyExp = Expression.Call(null, methodGeneric, propExp, exp);
 
             if (node.IsNegated)
@@ -124,6 +135,30 @@ namespace QueryX
 
             context.Stack.Push(anyExp);
             _contexts.Pop();
+        }
+
+        private string? ResolvePropertyName(string propertyPath, Type baseType)
+        {
+            const char Separator = '.';
+
+            var resultPropertyPath = "";
+            var currentType = baseType;
+            foreach (var propertyName in propertyPath.Split(Separator))
+            {
+                var mapping = QueryMappingConfig.GetMapping(currentType);
+                var mappedName = mapping.GetPropertyMapping(propertyName);
+
+                var propInfo = mappedName.GetPropertyInfo(currentType)
+                    ?? throw new InvalidFilterPropertyException(mappedName);
+
+                if (mapping.PropertyIsIgnored(propInfo.Name))
+                    return null;
+
+                resultPropertyPath += $"{propInfo.Name}{Separator}";
+                currentType = propInfo.PropertyType;
+            }
+
+            return resultPropertyPath.TrimEnd(Separator);
         }
 
         public Expression<Func<TModel, bool>>? GetFilterExpression()

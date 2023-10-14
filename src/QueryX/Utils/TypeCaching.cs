@@ -24,10 +24,10 @@ namespace QueryX.Utils
 
         internal static PropertyInfo? GetPropertyInfo<T>(this string propertyName)
         {
-            return GetPropertyInfo(typeof(T), propertyName);
+            return GetPropertyInfo(propertyName, typeof(T));
         }
 
-        internal static PropertyInfo? GetPropertyInfo(this Type type, string propertyName)
+        internal static PropertyInfo? GetPropertyInfo(this string propertyName, Type type)
         {
             var currentType = type;
             PropertyInfo? currentProp = null;

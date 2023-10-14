@@ -21,7 +21,7 @@ namespace QueryX.Utils
 
             foreach (var member in propertyName.Split('.'))
             {
-                var existentProp = property.Type.GetPropertyInfo(member);
+                var existentProp = member.GetPropertyInfo(property.Type);
                 if (existentProp == null)
                     return null;
 
