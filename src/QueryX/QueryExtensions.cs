@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using QueryX.Exceptions;
@@ -33,6 +34,8 @@ namespace QueryX
 
             var applyThenBy = false;
             var config = mappingConfig ?? QueryMappingConfig.Global;
+            var modelConfig = config.GetMapping(typeof(TModel));
+            var customSorts = new Dictionary<string, bool>();
 
             foreach (var (PropName, Ascending) in orderingTokens)
             {
@@ -41,9 +44,14 @@ namespace QueryX
                     throw new InvalidFilterPropertyException(PropName);
                 }
 
-                if (string.IsNullOrEmpty(resolvedName) ||
-                    config.GetMapping(typeof(TModel)).PropertyIsIgnored(resolvedName))
+                if (string.IsNullOrEmpty(resolvedName) || modelConfig.PropertyIsIgnored(resolvedName))
                 {
+                    continue;
+                }
+
+                if (modelConfig.HasAppendSort(resolvedName))
+                {
+                    customSorts.Add(resolvedName, Ascending);
                     continue;
                 }
 
@@ -61,6 +69,9 @@ namespace QueryX
 
                 applyThenBy = true;
             }
+
+            foreach (var (propertyName, ascending) in customSorts)
+                source = modelConfig.ApplyCustomSort(propertyName, source, ascending, applyThenBy);
 
             if (queryModel.Offset.HasValue && queryModel.Offset > 0)
                 source = source.Skip(queryModel.Offset.Value);

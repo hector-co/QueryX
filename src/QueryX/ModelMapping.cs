@@ -9,6 +9,7 @@ namespace QueryX
         private readonly Dictionary<string, string> _propertyMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _ignoredProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, ICustomFilter> _customFilters = new Dictionary<string, ICustomFilter>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, dynamic> _customSorts = new Dictionary<string, dynamic>(StringComparer.OrdinalIgnoreCase);
 
         internal void AddPropertyMapping(string targetProperty, string sourceName)
         {
@@ -60,6 +61,27 @@ namespace QueryX
                 return source;
 
             return typedCustomFilter.Apply(source, values, @operator);
+        }
+
+        internal void AddAppendSort<TModel>(string propertyName, Func<IQueryable<TModel>, bool, bool, IQueryable<TModel>> sortDelegate)
+        {
+            if (_customSorts.ContainsKey(propertyName))
+                _customSorts[propertyName] = sortDelegate;
+            else
+                _customSorts.Add(propertyName, sortDelegate);
+        }
+
+        internal bool HasAppendSort(string propertyName)
+        {
+            return _customSorts.ContainsKey(propertyName);
+        }
+
+        internal IQueryable<TModel> ApplyCustomSort<TModel>(string propertyName, IQueryable<TModel> source, bool ascending, bool isOrdered)
+        {
+            if(!_customSorts.TryGetValue(propertyName, out var sortDelegate))
+                return source;
+
+            return sortDelegate(source, ascending, isOrdered);
         }
 
         internal ModelMapping Clone()

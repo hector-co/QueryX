@@ -85,9 +85,16 @@ namespace QueryX
             return this;
         }
 
-        public void CustomFilter(Func<IQueryable<TModel>, TValue[], string, IQueryable<TModel>> filter)
+        public PropertyMappingConfig<TModel, TValue> CustomFilter(Func<IQueryable<TModel>, TValue[], string, IQueryable<TModel>> filter)
         {
             _mapping.AddCustomFilter(_propertyName, filter);
+            return this;
+        }
+
+        public PropertyMappingConfig<TModel, TValue> AppendSort(Func<IQueryable<TModel>, bool, bool, IQueryable<TModel>> sort)
+        {
+            _mapping.AddAppendSort(_propertyName, sort);
+            return this;
         }
 
         public void Ignore()
