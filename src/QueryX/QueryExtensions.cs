@@ -44,7 +44,7 @@ namespace QueryX
                     throw new InvalidFilterPropertyException(PropName);
                 }
 
-                if (string.IsNullOrEmpty(resolvedName) || modelConfig.PropertyIsIgnored(resolvedName))
+                if (string.IsNullOrEmpty(resolvedName) || modelConfig.SortIsIgnored(resolvedName))
                 {
                     continue;
                 }

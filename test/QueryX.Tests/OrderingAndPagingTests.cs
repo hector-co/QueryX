@@ -104,12 +104,12 @@ namespace QueryX.Tests
             config
                 .For<ShoppingCartLine>(cfg =>
                 {
-                    cfg.Property(l => l.Quantity).MapFrom("quant").Ignore();
+                    cfg.Property(l => l.Quantity).MapFrom("quant").IgnoreSort();
                     cfg.Property(l => l.Product).MapFrom("prod");
                 })
                 .For<Product>(cfg =>
                 {
-                    cfg.Property(p => p.Id).MapFrom("prodId").Ignore();
+                    cfg.Property(p => p.Id).MapFrom("prodId").IgnoreSort();
                     cfg.Property(p => p.Stock);
                 });
 

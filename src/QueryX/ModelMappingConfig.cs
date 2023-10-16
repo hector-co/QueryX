@@ -97,9 +97,19 @@ namespace QueryX
             return this;
         }
 
+        public void IgnoreFilter()
+        {
+            _mapping.IgnoreFilter(_propertyName);
+        }
+
+        public void IgnoreSort()
+        {
+            _mapping.IgnoreSort(_propertyName);
+        }
+
         public void Ignore()
         {
-            _mapping.IgnoreProperty(_propertyName);
+            _mapping.Ignore(_propertyName);
         }
     }
 }

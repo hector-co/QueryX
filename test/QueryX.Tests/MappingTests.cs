@@ -42,7 +42,7 @@ namespace QueryX.Tests
             var config = new QueryMappingConfig();
             config.For<Product>(cfg =>
             {
-                cfg.Property(p => p.Price).Ignore();
+                cfg.Property(p => p.Price).IgnoreFilter();
             });
 
             const float PriceFrom = 50;
@@ -65,7 +65,7 @@ namespace QueryX.Tests
             var config = new QueryMappingConfig();
             config.For<Product>(cfg =>
             {
-                cfg.Property(p => p.Price).MapFrom("customPrice").Ignore();
+                cfg.Property(p => p.Price).MapFrom("customPrice").IgnoreFilter();
             });
 
             const float PriceFrom = 50;
@@ -88,7 +88,7 @@ namespace QueryX.Tests
             var config = new QueryMappingConfig();
             config.For<Product>(cfg =>
             {
-                cfg.Property(p => p.Price).Ignore();
+                cfg.Property(p => p.Price).IgnoreFilter();
             });
 
             const float PriceFrom = 50;
@@ -180,7 +180,7 @@ namespace QueryX.Tests
             var config = new QueryMappingConfig();
             config.For<ShoppingCartLine>(cfg =>
             {
-                cfg.Property(l => l.Id).Ignore();
+                cfg.Property(l => l.Id).IgnoreFilter();
             });
 
             const int IdFrom = 4;
@@ -203,7 +203,7 @@ namespace QueryX.Tests
             var config = new QueryMappingConfig();
             config.For<ShoppingCartLine>(cfg =>
             {
-                cfg.Property(l => l.Id).Ignore();
+                cfg.Property(l => l.Id).IgnoreFilter();
             });
 
             const int IdFrom = 4;
@@ -227,7 +227,7 @@ namespace QueryX.Tests
             var config = new QueryMappingConfig();
             config.For<Product>(cfg =>
             {
-                cfg.Property(p => p.Stock).Ignore();
+                cfg.Property(p => p.Stock).IgnoreFilter();
             });
 
             const int IdFrom = 4;

@@ -87,7 +87,7 @@ namespace QueryX
 
             var modelMapping = _mappingConfig.GetMapping(context.ParentType);
 
-            if (modelMapping.PropertyIsIgnored(resolvedName))
+            if (modelMapping.FilterIsIgnored(resolvedName))
             {
                 context.Stack.Push(null);
                 return;
@@ -116,7 +116,7 @@ namespace QueryX
                 throw new InvalidFilterPropertyException(node.Property);
             }
 
-            if (_mappingConfig.GetMapping(context.ParentType).PropertyIsIgnored(resolvedName))
+            if (_mappingConfig.GetMapping(context.ParentType).FilterIsIgnored(resolvedName))
             {
                 context.Stack.Push(null);
                 return;

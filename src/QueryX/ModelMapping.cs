@@ -7,7 +7,8 @@ namespace QueryX
     internal class ModelMapping
     {
         private readonly Dictionary<string, string> _propertyMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private readonly HashSet<string> _ignoredProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _ignoredFilter = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _ignoredSort = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, ICustomFilter> _customFilters = new Dictionary<string, ICustomFilter>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, dynamic> _customSorts = new Dictionary<string, dynamic>(StringComparer.OrdinalIgnoreCase);
 
@@ -26,14 +27,30 @@ namespace QueryX
                 : sourceName;
         }
 
-        internal void IgnoreProperty(string propertyName)
+        internal void IgnoreFilter(string propertyName)
         {
-            _ignoredProperties.Add(propertyName);
+            _ignoredFilter.Add(propertyName);
         }
 
-        internal bool PropertyIsIgnored(string propertyName)
+        internal bool FilterIsIgnored(string propertyName)
         {
-            return _ignoredProperties.Contains(propertyName);
+            return _ignoredFilter.Contains(propertyName);
+        }
+
+        internal void IgnoreSort(string propertyName)
+        {
+            _ignoredSort.Add(propertyName);
+        }
+
+        internal bool SortIsIgnored(string propertyName)
+        {
+            return _ignoredSort.Contains(propertyName);
+        }
+
+        internal void Ignore(string propertyName)
+        {
+            _ignoredFilter.Add(propertyName);
+            _ignoredSort.Add(propertyName);
         }
 
         internal void AddCustomFilter<TModel, TValue>(string propertyName, Func<IQueryable<TModel>, TValue[], string, IQueryable<TModel>> customFilterDeleagate)
@@ -90,8 +107,8 @@ namespace QueryX
             foreach (var mapping in _propertyMapping)
                 clone._propertyMapping.Add(mapping.Key, mapping.Value);
 
-            foreach (var ignoredProperty in _ignoredProperties)
-                clone._ignoredProperties.Add(ignoredProperty);
+            foreach (var ignoredProperty in _ignoredSort)
+                clone._ignoredSort.Add(ignoredProperty);
 
             return clone;
         }
