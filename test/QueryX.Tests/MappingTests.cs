@@ -451,7 +451,7 @@ namespace QueryX.Tests
             var config = new QueryMappingConfig();
             config.For<Product>(cfg =>
             {
-                cfg.Property(p => p.Id).AppendSort((source, ascending, isOrdered) =>
+                cfg.Property(p => p.Id).CustomSort((source, ascending, isOrdered) =>
                 {
                     return source.OrderByDescending(p => p.Id);
                 });

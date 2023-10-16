@@ -49,7 +49,7 @@ namespace QueryX
                     continue;
                 }
 
-                if (modelConfig.HasAppendSort(resolvedName))
+                if (modelConfig.HasCustomSort(resolvedName))
                 {
                     customSorts.Add(resolvedName, Ascending);
                     continue;
