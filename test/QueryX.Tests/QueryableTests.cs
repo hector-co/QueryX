@@ -88,5 +88,37 @@ namespace QueryX.Tests
             result.Should().NotBeEmpty();
             result.Should().BeEquivalentTo(expected);
         }
+
+        [Fact]
+        public void EnumsFromString()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status == ShoppingCartStatus.Pending;
+            var query = new QueryModel
+            {
+                Filter = $"status == 'pending'"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void EnumsFromInt()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status == ShoppingCartStatus.Confirmed;
+            var query = new QueryModel
+            {
+                Filter = $"status == 1"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
     }
 }
