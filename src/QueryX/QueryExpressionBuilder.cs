@@ -16,9 +16,11 @@ namespace QueryX
 
         private readonly QueryModel _queryModel;
         private readonly Stack<Context> _contexts;
-        private readonly QueryMappingConfig? _mappingConfig;
+        private readonly QueryMappingConfig _mappingConfig;
 
-        public QueryExpressionBuilder(QueryModel queryModel, QueryMappingConfig? mappingConfig = null)
+        private readonly Dictionary<string, (string?[] Values, string Operator)> _customFilters = new Dictionary<string, (string?[], string)>(StringComparer.OrdinalIgnoreCase);
+
+        public QueryExpressionBuilder(QueryModel queryModel, QueryMappingConfig mappingConfig)
         {
             _queryModel = queryModel;
             _contexts = new Stack<Context>();
@@ -78,18 +80,28 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var propertyName))
+            if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var resolvedName))
             {
                 throw new InvalidFilterPropertyException(node.Property);
             }
 
-            if (string.IsNullOrEmpty(propertyName))
+            var modelMapping = _mappingConfig.GetMapping(context.ParentType);
+
+            if (modelMapping.PropertyIsIgnored(resolvedName))
             {
                 context.Stack.Push(null);
                 return;
             }
 
-            var propExp = propertyName.GetPropertyExpression(context.Parameter)
+            if (modelMapping.HasCustomFilter(resolvedName))
+            {
+                _customFilters.TryAdd(resolvedName, (node.Values, node.Operator));
+
+                context.Stack.Push(null);
+                return;
+            }
+
+            var propExp = resolvedName.GetPropertyExpression(context.Parameter)
                 ?? throw new InvalidFilterPropertyException(node.Property);
 
             context.Stack.Push(node.GetExpression(propExp));
@@ -99,22 +111,22 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var propertyName))
+            if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var resolvedName))
             {
                 throw new InvalidFilterPropertyException(node.Property);
             }
 
-            if (string.IsNullOrEmpty(propertyName))
+            if (_mappingConfig.GetMapping(context.ParentType).PropertyIsIgnored(resolvedName))
             {
                 context.Stack.Push(null);
                 return;
             }
 
-            var propertyInfo = propertyName.GetPropertyInfo<TModel>()
-                ?? throw new InvalidFilterPropertyException(propertyName);
+            var propertyInfo = resolvedName.GetPropertyInfo<TModel>()
+                ?? throw new InvalidFilterPropertyException(resolvedName);
 
             if (propertyInfo.PropertyType.GetGenericArguments().Count() == 0)
-                throw new InvalidFilterPropertyException(propertyName);
+                throw new InvalidFilterPropertyException(resolvedName);
 
             var genericTargetType = propertyInfo.PropertyType.GetGenericArguments()[0];
 
@@ -136,8 +148,8 @@ namespace QueryX
             var method = node.ApplyAll ? AllMethod : AnyMethod;
             var methodGeneric = method.MakeGenericMethod(genericTargetType);
 
-            var propExp = propertyName.GetPropertyExpression(context.Parameter)
-                ?? throw new InvalidFilterPropertyException(propertyName);
+            var propExp = resolvedName.GetPropertyExpression(context.Parameter)
+                ?? throw new InvalidFilterPropertyException(resolvedName);
             Expression anyExp = Expression.Call(null, methodGeneric, propExp, exp);
 
             if (node.IsNegated)
@@ -155,6 +167,20 @@ namespace QueryX
                 return null;
 
             return Expression.Lambda<Func<TModel, bool>>(exp!, context.Parameter);
+        }
+
+        public IQueryable<TModel> ApplyCustomFilters(IQueryable<TModel> source)
+        {
+            if (_customFilters.Count == 0)
+                return source;
+
+            var mapping = _mappingConfig?.GetMapping(typeof(TModel)) ?? QueryMappingConfig.Global.GetMapping(typeof(TModel));
+
+            foreach(var propertyName in _customFilters.Keys)
+            {
+                source = mapping.ApplyCustomFilters(source, propertyName, _customFilters[propertyName].Values, _customFilters[propertyName].Operator);
+            }
+            return source;
         }
 
         private class Context

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace QueryX
@@ -59,15 +60,15 @@ namespace QueryX
             _mapping = mapping;
         }
 
-        public PropertyMappingConfig<TModel> Property<TValue>(Expression<Func<TModel, TValue>> propertyName)
+        public PropertyMappingConfig<TModel, TValue> Property<TValue>(Expression<Func<TModel, TValue>> propertyName)
         {
             return !(propertyName.Body is MemberExpression member)
                 ? throw new ArgumentException($"Expression '{propertyName}' refers to a method, not a property.")
-                : new PropertyMappingConfig<TModel>(_mapping, member.Member.Name);
+                : new PropertyMappingConfig<TModel, TValue>(_mapping, member.Member.Name);
         }
     }
 
-    public class PropertyMappingConfig<TModel>
+    public class PropertyMappingConfig<TModel, TValue>
     {
         private readonly ModelMapping _mapping;
         private readonly string _propertyName;
@@ -78,10 +79,15 @@ namespace QueryX
             _propertyName = propertyName;
         }
 
-        public PropertyMappingConfig<TModel> MapFrom(string source)
+        public PropertyMappingConfig<TModel, TValue> MapFrom(string source)
         {
             _mapping.AddPropertyMapping(_propertyName, source);
             return this;
+        }
+
+        public void CustomFilter(Func<IQueryable<TModel>, TValue[], string, IQueryable<TModel>> filter)
+        {
+            _mapping.AddCustomFilter(_propertyName, filter);
         }
 
         public void Ignore()

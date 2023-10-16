@@ -419,5 +419,30 @@ namespace QueryX.Tests
             result.Should().NotBeEmpty();
             result.Should().BeEquivalentTo(expected);
         }
+
+        [Fact]
+        public void MapCustomFilter()
+        {
+            var config = new QueryMappingConfig();
+            config.For<Product>(cfg =>
+            {
+                cfg.Property(p => p.Id).CustomFilter((source, values, op) =>
+                {
+                    return source.Where(p => p.Id > values.First());
+                });
+            });
+
+            Expression<Func<Product, bool>> expectedFilter = x => x.Id > 5;
+            var query = new QueryModel
+            {
+                Filter = $"id < 5"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
     }
 }

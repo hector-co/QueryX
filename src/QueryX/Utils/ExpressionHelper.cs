@@ -93,7 +93,7 @@ namespace QueryX.Utils
         }
 
         // TODO improve
-        private static object? ConvertValue(this object? value, Type targetType)
+        internal static object? ConvertValue(this object? value, Type targetType)
         {
             if (value == null)
                 return null;

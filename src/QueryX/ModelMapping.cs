@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace QueryX
 {
@@ -7,6 +8,7 @@ namespace QueryX
     {
         private readonly Dictionary<string, string> _propertyMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _ignoredProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, ICustomFilter> _customFilters = new Dictionary<string, ICustomFilter>(StringComparer.OrdinalIgnoreCase);
 
         internal void AddPropertyMapping(string targetProperty, string sourceName)
         {
@@ -31,6 +33,33 @@ namespace QueryX
         internal bool PropertyIsIgnored(string propertyName)
         {
             return _ignoredProperties.Contains(propertyName);
+        }
+
+        internal void AddCustomFilter<TModel, TValue>(string propertyName, Func<IQueryable<TModel>, TValue[], string, IQueryable<TModel>> customFilterDeleagate)
+        {
+            var customFilter = new CustomFilter<TModel, TValue>(customFilterDeleagate);
+
+            if (_customFilters.ContainsKey(propertyName))
+                _customFilters[propertyName] = customFilter;
+            else
+                _customFilters.Add(propertyName, customFilter);
+        }
+
+        internal bool HasCustomFilter(string propertyName)
+        {
+            return _customFilters.ContainsKey(propertyName);
+        }
+
+        internal IQueryable<TModel> ApplyCustomFilters<TModel>(IQueryable<TModel> source, string propertyName, string?[] values, string @operator)
+        {
+            if (!_customFilters.TryGetValue(propertyName, out var customFilter))
+                return source;
+
+            var typedCustomFilter = customFilter as ICustomFilter<TModel>;
+            if (typedCustomFilter == null)
+                return source;
+
+            return typedCustomFilter.Apply(source, values, @operator);
         }
 
         internal ModelMapping Clone()

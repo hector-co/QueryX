@@ -12,15 +12,17 @@ namespace QueryX
         public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, QueryModel queryModel, bool applyOrderingAndPaging = true, QueryMappingConfig? mappingConfig = null)
             where TModel : class
         {
-            var expProvider = new QueryExpressionBuilder<TModel>(queryModel, mappingConfig);
+            var expBuilder = new QueryExpressionBuilder<TModel>(queryModel, mappingConfig ?? QueryMappingConfig.Global);
 
-            var filterExp = expProvider.GetFilterExpression();
+            var filterExp = expBuilder.GetFilterExpression();
 
             if (filterExp != null)
                 source = source.Where(filterExp);
 
+            source = expBuilder.ApplyCustomFilters(source);
+
             if (applyOrderingAndPaging)
-                source = ApplyOrderingAndPaging(source, queryModel, mappingConfig);
+                source = ApplyOrderingAndPaging(source, queryModel, mappingConfig ?? QueryMappingConfig.Global);
 
             return source;
         }
@@ -30,22 +32,25 @@ namespace QueryX
             var orderingTokens = QueryParser.GetOrderingTokens(queryModel.OrderBy);
 
             var applyThenBy = false;
+            var config = mappingConfig ?? QueryMappingConfig.Global;
 
             foreach (var (PropName, Ascending) in orderingTokens)
             {
-                if (!PropName.TryResolvePropertyName(typeof(TModel), mappingConfig, out var propertyName))
+                if (!PropName.TryResolvePropertyName(typeof(TModel), config, out var resolvedName))
                 {
                     throw new InvalidFilterPropertyException(PropName);
                 }
 
-                if (string.IsNullOrEmpty(propertyName))
+                if (string.IsNullOrEmpty(resolvedName) ||
+                    config.GetMapping(typeof(TModel)).PropertyIsIgnored(resolvedName))
                 {
                     continue;
                 }
 
                 var modelParameter = Expression.Parameter(typeof(TModel), "m");
 
-                var propExp = propertyName.GetPropertyExpression(modelParameter) ?? throw new InvalidOrderingPropertyException(propertyName);
+                var propExp = resolvedName.GetPropertyExpression(modelParameter)
+                    ?? throw new InvalidOrderingPropertyException(resolvedName);
 
                 var sortExp = Expression.Lambda<Func<TModel, object>>(Expression.Convert(propExp, typeof(object)), modelParameter);
 
