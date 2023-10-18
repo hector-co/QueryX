@@ -7,17 +7,29 @@ namespace QueryX.Parsing
 {
     internal static class QueryTokenizer
     {
-        private static TextParser<Unit> MultiCharOperator { get; } =
-            from _ in Span.Regex("[^a-zA-Z0-9_\\s\\;'\\(\\)\\*]{2,}")
-            select Unit.Value;
-
-        private static TextParser<Unit> SingleCharOperator { get; } =
-            from _ in Character.In('<', '>').AtLeastOnce()
-            select Unit.Value;
+        private readonly static string[] _operators = new[]
+        {
+            "==",
+            ">=",
+            "<=",
+            "|=",
+            "-=-",
+            "=-",
+            "-=",
+            ">",
+            "<",
+        };
 
         private static TextParser<Unit> Operator { get; } =
-            from _ in MultiCharOperator
-                .Or(SingleCharOperator)
+            from _ in Span.EqualTo(_operators[0]).Try()
+                .Or(Span.EqualTo(_operators[1])).Try()
+                .Or(Span.EqualTo(_operators[2])).Try()
+                .Or(Span.EqualTo(_operators[3])).Try()
+                .Or(Span.EqualTo(_operators[4])).Try()
+                .Or(Span.EqualTo(_operators[5])).Try()
+                .Or(Span.EqualTo(_operators[6])).Try()
+                .Or(Span.EqualTo(_operators[7])).Try()
+                .Or(Span.EqualTo(_operators[8])).Try()
             select Unit.Value;
 
         private static TextParser<Unit> CustomIdentifier { get; } =

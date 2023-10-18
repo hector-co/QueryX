@@ -53,7 +53,7 @@ namespace QueryX
             _ignoredSort.Add(propertyName);
         }
 
-        internal void AddCustomFilter<TModel, TValue>(string propertyName, Func<IQueryable<TModel>, TValue[], string, IQueryable<TModel>> customFilterDeleagate)
+        internal void AddCustomFilter<TModel, TValue>(string propertyName, Func<IQueryable<TModel>, TValue[], FilterOperator, IQueryable<TModel>> customFilterDeleagate)
         {
             var customFilter = new CustomFilter<TModel, TValue>(customFilterDeleagate);
 
@@ -68,13 +68,12 @@ namespace QueryX
             return _customFilters.ContainsKey(propertyName);
         }
 
-        internal IQueryable<TModel> ApplyCustomFilters<TModel>(IQueryable<TModel> source, string propertyName, string?[] values, string @operator)
+        internal IQueryable<TModel> ApplyCustomFilters<TModel>(IQueryable<TModel> source, string propertyName, string?[] values, FilterOperator @operator)
         {
             if (!_customFilters.TryGetValue(propertyName, out var customFilter))
                 return source;
 
-            var typedCustomFilter = customFilter as ICustomFilter<TModel>;
-            if (typedCustomFilter == null)
+            if (!(customFilter is ICustomFilter<TModel> typedCustomFilter))
                 return source;
 
             return typedCustomFilter.Apply(source, values, @operator);

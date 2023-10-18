@@ -31,15 +31,15 @@ namespace QueryX
         {
             return filterNode.Operator switch
             {
-                "-=-" => filterNode.GetContainsExpression(property),
-                "-=" => filterNode.GetEndsWithExpression(property),
-                "==" => filterNode.GetEqualsExpression(property),
-                ">" => filterNode.GetGreaterThanExpression(property),
-                ">=" => filterNode.GetGreaterThanOrEqualExpression(property),
-                "|=" => filterNode.GetInExpression(property),
-                "<" => filterNode.GetLessThanExpression(property),
-                "<=" => filterNode.GetLessThanOrEqualExpression(property),
-                "=-" => filterNode.GetStartsWithExpression(property),
+                FilterOperator.Contains => filterNode.GetContainsExpression(property),
+                FilterOperator.EndsWith => filterNode.GetEndsWithExpression(property),
+                FilterOperator.Equals => filterNode.GetEqualsExpression(property),
+                FilterOperator.GreaterThan => filterNode.GetGreaterThanExpression(property),
+                FilterOperator.GreaterThanOrEqual => filterNode.GetGreaterThanOrEqualExpression(property),
+                FilterOperator.In => filterNode.GetInExpression(property),
+                FilterOperator.LessThan => filterNode.GetLessThanExpression(property),
+                FilterOperator.LessThanOrEqual => filterNode.GetLessThanOrEqualExpression(property),
+                FilterOperator.StartsWith => filterNode.GetStartsWithExpression(property),
                 _ => throw new QueryException($"Invalid operator type: '{filterNode.Operator}'"),
             };
         }

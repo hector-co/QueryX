@@ -2,7 +2,7 @@
 {
     internal class FilterNode : NodeBase
     {
-        public FilterNode(string property, string @operator, string?[] values, bool isNegated = false, bool isCaseInsensitive = false)
+        public FilterNode(string property, FilterOperator @operator, string?[] values, bool isNegated = false, bool isCaseInsensitive = false)
         {
             Property = property;
             Operator = @operator;
@@ -12,7 +12,7 @@
         }
 
         public string Property { get; }
-        public string Operator { get; }
+        public FilterOperator Operator { get; }
         public bool IsCaseInsensitive { get; }
         public string?[] Values { get; }
 

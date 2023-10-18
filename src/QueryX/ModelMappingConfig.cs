@@ -85,7 +85,7 @@ namespace QueryX
             return this;
         }
 
-        public PropertyMappingConfig<TModel, TValue> CustomFilter(Func<IQueryable<TModel>, TValue[], string, IQueryable<TModel>> filter)
+        public PropertyMappingConfig<TModel, TValue> CustomFilter(Func<IQueryable<TModel>, TValue[], FilterOperator, IQueryable<TModel>> filter)
         {
             _mapping.AddCustomFilter(_propertyName, filter);
             return this;

@@ -10,6 +10,19 @@ namespace QueryX.Parsing
 {
     internal static class QueryParser
     {
+        private static readonly Dictionary<string, FilterOperator> _operatorToFilterOperator = new Dictionary<string, FilterOperator>
+        {
+            { "==", FilterOperator.Equals},
+            { ">", FilterOperator.GreaterThan},
+            { ">=", FilterOperator.GreaterThanOrEqual},
+            { "<", FilterOperator.LessThan},
+            { "<=", FilterOperator.LessThanOrEqual},
+            { "|=", FilterOperator.In},
+            { "-=-", FilterOperator.Contains},
+            { "=-", FilterOperator.StartsWith},
+            { "-=", FilterOperator.EndsWith}
+        };
+
         private static TokenListParser<QueryToken, string> String { get; } =
             Token.EqualTo(QueryToken.String)
                 .Apply(QuotedString.SqlStyle)
@@ -50,9 +63,9 @@ namespace QueryX.Parsing
                 .ManyDelimitedBy(Token.EqualTo(QueryToken.Comma))
             select values;
 
-        private static TokenListParser<QueryToken, string> Operator { get; } =
+        private static TokenListParser<QueryToken, FilterOperator> Operator { get; } =
             Token.EqualTo(QueryToken.Operator)
-                .Select(s => s.ToStringValue());
+                .Select(s => _operatorToFilterOperator[s.ToStringValue()]);
 
         private static TokenListParser<QueryToken, string> Property { get; } =
             Token.EqualTo(QueryToken.Identifier)
