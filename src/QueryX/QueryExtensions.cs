@@ -10,10 +10,10 @@ namespace QueryX
 {
     public static class QueryExtensions
     {
-        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, QueryModel queryModel, bool applyOrderingAndPaging = true, QueryMappingConfig? mappingConfig = null)
+        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, string? filter, string? orderBy = default, int? offset = default, int? limit = default, QueryMappingConfig? mappingConfig = default)
             where TModel : class
         {
-            var expBuilder = new QueryExpressionBuilder<TModel>(queryModel, mappingConfig ?? QueryMappingConfig.Global);
+            var expBuilder = new QueryExpressionBuilder<TModel>(filter, mappingConfig ?? QueryMappingConfig.Global);
 
             var filterExp = expBuilder.GetFilterExpression();
 
@@ -22,15 +22,28 @@ namespace QueryX
 
             source = expBuilder.ApplyCustomFilters(source);
 
-            if (applyOrderingAndPaging)
-                source = ApplyOrderingAndPaging(source, queryModel, mappingConfig ?? QueryMappingConfig.Global);
+            source = ApplyOrderingAndPaging(source, orderBy, offset, limit, mappingConfig ?? QueryMappingConfig.Global);
 
             return source;
         }
 
-        public static IQueryable<TModel> ApplyOrderingAndPaging<TModel>(this IQueryable<TModel> source, QueryModel queryModel, QueryMappingConfig? mappingConfig = null)
+        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, string? filter, QueryMappingConfig? mappingConfig = null)
+            where TModel : class
         {
-            var orderingTokens = QueryParser.GetOrderingTokens(queryModel.OrderBy);
+            return source.ApplyQuery(filter, mappingConfig: mappingConfig);
+        }
+
+        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, QueryModel queryModel, bool applyOrderingAndPaging = true, QueryMappingConfig? mappingConfig = default)
+            where TModel : class
+        {
+            return applyOrderingAndPaging
+                ? source.ApplyQuery(queryModel.Filter, queryModel.OrderBy, queryModel.Offset, queryModel.Limit, mappingConfig)
+                : source.ApplyQuery(queryModel.Filter, mappingConfig: mappingConfig);
+        }
+
+        public static IQueryable<TModel> ApplyOrderingAndPaging<TModel>(this IQueryable<TModel> source, string? orderBy = default, int? offset = default, int? limit = default, QueryMappingConfig? mappingConfig = default)
+        {
+            var orderingTokens = QueryParser.GetOrderingTokens(orderBy);
 
             var applyThenBy = false;
             var config = mappingConfig ?? QueryMappingConfig.Global;
@@ -73,12 +86,17 @@ namespace QueryX
             foreach (var (propertyName, ascending) in customSorts)
                 source = modelConfig.ApplyCustomSort(propertyName, source, ascending, applyThenBy);
 
-            if (queryModel.Offset.HasValue && queryModel.Offset > 0)
-                source = source.Skip(queryModel.Offset.Value);
-            if (queryModel.Limit.HasValue && queryModel.Limit > 0)
-                source = source.Take(queryModel.Limit.Value);
+            if (offset.HasValue && offset > 0)
+                source = source.Skip(offset.Value);
+            if (limit.HasValue && limit > 0)
+                source = source.Take(limit.Value);
 
             return source;
+        }
+
+        public static IQueryable<TModel> ApplyOrderingAndPaging<TModel>(this IQueryable<TModel> source, QueryModel queryModel, QueryMappingConfig? mappingConfig = null)
+        {
+            return source.ApplyOrderingAndPaging(queryModel.OrderBy, queryModel.Offset, queryModel.Limit, mappingConfig);
         }
     }
 }

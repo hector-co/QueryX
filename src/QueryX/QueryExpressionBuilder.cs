@@ -14,22 +14,22 @@ namespace QueryX
         internal static MethodInfo AnyMethod => typeof(Enumerable).GetMethods().First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
         internal static MethodInfo AllMethod => typeof(Enumerable).GetMethods().First(m => m.Name == "All" && m.GetParameters().Count() == 2);
 
-        private readonly QueryModel _queryModel;
+        private readonly string? _filter;
         private readonly Stack<Context> _contexts;
         private readonly QueryMappingConfig _mappingConfig;
 
-        private readonly Dictionary<string, (string?[] Values, string Operator)> _customFilters = new Dictionary<string, (string?[], string)>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, (string?[] Values, FilterOperator Operator)> _customFilters = new Dictionary<string, (string?[], FilterOperator)>(StringComparer.OrdinalIgnoreCase);
 
-        public QueryExpressionBuilder(QueryModel queryModel, QueryMappingConfig mappingConfig)
+        public QueryExpressionBuilder(string? filter, QueryMappingConfig mappingConfig)
         {
-            _queryModel = queryModel;
+            _filter = filter;
             _contexts = new Stack<Context>();
             _mappingConfig = mappingConfig;
             _contexts.Push(new Context(typeof(TModel), string.Empty, Expression.Parameter(typeof(TModel), "m")));
 
-            if (!string.IsNullOrEmpty(queryModel.Filter))
+            if (!string.IsNullOrEmpty(_filter))
             {
-                var nodes = Parsing.QueryParser.ParseNodes(queryModel.Filter);
+                var nodes = Parsing.QueryParser.ParseNodes(_filter);
                 Visit(nodes as dynamic);
             }
         }
