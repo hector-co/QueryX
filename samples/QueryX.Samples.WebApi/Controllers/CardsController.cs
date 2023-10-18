@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using QueryX.Samples.WebApi.Queries.Cards;
-using QueryX.Samples.WebApi.Dtos;
 
 namespace QueryX.Samples.WebApi.Controllers
 {
@@ -9,12 +8,10 @@ namespace QueryX.Samples.WebApi.Controllers
     public class CardsController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly QueryBuilder _queryBuilder;
 
-        public CardsController(IMediator mediator, QueryBuilder queryBuilder)
+        public CardsController(IMediator mediator)
         {
             _mediator = mediator;
-            _queryBuilder = queryBuilder;
         }
 
         [HttpGet("{id}", Name = "GetCardById")]
@@ -27,9 +24,8 @@ namespace QueryX.Samples.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> List([FromQuery] QueryModel queryModel, CancellationToken cancellationToken)
+        public async Task<IActionResult> List([FromQuery] ListCardDto query, CancellationToken cancellationToken)
         {
-            var query = _queryBuilder.CreateQuery<ListCardDto, CardDto>(queryModel);
             var result = await _mediator.Send(query, cancellationToken);
             return Ok(result);
         }
