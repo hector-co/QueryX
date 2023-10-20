@@ -30,7 +30,7 @@ namespace QueryX
         public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, string? filter, QueryMappingConfig? mappingConfig = null)
             where TModel : class
         {
-            return source.ApplyQuery(filter, mappingConfig: mappingConfig);
+            return source.ApplyQuery(filter, default, default, default, mappingConfig: mappingConfig);
         }
 
         public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, QueryModel queryModel, bool applyOrderingAndPaging = true, QueryMappingConfig? mappingConfig = default)
