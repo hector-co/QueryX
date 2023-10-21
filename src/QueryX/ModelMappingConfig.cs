@@ -91,7 +91,7 @@ namespace QueryX
             return this;
         }
 
-        public PropertyMappingConfig<TModel, TValue> CustomSort(Func<IQueryable<TModel>, bool, bool, IQueryable<TModel>> sort)
+        public PropertyMappingConfig<TModel, TValue> CustomSort(Func<IOrderedQueryable<TModel>, bool, bool, IQueryable<TModel>> sort)
         {
             _mapping.AddCustomSort(_propertyName, sort);
             return this;

@@ -79,7 +79,7 @@ namespace QueryX
             return typedCustomFilter.Apply(source, values, @operator);
         }
 
-        internal void AddCustomSort<TModel>(string propertyName, Func<IQueryable<TModel>, bool, bool, IQueryable<TModel>> sortDelegate)
+        internal void AddCustomSort<TModel>(string propertyName, Func<IOrderedQueryable<TModel>, bool, bool, IQueryable<TModel>> sortDelegate)
         {
             if (_customSorts.ContainsKey(propertyName))
                 _customSorts[propertyName] = sortDelegate;
@@ -92,7 +92,7 @@ namespace QueryX
             return _customSorts.ContainsKey(propertyName);
         }
 
-        internal IQueryable<TModel> ApplyCustomSort<TModel>(string propertyName, IQueryable<TModel> source, bool ascending, bool isOrdered)
+        internal IQueryable<TModel> ApplyCustomSort<TModel>(string propertyName, IOrderedQueryable<TModel> source, bool ascending, bool isOrdered)
         {
             if(!_customSorts.TryGetValue(propertyName, out var sortDelegate))
                 return source;

@@ -84,7 +84,7 @@ namespace QueryX
             }
 
             foreach (var (propertyName, ascending) in customSorts)
-                source = modelConfig.ApplyCustomSort(propertyName, source, ascending, applyThenBy);
+                source = modelConfig.ApplyCustomSort(propertyName, (IOrderedQueryable<TModel>)source, ascending, applyThenBy);
 
             if (offset.HasValue && offset > 0)
                 source = source.Skip(offset.Value);
