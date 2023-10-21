@@ -120,5 +120,141 @@ namespace QueryX.Tests
             result.Should().NotBeEmpty();
             result.Should().BeEquivalentTo(expected);
         }
+
+        [Fact]
+        public void GreatherThanIntTest()
+        {
+            const int ProductId = 1;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Id > ProductId;
+            var query = new QueryModel
+            {
+                Filter = $"id > {ProductId}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GreatherThanOrEqualIntTest()
+        {
+            const int ProductId = 1;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Id >= ProductId;
+            var query = new QueryModel
+            {
+                Filter = $"id >= {ProductId}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void LessThanIntTest()
+        {
+            const int ProductId = 5;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Id < ProductId;
+            var query = new QueryModel
+            {
+                Filter = $"id < {ProductId}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void LessThanOrEqualIntTest()
+        {
+            const int ProductId = 1;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Id <= ProductId;
+            var query = new QueryModel
+            {
+                Filter = $"id <= {ProductId}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void InIntTest()
+        {
+            var productIds = new[] { 2, 4, 6 }.ToList();
+            Expression<Func<Product, bool>> expectedFilter = x => productIds.Contains(x.Id);
+            var query = new QueryModel
+            {
+                Filter = $"id |= {string.Join(",", productIds)}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void ContainsTest()
+        {
+            const string ProductNameContains = "rod";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name.Contains(ProductNameContains);
+            var query = new QueryModel
+            {
+                Filter = $"name -=- '{ProductNameContains}'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void StartsWithTest()
+        {
+            const string ProductNameStartWith = "Prod";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name.StartsWith(ProductNameStartWith);
+            var query = new QueryModel
+            {
+                Filter = $"name =- '{ProductNameStartWith}'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void EndsWithTest()
+        {
+            const string ProductNameEndsWith = "duct1";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name.EndsWith(ProductNameEndsWith);
+            var query = new QueryModel
+            {
+                Filter = $"name -= '{ProductNameEndsWith}'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
     }
 }
