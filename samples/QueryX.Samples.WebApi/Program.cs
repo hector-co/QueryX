@@ -36,11 +36,7 @@ builder.Services.AddMediatR(cfg =>
 
 builder.Services.AddHostedService<InitData>();
 
-builder.Services.AddQueryX(o =>
-{
-    o.DateTimeConverter = (dateTime) => dateTime.ToUniversalTime();
-    o.DateTimeOffsetConverter = (dateTime) => dateTime.ToUniversalTime();
-});
+builder.Services.AddQueryX(options => options.ThrowQueryExceptions());
 
 builder.Services.AddScoped<ICardService, CardService>();
 

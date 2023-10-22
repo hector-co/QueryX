@@ -1,6 +1,5 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using QueryX.Samples.WebApi.Dtos;
 using QueryX.Samples.WebApi.Queries.Boards;
 
 namespace QueryX.Samples.WebApi.Controllers
@@ -9,12 +8,10 @@ namespace QueryX.Samples.WebApi.Controllers
     public class BoardsController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly QueryBuilder _queryBuilder;
 
-        public BoardsController(IMediator mediator, QueryBuilder queryBuilder)
+        public BoardsController(IMediator mediator)
         {
             _mediator = mediator;
-            _queryBuilder = queryBuilder;
         }
 
         [HttpGet("{id}", Name = "GetBoardById")]
@@ -27,9 +24,8 @@ namespace QueryX.Samples.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> List([FromQuery] QueryModel queryModel, CancellationToken cancellationToken)
+        public async Task<IActionResult> List([FromQuery] ListBoardDto query, CancellationToken cancellationToken)
         {
-            var query = _queryBuilder.CreateQuery<ListBoardDto, BoardDto>(queryModel);
             var result = await _mediator.Send(query, cancellationToken);
             return Ok(result);
         }

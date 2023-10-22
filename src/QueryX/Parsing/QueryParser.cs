@@ -4,11 +4,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using QueryX.Parsing.Nodes;
+using System;
 
 namespace QueryX.Parsing
 {
     internal static class QueryParser
     {
+        private static readonly Dictionary<string, FilterOperator> _operatorToFilterOperator = new Dictionary<string, FilterOperator>
+        {
+            { "==", FilterOperator.Equals},
+            { ">", FilterOperator.GreaterThan},
+            { ">=", FilterOperator.GreaterThanOrEqual},
+            { "<", FilterOperator.LessThan},
+            { "<=", FilterOperator.LessThanOrEqual},
+            { "|=", FilterOperator.In},
+            { "-=-", FilterOperator.Contains},
+            { "=-", FilterOperator.StartsWith},
+            { "-=", FilterOperator.EndsWith}
+        };
+
         private static TokenListParser<QueryToken, string> String { get; } =
             Token.EqualTo(QueryToken.String)
                 .Apply(QuotedString.SqlStyle)
@@ -49,9 +63,9 @@ namespace QueryX.Parsing
                 .ManyDelimitedBy(Token.EqualTo(QueryToken.Comma))
             select values;
 
-        private static TokenListParser<QueryToken, string> Operator { get; } =
+        private static TokenListParser<QueryToken, FilterOperator> Operator { get; } =
             Token.EqualTo(QueryToken.Operator)
-                .Select(s => s.ToStringValue());
+                .Select(s => _operatorToFilterOperator[s.ToStringValue()]);
 
         private static TokenListParser<QueryToken, string> Property { get; } =
             Token.EqualTo(QueryToken.Identifier)
@@ -103,22 +117,18 @@ namespace QueryX.Parsing
 
         private const string CommaSeparatedValuesSplit = @",(?=(?:[^']*'[^']*')*[^']*$)";
 
-        internal static IEnumerable<(string PropName, bool Ascending)> GetOrderingTokens(string orderByString)
+        internal static (string PropName, bool Ascending)[] GetOrderingTokens(string? orderByString)
         {
-            var result = new List<(string PropName, bool Ascending)>();
-
             if (string.IsNullOrEmpty(orderByString))
-                return result;
+                return Array.Empty<(string PropName, bool Ascending)>();
 
             var orderings = SplitCommaSeparatedValues(orderByString)
                 .Where(s => !string.IsNullOrEmpty(s))
                 .Select(s => s!.Trim());
 
-            result.AddRange(
-                orderings.Select(
-                    order => order.StartsWith('-') ? (order[1..], false) : (order, true)));
-
-            return result;
+            return orderings
+                .Select(order => order.StartsWith('-') ? (order[1..], false) : (order, true))
+                .ToArray();
         }
 
         private static IEnumerable<string?> SplitCommaSeparatedValues(string values)

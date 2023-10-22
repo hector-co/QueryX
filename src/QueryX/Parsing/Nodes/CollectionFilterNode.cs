@@ -1,6 +1,6 @@
 ﻿namespace QueryX.Parsing.Nodes
 {
-    public class CollectionFilterNode : NodeBase
+    internal class CollectionFilterNode : NodeBase
     {
         public CollectionFilterNode(string property, NodeBase filter, bool applyAll = false, bool isNegated = false)
         {
@@ -10,9 +10,9 @@
             IsNegated = isNegated;
         }
 
-        public string Property { get; set; }
-        public NodeBase Filter { get; set; }
-        public bool ApplyAll { get; set; }
+        public string Property { get; }
+        public NodeBase Filter { get; }
+        public bool ApplyAll { get; }
 
         public override void Accept(INodeVisitor visitor) => visitor.Visit(this);
 

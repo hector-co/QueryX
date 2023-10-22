@@ -1,25 +1,37 @@
-﻿using QueryX.Parsing.Nodes;
+﻿using QueryX.Exceptions;
+using QueryX.Parsing.Nodes;
 using QueryX.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using QueryX.Exceptions;
+using System.Reflection;
 
 namespace QueryX
 {
-    internal class QueryExpressionBuilder<TFilterModel, TModel> : INodeVisitor
+    internal class QueryExpressionBuilder<TModel> : INodeVisitor
     {
-        private readonly Query<TFilterModel> _query;
+        internal static MethodInfo AnyMethod => typeof(Enumerable).GetMethods().First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
+        internal static MethodInfo AllMethod => typeof(Enumerable).GetMethods().First(m => m.Name == "All" && m.GetParameters().Count() == 2);
+
+        private readonly string? _filter;
         private readonly Stack<Context> _contexts;
+        private readonly QueryMappingConfig _mappingConfig;
 
-        public QueryExpressionBuilder(Query<TFilterModel> query)
+        private readonly Dictionary<string, (string?[] Values, FilterOperator Operator)> _customFilters = new Dictionary<string, (string?[], FilterOperator)>(StringComparer.OrdinalIgnoreCase);
+
+        public QueryExpressionBuilder(string? filter, QueryMappingConfig mappingConfig)
         {
-            _query = query;
+            _filter = filter;
             _contexts = new Stack<Context>();
-            _contexts.Push(new Context(typeof(TFilterModel), string.Empty, Expression.Parameter(typeof(TModel), "m")));
+            _mappingConfig = mappingConfig;
+            _contexts.Push(new Context(typeof(TModel), string.Empty, Expression.Parameter(typeof(TModel), "m")));
 
-            Visit(query.Filter as dynamic);
+            if (!string.IsNullOrEmpty(_filter))
+            {
+                var nodes = Parsing.QueryParser.ParseNodes(_filter);
+                Visit(nodes as dynamic);
+            }
         }
 
         public void Visit(OrElseNode node)
@@ -29,13 +41,16 @@ namespace QueryX
             node.Left.Accept(this);
             node.Right.Accept(this);
 
-            var right = context.Stack.Pop()!;
-            var left = context.Stack.Pop()!;
+            var right = context.Stack.Pop();
+            var left = context.Stack.Pop();
 
-            Expression exp = Expression.OrElse(left, right);
-
-            if (node.IsNegated)
-                exp = Expression.Not(exp);
+            var exp = left switch
+            {
+                null when right == null => null,
+                null => node.IsNegated ? Expression.Not(right) : right,
+                _ when right == null => node.IsNegated ? Expression.Not(left) : left,
+                _ => node.IsNegated ? (Expression)Expression.Not(Expression.OrElse(left, right)) : Expression.OrElse(left, right)
+            };
 
             context.Stack.Push(exp);
         }
@@ -47,50 +62,102 @@ namespace QueryX
             node.Left.Accept(this);
             node.Right.Accept(this);
 
-            var right = context.Stack.Pop()!;
-            var left = context.Stack.Pop()!;
+            var right = context.Stack.Pop();
+            var left = context.Stack.Pop();
 
-            Expression exp = Expression.AndAlso(left, right);
-
-            if (node.IsNegated)
-                exp = Expression.Not(exp);
+            var exp = left switch
+            {
+                null when right == null => null,
+                null => node.IsNegated ? Expression.Not(right) : right,
+                _ when right == null => node.IsNegated ? Expression.Not(left) : left,
+                _ => node.IsNegated ? (Expression)Expression.Not(Expression.AndAlso(left, right)) : Expression.AndAlso(left, right)
+            };
 
             context.Stack.Push(exp);
+        }
+
+        public void Visit(FilterNode node)
+        {
+            var context = _contexts.First();
+
+            if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var resolvedName))
+            {
+                if (QueryConfiguration.Instance.ThrowingQueryExceptions)
+                    throw new InvalidFilterPropertyException(node.Property);
+
+                context.Stack.Push(null);
+                return;
+            }
+
+            var modelMapping = _mappingConfig.GetMapping(context.ParentType);
+
+            if (modelMapping.FilterIsIgnored(resolvedName))
+            {
+                context.Stack.Push(null);
+                return;
+            }
+
+            if (modelMapping.HasCustomFilter(resolvedName))
+            {
+                _customFilters.TryAdd(resolvedName, (node.Values, node.Operator));
+
+                context.Stack.Push(null);
+                return;
+            }
+
+            var propExp = resolvedName.GetPropertyExpression(context.Parameter)
+                ?? throw new InvalidFilterPropertyException(node.Property);
+
+            context.Stack.Push(node.GetExpression(propExp));
         }
 
         public void Visit(CollectionFilterNode node)
         {
             var context = _contexts.First();
 
-            var queryInfo = node.Property.GetPropertyQueryInfo<TFilterModel>();
-            if (queryInfo == null)
+            if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var resolvedName))
+            {
+                if (QueryConfiguration.Instance.ThrowingQueryExceptions)
+                    throw new InvalidFilterPropertyException(node.Property);
+
+                context.Stack.Push(null);
+                return;
+            }
+
+            if (_mappingConfig.GetMapping(context.ParentType).FilterIsIgnored(resolvedName))
             {
                 context.Stack.Push(null);
                 return;
             }
 
-            var type = queryInfo.PropertyInfo.PropertyType;
+            var propertyInfo = resolvedName.GetPropertyInfo<TModel>()
+                ?? throw new InvalidFilterPropertyException(resolvedName);
 
-            var modelPropertyType = queryInfo.ModelPropertyName.GetPropertyInfo<TModel>()!.PropertyType;
-            var modelTargetType = modelPropertyType.GenericTypeArguments[0];
-            var modelFilterTargetType = type.GenericTypeArguments[0];
+            if (propertyInfo.PropertyType.GetGenericArguments().Count() == 0)
+                throw new InvalidFilterPropertyException(resolvedName);
 
-            var modelParameter = Expression.Parameter(modelTargetType, "s");
-            var subContext = new Context(modelFilterTargetType, context.PropertyName, modelParameter);
+            var genericTargetType = propertyInfo.PropertyType.GetGenericArguments()[0];
+
+            var modelParameter = Expression.Parameter(genericTargetType, "s");
+            var subContext = new Context(genericTargetType, context.PropertyName, modelParameter);
             _contexts.Push(subContext);
 
             Visit(node.Filter as dynamic);
 
-            var exp = Expression.Lambda(subContext.Stack.Last()!, modelParameter);
+            var lastExp = subContext.Stack.Last();
+            if (lastExp == null)
+            {
+                context.Stack.Push(null);
+                _contexts.Pop();
+                return;
+            }
+            var exp = Expression.Lambda(lastExp, modelParameter);
 
-            var method = node.ApplyAll ? TypeHelper.AllMethod : TypeHelper.AnyMethod;
-            var methodGeneric = method.MakeGenericMethod(modelTargetType);
+            var method = node.ApplyAll ? AllMethod : AnyMethod;
+            var methodGeneric = method.MakeGenericMethod(genericTargetType);
 
-            var propExp = queryInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
-
-            if (propExp == null)
-                throw new QueryException($"Property not found in model type: '{typeof(TModel).Name}.{queryInfo.ModelPropertyName}'");
-
+            var propExp = resolvedName.GetPropertyExpression(context.Parameter)
+                ?? throw new InvalidFilterPropertyException(resolvedName);
             Expression anyExp = Expression.Call(null, methodGeneric, propExp, exp);
 
             if (node.IsNegated)
@@ -98,28 +165,6 @@ namespace QueryX
 
             context.Stack.Push(anyExp);
             _contexts.Pop();
-        }
-
-        public void Visit(FilterNode node)
-        {
-            var context = _contexts.First();
-
-            var propertyName = context.GetConcatenatedProperty(node.Property);
-
-            var queryInfo = propertyName.GetPropertyQueryInfo(context.ParentType);
-            if (queryInfo == null)
-            {
-                context.Stack.Push(null);
-                return;
-            }
-
-            var propExp = queryInfo.ModelPropertyName.GetPropertyExpression(context.Parameter);
-            if (propExp == null)
-            {
-                context.Stack.Push(null);
-                return;
-            }
-            context.Stack.Push(_query.GetFilterInstanceByNode(node).GetExpression(propExp));
         }
 
         public Expression<Func<TModel, bool>>? GetFilterExpression()
@@ -132,6 +177,20 @@ namespace QueryX
             return Expression.Lambda<Func<TModel, bool>>(exp!, context.Parameter);
         }
 
+        public IQueryable<TModel> ApplyCustomFilters(IQueryable<TModel> source)
+        {
+            if (_customFilters.Count == 0)
+                return source;
+
+            var mapping = _mappingConfig?.GetMapping(typeof(TModel)) ?? QueryMappingConfig.Global.GetMapping(typeof(TModel));
+
+            foreach (var propertyName in _customFilters.Keys)
+            {
+                source = mapping.ApplyCustomFilters(source, propertyName, _customFilters[propertyName].Values, _customFilters[propertyName].Operator);
+            }
+            return source;
+        }
+
         private class Context
         {
             public Context(Type parentType, string propertyName, ParameterExpression parameter)
@@ -142,18 +201,17 @@ namespace QueryX
                 Stack = new Stack<Expression?>();
             }
 
-            public Type ParentType { get; set; }
-            public string PropertyName { get; set; }
-            public ParameterExpression Parameter { get; set; }
-            public Stack<Expression?> Stack { get; set; }
+            public Type ParentType { get; }
+            public string PropertyName { get; }
+            public ParameterExpression Parameter { get; }
+            public Stack<Expression?> Stack { get; }
 
             public string GetConcatenatedProperty(string propertyName)
             {
                 return string.IsNullOrEmpty(PropertyName)
-                        ? propertyName
-                        : $"{PropertyName}.{propertyName}";
+                    ? propertyName
+                    : $"{PropertyName}.{propertyName}";
             }
         }
     }
-
 }

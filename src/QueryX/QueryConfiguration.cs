@@ -1,11 +1,19 @@
-﻿using System;
-
-namespace QueryX
+﻿namespace QueryX
 {
     public class QueryConfiguration
     {
-        public Func<DateTime, DateTime> DateTimeConverter { get; set; } = date => date;
-        public Func<DateTime, DateTime> DateTimeOffsetConverter { get; set; } = date => date;
-        public bool ThrowQueryExceptions { get; set; } = false;
+        internal bool ThrowingQueryExceptions { get; set; } = false;
+        internal static QueryConfiguration Instance { get; } = new QueryConfiguration();
+
+        private QueryConfiguration()
+        {
+
+        }
+
+        public QueryConfiguration ThrowQueryExceptions(bool throwExceptions = true)
+        {
+            ThrowingQueryExceptions = throwExceptions;
+            return this;
+        }
     }
 }
