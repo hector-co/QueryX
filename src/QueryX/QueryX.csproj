@@ -8,7 +8,7 @@
       <PackageReadmeFile>README.md</PackageReadmeFile>
       <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
       <Authors>Hector Carballo</Authors>
-      <VersionPrefix>2.0.0-alpha-01</VersionPrefix>
+      <VersionPrefix>2.0.0-alpha-02</VersionPrefix>
       <VersionSuffix></VersionSuffix>
       <Description>Query string queries</Description>
       <RepositoryType>https://github.com/hector-co/QueryX</RepositoryType>
