@@ -9,12 +9,6 @@ Install-Package QueryX
 ```
 
 ## Usage
-Initially it is necessary to add QueryX to the registered services. In ```Program.cs```:
-
-```csharp
-builder.Services.AddQueryX();
-```
-
 A filter model is needed to define the properties that will be used for filtering, this model could be an specific filter class, a Dto or a Domain model object.
 
 ```csharp
@@ -28,23 +22,15 @@ public class Card
     public List<User> Owners { get; set; }
 }
 ```
-By default all properties can be used for filtering and sorting, this could be customized using [attributes](#customize-filter-model).
+By default all properties can be used for filtering and sorting, this could be customized using [fluent configuration](#customize-filter-model).
 
-Two classes from QueryX are required for creating filters for the ```Card``` example object:
+### Example
 
-- **QueryBuilder,** this class should be injected in controllers or where the queries needs to be created.
-- **QueryModel,** this class is used for capturing queries from URL query strings, it provides ```Filter```, ```OrderBy```, ```Offset``` and ```Limit``` properties for this purpose.
-
-Additionally, an entity framework context is required for applying the queries:
+QueryX adds ```ApplyQuery``` extension methods to IQueryable interface to perform queries:
 
 ```csharp
-[HttpGet]
-public IActionResult List([FromQuery] QueryModel queryModel)
-{
-    var query = _queryBuilder.CreateQuery<Card>(queryModel);
-    var result = _context.Set<Card>().ApplyQuery(query).ToList();
-    return Ok(result);
-}
+var filter = "priority > 1";
+var result = _context.Set<Card>().ApplyQuery(filter).ToList();
 ```
 
 ## Filtering
@@ -128,28 +114,8 @@ id>1 ; !(title=-'test' | priority|=1,2)
 !owners(id==1 | name=='user2')
 ```
 
-## Customize filter model
-By default all properties from a filter model can be used for filtering and ordering, but there are some attributes that allows to have control on this
-
-Properties marked wth the ```QueryIgnoreAttribute``` attribute will be ignored for filtering and ordering:
-```csharp
-[QueryIgnore]
-public float EstimatedPoints { get; set; }
-```
-
-Also, with ```QueryOptionsAttribute``` attribute some other options could be specified:
-```csharp
-[QueryOptions(Operator = OperatorType.Equals, IsSortable = false, 
-    ParamsPropertyName = "EstimatedPts", ModelPropertyName = "Estimation")]
-public float EstimatedPoints { get; set; }
-```
-* ```Operator``` will set the default operator for this property, ignoring the one sent in the query string
-* ```IsSortable``` determines if this property is sortable or not, true by default
-* ```ParamsPropertyName``` is used for mapping filter names from query string. In this case, in query string will be a filter named ```EstimatedPts``` that will be mapped to the ```EstimatedPoints``` property
-* ```ModelPropertyName``` can be used when the filter model is different than the entity in DbContext and the filter model and the entity model have different property names, especifically, this allows mapping this property to a different one in the entity model. In this example, the value for this property will be used in the ```Estimation``` property in the entity model because the ```IQueryable``` filter needs to be created using the entity model properties
-
 ## Sorting and Paging
-The ```OrderBy``` property in ```QueryModel``` object allows specifying ordering.
+The ```ApplyOrderingAndPaging``` method allow specifying ordering.
 
 For ascending order base on property ```Title```:
 ```
@@ -166,60 +132,104 @@ It is possible to combine multiple orderings:
 id,-priority,title
 ```
 
-Custom filters can not be used for ordering
-
-## Custom filters
-The ```CustomFilterAttribute``` attribute allows changing the default behavior of filters:
-
+Example:
 ```csharp
-[CustomFilter]
-public int Priority { get; set; }
+var sortBy = "-estimatedPoints";
+var offset = 10;
+var limit = 10;
+_context.Set<Card>().ApplyOrderingAndPaging(sortBy, offset, limit);
 ```
-Properties marked with this attribute will be excluded as part of the filter, custom code needs to be written for doing something with the filter value after the ```Query``` object is created:
+
+## Customize filtering and sorting
+
+It is possible to customize the filtering behavior with ```QueryMappingConfig``` class:
 
 ```csharp
-[HttpGet]
-public IActionResult List([FromQuery] QueryModel queryModel)
-{
-    var query = _queryBuilder.CreateQuery<Card>(queryModel);
-    var queryable = _context.Set<Card>();
-
-    // Applying custom filter
-    if (query.TryGetFilter(m => m.Priority, out var filter))
+QueryMappingConfig.Global
+    .For<Card>(cfg => 
     {
-        var filterValue = filter.Values.First();
-        queryable = queryable.Where(m => m.Priority == filterValue);
-    }
-
-    var result = queryable.ApplyQuery(query).ToList();
-    return Ok(result);
-}
+        // mapping configurations
+    });
 ```
-Custom filters are also ignored in the sorting process but it is possible to know if they were passed as part of the sort string:
+
+#### Map property name:
+Allows mapping a property with a different name that will appear in the ```filter``` or ```sortBy``` string
+```csharp
+cfg.Property(c => c.Priority).MapFrom("queryPriority");
+```
+
+#### Ignore properties:
+Ignore properties from filter and sorting steps. ```IgnoreFilter``` and ```IgnoreSort``` methods exists also.
+```csharp
+cfg.Property(c => c.Priority).Ignore();
+```
+
+
+
+#### Custom filters:
+This propertiess are excluded as part of the filter, custom code needs to be written for doing something with the filter values. Custom filters are applied after all filters have been applied
+```csharp
+cfg.Property(c => c.Priority).CustomFilter((source, values, op) => 
+{
+    // source   : IQueryable instance to apply the custom filter
+    // values   : values specified in filter string
+    // op       : operator for this filter
+    return source.Where(c => c.Priority == values[0]);
+});
+```
+
+#### Custom sort:
+This propertiess are excluded as part of the sort behavior, custom code needs to be written to apply them. Custom filters are applied after all filters have been applied
+```csharp
+cfg.Property(c => c.Priority).CustomSort((source, ascending, isOrdered) => 
+{
+    // source   : IQueryable instance to apply the custom filter
+    // ascending: indicates if the sorting should be done in ascending direction
+    // isOrdered: indicates if the IQueryable instace have been already ordered, if true, ThenBy and ThenByDescending methods should be used as appropriate
+    return isOrdered
+        ? ascending
+            ? source.ThenBy(c => c.Priority)
+            : source.ThenByDescending(c => c.Priority)
+        : ascending
+            ? source.OrderBy(c => c.Priority)
+            : source.OrderByDescending(c => c.Priority);
+});
+```
+
+### Override global configurations
+The configurations created using ```QueryMappingConfig.Global``` are applied globally. ```ApplyQuery``` and ```ApplyOrderingAndPaging``` methods accepts a ```QueryMappingConfig``` instance in case specific configuration is needed:
+```csharp
+var config = new QueryMappingConfig();
+config.For<Card>(cfg =>
+{
+    // set specific configurations
+});
+
+var filter = "id |= 2,4,6";
+_context.Set<Card>().ApplyQuery(filter, mappingConfig: config);
+```
+
+Extending global configuration is also possible:
 
 ```csharp
-[HttpGet]
-public IActionResult List([FromQuery] QueryModel queryModel)
+var config = QueryMappingConfig.Global.Clone()
+config.For<Card>(cfg =>
 {
-    var query = _queryBuilder.CreateQuery<Card>(queryModel);
-    var queryable = _context.Set<Card>();
+    // set specific configurations
+});
 
-    // Get custom order by
-    if (query.TryGetOrderBy(m => m.Priority, out var orderBy))
-    {
-        // apply order by manually using orderBy.Ascending and orderBy.PropertyName as needed
-    }
-
-    var result = queryable.ApplyQuery(query).ToList();
-    return Ok(result);
-}
+var filter = "id |= 2,4,6";
+_context.Set<Card>().ApplyQuery(filter, mappingConfig: config);
 ```
+
+## QueryModel
+```QueryModel``` is a class that can be used to capture user parameters in a WebAPI endpoint, it contains ```Filter```, ```SortBy```, ```Offset``` and ```Limit``` properties. ```ApplyQuery``` and ```ApplyOrderingAndPaging``` methods have overloads to receive a ```QueryModel``` instance.
 
 ## Query exceptions
-By default invalid properties will be ignored for filtering and ordering but it is possible to  change this behavior by setting ```ThrowQueryExceptions``` to true when registering QueryX:
+By default invalid properties will be ignored for filtering and ordering but it is possible to  change this behavior by calling ```ThrowQueryExceptions()``` when registering QueryX:
 
 ```csharp
-builder.Services.AddQueryX(o => o.ThrowQueryExceptions = true);
+builder.Services.AddQueryX(o => o.ThrowQueryExceptions());
 ```
 
 These exceptions will be thrown as appropriate:
