@@ -36,6 +36,8 @@ builder.Services.AddMediatR(cfg =>
 
 builder.Services.AddHostedService<InitData>();
 
+builder.Services.AddQueryX(options => options.ThrowQueryExceptions());
+
 builder.Services.AddScoped<ICardService, CardService>();
 
 var app = builder.Build();

@@ -446,7 +446,7 @@ namespace QueryX.Tests
         }
 
         [Fact]
-        public void T0()
+        public void MapCustomSort()
         {
             var config = new QueryMappingConfig();
             config.For<Product>(cfg =>

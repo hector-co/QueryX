@@ -82,7 +82,11 @@ namespace QueryX
 
             if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var resolvedName))
             {
-                throw new InvalidFilterPropertyException(node.Property);
+                if (QueryConfiguration.Instance.ThrowingQueryExceptions)
+                    throw new InvalidFilterPropertyException(node.Property);
+
+                context.Stack.Push(null);
+                return;
             }
 
             var modelMapping = _mappingConfig.GetMapping(context.ParentType);
@@ -113,7 +117,11 @@ namespace QueryX
 
             if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var resolvedName))
             {
-                throw new InvalidFilterPropertyException(node.Property);
+                if (QueryConfiguration.Instance.ThrowingQueryExceptions)
+                    throw new InvalidFilterPropertyException(node.Property);
+
+                context.Stack.Push(null);
+                return;
             }
 
             if (_mappingConfig.GetMapping(context.ParentType).FilterIsIgnored(resolvedName))
@@ -176,7 +184,7 @@ namespace QueryX
 
             var mapping = _mappingConfig?.GetMapping(typeof(TModel)) ?? QueryMappingConfig.Global.GetMapping(typeof(TModel));
 
-            foreach(var propertyName in _customFilters.Keys)
+            foreach (var propertyName in _customFilters.Keys)
             {
                 source = mapping.ApplyCustomFilters(source, propertyName, _customFilters[propertyName].Values, _customFilters[propertyName].Operator);
             }
