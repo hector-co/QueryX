@@ -9,7 +9,6 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <Authors>Hector Carballo</Authors>
-        <VersionPrefix>2.0.0-alpha-02</VersionPrefix>
         <VersionSuffix></VersionSuffix>
         <Description>Query string queries</Description>
         <RepositoryType>https://github.com/hector-co/QueryX</RepositoryType>
@@ -31,6 +30,10 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+        <PackageReference Include="MinVer" Version="4.3.0">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Superpower" Version="3.0.0" />
     </ItemGroup>
 
