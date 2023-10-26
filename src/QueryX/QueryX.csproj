@@ -1,36 +1,37 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Nullable>enable</Nullable>
-      <Copyright>Copyright © 2022 Hector Carballo</Copyright>
-      <PackageProjectUrl>https://github.com/hector-co/QueryX</PackageProjectUrl>
-      <PackageReadmeFile>README.md</PackageReadmeFile>
-      <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-      <Authors>Hector Carballo</Authors>
-      <VersionPrefix>2.0.0-alpha-02</VersionPrefix>
-      <VersionSuffix></VersionSuffix>
-      <Description>Query string queries</Description>
-      <RepositoryType>https://github.com/hector-co/QueryX</RepositoryType>
-      <PackageTags>query string url</PackageTags>
-      <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <LangVersion>8.0</LangVersion>
+        <Copyright>Copyright © 2022 Hector Carballo</Copyright>
+        <PackageProjectUrl>https://github.com/hector-co/QueryX</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+        <Authors>Hector Carballo</Authors>
+        <VersionPrefix>2.0.0-alpha-02</VersionPrefix>
+        <VersionSuffix></VersionSuffix>
+        <Description>Query string queries</Description>
+        <RepositoryType>https://github.com/hector-co/QueryX</RepositoryType>
+        <PackageTags>query string url</PackageTags>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\..\LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-    <None Include="..\..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="..\..\LICENSE.txt">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
+        <None Include="..\..\README.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-    <PackageReference Include="Superpower" Version="3.0.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+        <PackageReference Include="Superpower" Version="3.0.0" />
+    </ItemGroup>
 
 </Project>

@@ -127,7 +127,7 @@ namespace QueryX.Parsing
                 .Select(s => s!.Trim());
 
             return orderings
-                .Select(order => order.StartsWith('-') ? (order[1..], false) : (order, true))
+                .Select(order => order.StartsWith("-") ? (order.Substring(1), false) : (order, true))
                 .ToArray();
         }
 

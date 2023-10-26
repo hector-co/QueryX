@@ -99,7 +99,8 @@ namespace QueryX
 
             if (modelMapping.HasCustomFilter(resolvedName))
             {
-                _customFilters.TryAdd(resolvedName, (node.Values, node.Operator));
+                if (!_customFilters.ContainsKey(resolvedName))
+                    _customFilters.Add(resolvedName, (node.Values, node.Operator));
 
                 context.Stack.Push(null);
                 return;
@@ -171,7 +172,11 @@ namespace QueryX
         {
             var context = _contexts.First();
 
-            if (context.Stack.Count == 0 || context.Stack.TryPop(out var exp) && exp == null)
+            if (context.Stack.Count == 0)
+                return null;
+
+            var exp = context.Stack.Pop();
+            if (exp == null)
                 return null;
 
             return Expression.Lambda<Func<TModel, bool>>(exp!, context.Parameter);

@@ -100,10 +100,17 @@ namespace QueryX.Utils
 
             if (targetType.IsEnum)
             {
-                if (!Enum.TryParse(targetType, value.ToString(), true, out var enumValue))
-                    throw new QueryFormatException($"'{value}' is not valid for type {targetType.Name}");
+                try
+                {
 
-                return enumValue;
+                    var enumValue = Enum.Parse(targetType, value.ToString(), true);
+
+                    return enumValue;
+                }
+                catch
+                {
+                    throw new QueryFormatException($"'{value}' is not valid for type {targetType.Name}");
+                }
             }
 
             if (value.GetType().IsEnum)
