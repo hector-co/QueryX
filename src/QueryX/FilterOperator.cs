@@ -3,7 +3,7 @@
     public enum FilterOperator
     {
         None,
-        Equals,
+        Equal,
         GreaterThan,
         GreaterThanOrEqual,
         LessThan,

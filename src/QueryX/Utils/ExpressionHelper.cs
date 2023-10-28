@@ -39,6 +39,11 @@ namespace QueryX.Utils
                 ? Expression.Call(property, ToLower)
                 : property;
 
+            if (propType.IsEnum)
+            {
+                prop = Expression.Convert(prop, typeof(int));
+            }
+
             return (prop, value.GetValueExpression(propType, !isCaseInsensitive));
         }
 
@@ -102,20 +107,14 @@ namespace QueryX.Utils
             {
                 try
                 {
+                    var enumValue = Enum.Parse(targetType, (string)value, true);
 
-                    var enumValue = Enum.Parse(targetType, value.ToString(), true);
-
-                    return enumValue;
+                    return (int)enumValue;
                 }
                 catch
                 {
                     throw new QueryFormatException($"'{value}' is not valid for type {targetType.Name}");
                 }
-            }
-
-            if (value.GetType().IsEnum)
-            {
-                return Convert.ChangeType(value, targetType);
             }
 
             if (!TypeDescriptor.GetConverter(targetType).IsValid(value))

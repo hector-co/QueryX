@@ -33,7 +33,7 @@ namespace QueryX
             {
                 FilterOperator.Contains => filterNode.GetContainsExpression(property),
                 FilterOperator.EndsWith => filterNode.GetEndsWithExpression(property),
-                FilterOperator.Equals => filterNode.GetEqualsExpression(property),
+                FilterOperator.Equal => filterNode.GetEqualsExpression(property),
                 FilterOperator.GreaterThan => filterNode.GetGreaterThanExpression(property),
                 FilterOperator.GreaterThanOrEqual => filterNode.GetGreaterThanOrEqualExpression(property),
                 FilterOperator.In => filterNode.GetInExpression(property),
