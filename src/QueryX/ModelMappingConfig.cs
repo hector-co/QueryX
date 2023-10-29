@@ -10,8 +10,15 @@ namespace QueryX
         private static readonly QueryMappingConfig _instance = new QueryMappingConfig();
         private static readonly ModelMapping _defaultMapping = new ModelMapping();
         private readonly ConcurrentDictionary<Type, ModelMapping> _mappings = new ConcurrentDictionary<Type, ModelMapping>();
+        private readonly QueryConfiguration _queryConfig = new QueryConfiguration();
 
         public static QueryMappingConfig Global => _instance;
+        public QueryConfiguration QueryConfig => _queryConfig;
+
+        public QueryMappingConfig()
+        {
+            _queryConfig = _instance == null ? new QueryConfiguration() : _instance._queryConfig.Clone();
+        }
 
         public QueryMappingConfig For<TModel>(Action<ModelMappingConfig<TModel>> modelMappingConfig)
         {
@@ -30,6 +37,12 @@ namespace QueryX
             if (_mappings.ContainsKey(typeof(TModel)))
                 _mappings.TryRemove(typeof(TModel), out _);
 
+            return this;
+        }
+
+        public QueryMappingConfig SetQueryConfiguration(Action<QueryConfiguration>? options = null)
+        {
+            options?.Invoke(_queryConfig);
             return this;
         }
 

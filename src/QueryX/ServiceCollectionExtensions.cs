@@ -7,7 +7,7 @@ namespace QueryX
     {
         public static void AddQueryX(this IServiceCollection _, Action<QueryConfiguration>? options = null)
         {
-            options?.Invoke(QueryConfiguration.Instance);
+            QueryMappingConfig.Global.SetQueryConfiguration(options);
         }
     }
 }

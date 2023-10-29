@@ -77,12 +77,12 @@ owners(id==1 | name=='user2')
 ### Operators
 |Operator    |Description                         |Comment|
 |:----------:|------------------------------------|------------------|
-| ==         |Equals operator                     | |
-| !=         |Not equals                          | |
+| ==         |Equal operator                      | |
+| !=         |Not equal                           | |
 | <          |Less than                           | |
-| <=         |Less than or equals                 | |
+| <=         |Less than or equal                  | |
 | >          |Greater than                        | |
-| >=         |Greater than or equals              | |
+| >=         |Greater than or equal               | |
 | -=-        |Contains                            |String type only |
 | =-         |Starts with                         |String type only |
 | -=         |Ends with                           |String type only |
@@ -167,7 +167,7 @@ cfg.Property(c => c.Priority).Ignore();
 
 
 #### Custom filters:
-This propertiess are excluded as part of the filter, custom code needs to be written for doing something with the filter values. Custom filters are applied after all filters have been applied
+This properties are excluded as part of the filter, custom code needs to be written for doing something with the filter values. Custom filters are applied after all filters have been applied
 ```csharp
 cfg.Property(c => c.Priority).CustomFilter((source, values, op) => 
 {
@@ -179,7 +179,7 @@ cfg.Property(c => c.Priority).CustomFilter((source, values, op) =>
 ```
 
 #### Custom sort:
-This propertiess are excluded as part of the sort behavior, custom code needs to be written to apply them. Custom filters are applied after all filters have been applied
+This properties are excluded as part of the sort behavior, custom code needs to be written to apply them. Custom filters are applied after all filters have been applied
 ```csharp
 cfg.Property(c => c.Priority).CustomSort((source, ascending, isOrdered) => 
 {
@@ -226,13 +226,19 @@ _context.Set<Card>().ApplyQuery(filter, mappingConfig: config);
 ```QueryModel``` is a class that can be used to capture user parameters in a WebAPI endpoint, it contains ```Filter```, ```SortBy```, ```Offset``` and ```Limit``` properties. ```ApplyQuery``` and ```ApplyOrderingAndPaging``` methods have overloads to receive a ```QueryModel``` instance.
 
 ## Query exceptions
-By default invalid properties will be ignored for filtering and ordering but it is possible to  change this behavior by calling ```ThrowQueryExceptions()``` when registering QueryX:
+By default invalid properties will be ignored for filtering and ordering but it is possible to change this behavior by calling ```ThrowQueryExceptions()``` when registering QueryX:
 
 ```csharp
-builder.Services.AddQueryX(o => o.ThrowQueryExceptions());
+builder.Services.AddQueryX(o => o.ThrowQueryExceptions(false));
 ```
 
 These exceptions will be thrown as appropriate:
 * ```InvalidFilterPropertyException``` for filtering errors
 * ```InvalidOrderingPropertyException``` for ordering errors
 
+It is also possible set this configuration using QueryMappingConfig:
+
+```csharp
+QueryMappingConfig.Global
+    .SetQueryConfiguration(options => options.ThrowQueryExceptions(true));
+```

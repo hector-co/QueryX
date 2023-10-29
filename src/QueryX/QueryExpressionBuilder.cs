@@ -82,7 +82,7 @@ namespace QueryX
 
             if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var resolvedName))
             {
-                if (QueryConfiguration.Instance.ThrowingQueryExceptions)
+                if (_mappingConfig.QueryConfig.ThrowingQueryExceptions)
                     throw new InvalidFilterPropertyException(node.Property);
 
                 context.Stack.Push(null);
@@ -118,7 +118,7 @@ namespace QueryX
 
             if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var resolvedName))
             {
-                if (QueryConfiguration.Instance.ThrowingQueryExceptions)
+                if (_mappingConfig.QueryConfig.ThrowingQueryExceptions)
                     throw new InvalidFilterPropertyException(node.Property);
 
                 context.Stack.Push(null);

@@ -54,8 +54,8 @@ namespace QueryX
             {
                 if (!PropName.TryResolvePropertyName(typeof(TModel), config, out var resolvedName))
                 {
-                    if (QueryConfiguration.Instance.ThrowingQueryExceptions)
-                        throw new InvalidFilterPropertyException(PropName);
+                    if (config.QueryConfig.ThrowingQueryExceptions)
+                        throw new InvalidOrderingPropertyException(PropName);
 
                     continue;
                 }

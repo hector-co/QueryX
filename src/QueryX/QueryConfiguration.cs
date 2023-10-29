@@ -3,14 +3,21 @@
     public class QueryConfiguration
     {
         internal bool ThrowingQueryExceptions { get; set; } = false;
-        internal static QueryConfiguration Instance { get; } = new QueryConfiguration();
 
-        private QueryConfiguration()
+        internal QueryConfiguration()
         {
 
         }
 
-        public QueryConfiguration ThrowQueryExceptions(bool throwExceptions = true)
+        internal QueryConfiguration Clone()
+        {
+            return new QueryConfiguration
+            {
+                ThrowingQueryExceptions = ThrowingQueryExceptions
+            };
+        }
+
+        public QueryConfiguration ThrowQueryExceptions(bool throwExceptions = false)
         {
             ThrowingQueryExceptions = throwExceptions;
             return this;
