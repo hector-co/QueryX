@@ -110,14 +110,16 @@ namespace QueryX
             return this;
         }
 
-        public void IgnoreFilter()
+        public PropertyMappingConfig<TModel, TValue> IgnoreFilter()
         {
             _mapping.IgnoreFilter(_propertyName);
+            return this;
         }
 
-        public void IgnoreSort()
+        public PropertyMappingConfig<TModel, TValue> IgnoreSort()
         {
             _mapping.IgnoreSort(_propertyName);
+            return this;
         }
 
         public void Ignore()
