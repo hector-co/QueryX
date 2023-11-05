@@ -36,7 +36,7 @@ namespace QueryX.Utils
             foreach (var propertyName in propertyPath.Split(Separator))
             {
                 var mapping = mappingConfig.GetMapping(currentType);
-                var mappedName = mapping.GetPropertyMapping(propertyName);
+                var mappedName = mapping.GetPropertyMapping(propertyName).TargetProperty;
 
                 var propInfo = mappedName.GetPropertyInfo(currentType);
                 if (propInfo == null)

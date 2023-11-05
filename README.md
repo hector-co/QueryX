@@ -153,9 +153,15 @@ QueryMappingConfig.Global
 ```
 
 #### Map property name:
-Allows mapping a property with a different name that will appear in the ```filter``` or ```sortBy``` string
+Allows mapping a property with a different name that will appear in the ```filter``` or ```sortBy``` string:
 ```csharp
 cfg.Property(c => c.Priority).MapFrom("queryPriority");
+```
+
+Additionally, ```MapFrom``` method supports a second parameter to apply custom conversion from string to the property type:
+
+```csharp
+cfg.Property(c => c.Priority).MapFrom("queryPriority", value => int.ParseInt(value));
 ```
 
 #### Ignore properties:

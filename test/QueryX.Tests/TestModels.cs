@@ -1,5 +1,13 @@
 ﻿namespace QueryX.Tests
 {
+    public enum ProducType
+    {
+        RawMaterial,
+        FinishedGoods,
+        Consumable,
+        Service
+    }
+
     public class Product
     {
         public int Id { get; set; }
@@ -9,6 +17,7 @@
         public float Stock { get; set; }
         public DateTime RegisteredAt { get; set; }
         public bool Active { get; set; }
+        public int Type { get; set; }
     }
 
     public class ShoppingCart
@@ -45,7 +54,8 @@
                     Price = 10,
                     Stock = 40,
                     RegisteredAt = DateTime.Parse("2023-6-1"),
-                    Active = true
+                    Active = true,
+                    Type = (int)ProducType.RawMaterial
                 },
                 new Product
                 {
@@ -55,7 +65,8 @@
                     Price = 20,
                     Stock = 35,
                     RegisteredAt = DateTime.Parse("2023-6-15"),
-                    Active = true
+                    Active = true,
+                    Type = (int)ProducType.RawMaterial
                 },
                 new Product
                 {
@@ -65,7 +76,8 @@
                     Price = 30,
                     Stock = 30,
                     RegisteredAt = DateTime.Parse("2023-6-30"),
-                    Active = true
+                    Active = true,
+                    Type = (int)ProducType.FinishedGoods
                 },
                 new Product
                 {
@@ -75,7 +87,8 @@
                     Price = 40,
                     Stock = 25,
                     RegisteredAt = DateTime.Parse("2023-7-1"),
-                    Active = true
+                    Active = true,
+                    Type = (int)ProducType.FinishedGoods
                 },
                 new Product
                 {
@@ -84,7 +97,8 @@
                     Price = 50,
                     Stock = 20,
                     RegisteredAt = DateTime.Parse("2023-7-15"),
-                    Active = true
+                    Active = true,
+                    Type = (int)ProducType.Consumable
                 },
                 new Product
                 {
@@ -93,7 +107,8 @@
                     Price = 60,
                     Stock = 15,
                     RegisteredAt = DateTime.Parse("2023-7-30"),
-                    Active = false
+                    Active = false,
+                    Type = (int)ProducType.Consumable
                 },
                 new Product
                 {
@@ -102,7 +117,8 @@
                     Price = 70,
                     Stock = 10,
                     RegisteredAt = DateTime.Parse("2023-8-1"),
-                    Active = false
+                    Active = false,
+                    Type = (int)ProducType.Service
                 },
                 new Product
                 {
@@ -111,7 +127,8 @@
                     Price = 80,
                     Stock = 5,
                     RegisteredAt = DateTime.Parse("2023-8-15"),
-                    Active = false
+                    Active = false,
+                    Type = (int)ProducType.Service
                 },
                 new Product
                 {
@@ -120,7 +137,8 @@
                     Price = 90,
                     Stock = 0,
                     RegisteredAt = DateTime.Parse("2023-8-30"),
-                    Active = false
+                    Active = false,
+                    Type = (int)ProducType.FinishedGoods
                 },
                 new Product
                 {
@@ -129,7 +147,8 @@
                     Price = 100,
                     Stock = 2,
                     RegisteredAt = DateTime.Parse("2023-9-1"),
-                    Active = false
+                    Active = false,
+                    Type = (int)ProducType.FinishedGoods
                 }
             };
 

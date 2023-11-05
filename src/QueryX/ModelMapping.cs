@@ -6,7 +6,7 @@ namespace QueryX
 {
     internal class ModelMapping
     {
-        private readonly Dictionary<string, string> _propertyMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, (string TargetProperty, dynamic? Convert)> _propertyMapping = new Dictionary<string, (string, dynamic?)>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _ignoredFilter = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _ignoredSort = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, ICustomFilter> _customFilters = new Dictionary<string, ICustomFilter>(StringComparer.OrdinalIgnoreCase);
@@ -15,16 +15,24 @@ namespace QueryX
         internal void AddPropertyMapping(string targetProperty, string sourceName)
         {
             if (_propertyMapping.ContainsKey(sourceName))
-                _propertyMapping[sourceName] = targetProperty;
+                _propertyMapping[sourceName] = (targetProperty, null);
             else
-                _propertyMapping.Add(sourceName, targetProperty);
+                _propertyMapping.Add(sourceName, (targetProperty, null));
         }
 
-        internal string GetPropertyMapping(string sourceName)
+        internal void AddPropertyMapping<TFrom, TValue>(string targetProperty, string sourceName, Func<TFrom, TValue> convert)
         {
-            return _propertyMapping.TryGetValue(sourceName, out var targetProperty)
-                ? targetProperty
-                : sourceName;
+            if (_propertyMapping.ContainsKey(sourceName))
+                _propertyMapping[sourceName] = (targetProperty, convert);
+            else
+                _propertyMapping.Add(sourceName, (targetProperty, convert));
+        }
+
+        internal (string TargetProperty, dynamic? Convert) GetPropertyMapping(string sourceName)
+        {
+            return _propertyMapping.TryGetValue(sourceName, out var propMapping)
+                ? propMapping
+                : (sourceName, null);
         }
 
         internal void IgnoreFilter(string propertyName)
@@ -94,7 +102,7 @@ namespace QueryX
 
         internal IQueryable<TModel> ApplyCustomSort<TModel>(string propertyName, IOrderedQueryable<TModel> source, bool ascending, bool isOrdered)
         {
-            if(!_customSorts.TryGetValue(propertyName, out var sortDelegate))
+            if (!_customSorts.TryGetValue(propertyName, out var sortDelegate))
                 return source;
 
             return sortDelegate(source, ascending, isOrdered);

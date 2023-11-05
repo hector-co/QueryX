@@ -37,6 +37,63 @@ namespace QueryX.Tests
         }
 
         [Fact]
+        public void MapAndConvert()
+        {
+            var config = new QueryMappingConfig();
+            config.For<Product>(cfg =>
+            {
+                cfg.Property(p => p.Type).MapFrom(nameof(Product.Type), value =>
+                {
+                    if (Enum.TryParse<ProducType>(value, true, out var parsed))
+                        return (int)parsed;
+
+                    return default;
+                });
+            });
+
+            Expression<Func<Product, bool>> expectedFilter = x => x.Type == 1;
+            var query = new QueryModel
+            {
+                Filter = $"type == 'FinishedGoods'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
+
+        [Fact]
+        public void MapAndConvertFromList()
+        {
+            var config = new QueryMappingConfig();
+            config.For<Product>(cfg =>
+            {
+                cfg.Property(p => p.Type).MapFrom(nameof(Product.Type), value =>
+                {
+                    if (Enum.TryParse<ProducType>(value, true, out var parsed))
+                        return (int)parsed;
+
+                    return default;
+                });
+            });
+
+            var types = new List<int>() { 0, 1 };
+            Expression<Func<Product, bool>> expectedFilter = x => types.Contains(x.Type);
+            var query = new QueryModel
+            {
+                Filter = $"type |= 'RawMaterial','FinishedGoods'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
+
+        [Fact]
         public void IgnoreProperty()
         {
             var config = new QueryMappingConfig();

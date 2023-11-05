@@ -109,7 +109,7 @@ namespace QueryX
             var propExp = resolvedName.GetPropertyExpression(context.Parameter)
                 ?? throw new InvalidFilterPropertyException(node.Property);
 
-            context.Stack.Push(node.GetExpression(propExp));
+            context.Stack.Push(node.GetExpression(propExp, modelMapping));
         }
 
         public void Visit(CollectionFilterNode node)

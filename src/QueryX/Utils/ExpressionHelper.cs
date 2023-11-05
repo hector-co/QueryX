@@ -31,34 +31,26 @@ namespace QueryX.Utils
             return property;
         }
 
-        internal static (Expression property, Expression values) GetPropertyAndConstant(this Expression property, string? value, bool isCaseInsensitive)
+        internal static (Expression property, Expression values) GetPropertyAndConstant<TValue>(this Expression property, IEnumerable<TValue> value, bool isCaseInsensitive, bool allValues = false)
         {
-            var propType = ((PropertyInfo)((MemberExpression)property).Member).PropertyType;
+            var propInfo = (PropertyInfo)((MemberExpression)property).Member;
 
             var prop = isCaseInsensitive
                 ? Expression.Call(property, ToLower)
                 : property;
 
-            if (propType.IsEnum)
+            if (propInfo.PropertyType.IsEnum && !allValues)
             {
                 prop = Expression.Convert(prop, typeof(int));
             }
 
-            return (prop, value.GetValueExpression(propType, !isCaseInsensitive));
+            if (allValues)
+                return (prop, value.GetAllValueExpression(propInfo.PropertyType, !isCaseInsensitive));
+            else
+                return (prop, value.First().GetValueExpression(propInfo.PropertyType, !isCaseInsensitive));
         }
 
-        internal static (Expression property, Expression values) GetPropertyAndConstant(this Expression property, string?[] values, bool isCaseInsensitive)
-        {
-            var propType = ((PropertyInfo)((MemberExpression)property).Member).PropertyType;
-
-            var prop = isCaseInsensitive
-                ? Expression.Call(property, ToLower)
-                : property;
-
-            return (prop, values.GetAllValueExpression(propType, !isCaseInsensitive));
-        }
-
-        private static Expression GetValueExpression(this string? value, Type targetType, bool isCaseSensitive)
+        private static Expression GetValueExpression<TValue>(this TValue value, Type targetType, bool isCaseSensitive)
         {
             if (targetType == typeof(string))
             {
@@ -67,10 +59,28 @@ namespace QueryX.Utils
 
                 return isCaseSensitive
                     ? Expression.Constant(value)
-                    : Expression.Constant(value.ToLower());
+                    : Expression.Constant((value as string)?.ToLower());
             }
 
-            return Expression.Constant(value.ConvertValue(targetType));
+            return Expression.Constant(value);
+        }
+
+        private static Expression GetAllValueExpression<TValue>(this IEnumerable<TValue> values, Type targetType, bool isCaseSensitive)
+        {
+            if (targetType == typeof(string))
+            {
+                if (values == null)
+                    return Expression.Constant(null);
+
+                return isCaseSensitive
+                    ? Expression.Constant(values.Cast<string>().ToList())
+                    : Expression.Constant(values.Select(v => v == null ? v as string : (v as string)?.ToLower()).Cast<string>().ToList());
+            }
+
+            var converted = (IEnumerable)CastMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { values.ToList() })!;
+            converted = (IEnumerable)ToListMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { converted })!;
+
+            return Expression.Constant(converted);
         }
 
         private static Expression GetAllValueExpression(this string?[] value, Type targetType, bool isCaseSensitive)

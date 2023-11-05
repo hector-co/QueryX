@@ -98,6 +98,12 @@ namespace QueryX
             return this;
         }
 
+        public PropertyMappingConfig<TModel, TValue> MapFrom(string source, Func<string, TValue> convert)
+        {
+            _mapping.AddPropertyMapping(_propertyName, source, convert);
+            return this;
+        }
+
         public PropertyMappingConfig<TModel, TValue> CustomFilter(Func<IQueryable<TModel>, TValue[], FilterOperator, IQueryable<TModel>> filter)
         {
             _mapping.AddCustomFilter(_propertyName, filter);
