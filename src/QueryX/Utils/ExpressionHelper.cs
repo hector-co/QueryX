@@ -83,30 +83,6 @@ namespace QueryX.Utils
             return Expression.Constant(converted);
         }
 
-        private static Expression GetAllValueExpression(this string?[] value, Type targetType, bool isCaseSensitive)
-        {
-            if (targetType == typeof(string))
-            {
-                if (value == null)
-                    return Expression.Constant(null);
-
-                return isCaseSensitive
-                    ? Expression.Constant(value.ToList())
-                    : Expression.Constant(value.Select(v => v == null ? v : v.ToLower()).ToList());
-            }
-
-            var result = new List<object?>();
-            foreach (var val in value)
-            {
-                result.Add(val.ConvertValue(targetType));
-            }
-
-            var converted = (IEnumerable)CastMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { result })!;
-            converted = (IEnumerable)ToListMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { converted })!;
-
-            return Expression.Constant(converted);
-        }
-
         // TODO improve
         internal static object? ConvertValue(this object? value, Type targetType)
         {
