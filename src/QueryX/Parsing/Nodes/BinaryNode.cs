@@ -1,6 +1,6 @@
 ﻿namespace QueryX.Parsing.Nodes
 {
-    public abstract class BinaryNode : NodeBase
+    internal abstract class BinaryNode : NodeBase
     {
         protected BinaryNode(NodeBase left, NodeBase right, bool isNegated = false)
         {
@@ -9,7 +9,7 @@
             IsNegated = isNegated;
         }
 
-        public NodeBase Left { get; set; }
-        public NodeBase Right { get; set; }
+        public NodeBase Left { get; }
+        public NodeBase Right { get; }
     }
 }

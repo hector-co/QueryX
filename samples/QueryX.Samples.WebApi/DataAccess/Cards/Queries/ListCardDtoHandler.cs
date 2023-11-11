@@ -10,6 +10,19 @@ namespace QueryX.Samples.WebApi.DataAccess.Cards.Queries
 {
     public class ListCardDtoHandler : IRequestHandler<ListCardDto, ResultModel<IEnumerable<CardDto>>>
     {
+        static ListCardDtoHandler()
+        {
+            QueryMappingConfig.Global
+                .For<Card>(cfg =>
+                {
+                    cfg.Property(m => m.EstimatedPoints).CustomFilter((source, values, op) =>
+                    {
+                        return source = source.Where(c => c.EstimatedPoints > values[0]);
+                    });
+                    cfg.Property(m => m.Board.Title).MapFrom("bTitle");
+                });
+        }
+
         private readonly WorkboardContext _context;
 
         public ListCardDtoHandler(WorkboardContext context)

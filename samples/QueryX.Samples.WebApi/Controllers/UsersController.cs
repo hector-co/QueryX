@@ -12,12 +12,10 @@ namespace QueryX.Samples.WebApi.Controllers
     public class UsersController : ControllerBase
     {
         private readonly WorkboardContext _context;
-        private readonly QueryBuilder _queryBuilder;
 
-        public UsersController(WorkboardContext context, QueryBuilder queryBuilder)
+        public UsersController(WorkboardContext context)
         {
             _context = context;
-            _queryBuilder = queryBuilder;
         }
 
         [HttpGet("{id}", Name = "GetUserById")]
@@ -34,10 +32,8 @@ namespace QueryX.Samples.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> List([FromQuery] QueryModel queryModel, CancellationToken cancellationToken)
+        public async Task<IActionResult> List([FromQuery] QueryModel query, CancellationToken cancellationToken)
         {
-            var query = _queryBuilder.CreateQuery<UserDto>(queryModel);
-
             var queryable = _context.Set<User>().AsNoTracking();
 
             queryable = queryable.ApplyQuery(query, applyOrderingAndPaging: false);

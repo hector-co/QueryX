@@ -1,68 +1,105 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using QueryX.Exceptions;
+using QueryX.Parsing;
 using QueryX.Utils;
 
 namespace QueryX
 {
     public static class QueryExtensions
     {
-        public static IQueryable<TModel> ApplyQuery<TFilterModel, TModel>(this IQueryable<TModel> source, Query<TFilterModel> query, bool applyOrderingAndPaging = true)
+        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, string? filter, string? orderBy = default, int? offset = default, int? limit = default, QueryMappingConfig? mappingConfig = default)
             where TModel : class
         {
-            if (query.Filter == null)
-            {
-                if (applyOrderingAndPaging)
-                    source = ApplyOrderingAndPaging(source, query);
-                return source;
-            }
+            var expBuilder = new QueryExpressionBuilder<TModel>(filter, mappingConfig ?? QueryMappingConfig.Global);
 
-            var expProvider = new QueryExpressionBuilder<TFilterModel, TModel>(query);
-
-            var filterExp = expProvider.GetFilterExpression();
+            var filterExp = expBuilder.GetFilterExpression();
 
             if (filterExp != null)
                 source = source.Where(filterExp);
 
+            source = expBuilder.ApplyCustomFilters(source);
+
+            source = ApplyOrderingAndPaging(source, orderBy, offset, limit, mappingConfig ?? QueryMappingConfig.Global);
+
             return source;
         }
 
-        public static IQueryable<TModel> ApplyOrderingAndPaging<TFilterModel, TModel>(this IQueryable<TModel> source, Query<TFilterModel> query)
+        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, string? filter, QueryMappingConfig? mappingConfig = null)
+            where TModel : class
         {
-            var applyThenBy = false;
+            return source.ApplyQuery(filter, default, default, default, mappingConfig: mappingConfig);
+        }
 
-            foreach (var sortValue in query.OrderBy)
+        public static IQueryable<TModel> ApplyQuery<TModel>(this IQueryable<TModel> source, QueryModel queryModel, bool applyOrderingAndPaging = true, QueryMappingConfig? mappingConfig = default)
+            where TModel : class
+        {
+            return applyOrderingAndPaging
+                ? source.ApplyQuery(queryModel.Filter, queryModel.OrderBy, queryModel.Offset, queryModel.Limit, mappingConfig)
+                : source.ApplyQuery(queryModel.Filter, mappingConfig: mappingConfig);
+        }
+
+        public static IQueryable<TModel> ApplyOrderingAndPaging<TModel>(this IQueryable<TModel> source, string? orderBy = default, int? offset = default, int? limit = default, QueryMappingConfig? mappingConfig = default)
+        {
+            var orderingTokens = QueryParser.GetOrderingTokens(orderBy);
+
+            var applyThenBy = false;
+            var config = mappingConfig ?? QueryMappingConfig.Global;
+            var modelConfig = config.GetMapping(typeof(TModel));
+            var customSorts = new Dictionary<string, bool>();
+
+            foreach (var (PropName, Ascending) in orderingTokens)
             {
-                var queryInfo = sortValue.PropertyName.GetPropertyQueryInfo<TFilterModel>();
-                if (queryInfo == null)
+                if (!PropName.TryResolvePropertyName(typeof(TModel), config, out var resolvedName))
+                {
+                    if (config.QueryConfig.ThrowingQueryExceptions)
+                        throw new InvalidOrderingPropertyException(PropName);
+
                     continue;
+                }
+
+                if (string.IsNullOrEmpty(resolvedName) || modelConfig.SortIsIgnored(resolvedName))
+                {
+                    continue;
+                }
+
+                if (modelConfig.HasCustomSort(resolvedName))
+                {
+                    customSorts.Add(resolvedName, Ascending);
+                    continue;
+                }
 
                 var modelParameter = Expression.Parameter(typeof(TModel), "m");
-                var propExp = queryInfo.ModelPropertyName.GetPropertyExpression(modelParameter);
 
-                if (propExp == null)
-                    continue;
+                var propExp = resolvedName.GetPropertyExpression(modelParameter)
+                    ?? throw new InvalidOrderingPropertyException(resolvedName);
 
                 var sortExp = Expression.Lambda<Func<TModel, object>>(Expression.Convert(propExp, typeof(object)), modelParameter);
 
-                if (sortValue.Ascending)
-                {
+                if (Ascending)
                     source = !applyThenBy ? source.OrderBy(sortExp) : ((IOrderedQueryable<TModel>)source).ThenBy(sortExp);
-                }
                 else
-                {
                     source = !applyThenBy ? source.OrderByDescending(sortExp) : ((IOrderedQueryable<TModel>)source).ThenByDescending(sortExp);
-                }
 
                 applyThenBy = true;
             }
 
-            if (query.Offset > 0)
-                source = source.Skip(query.Offset);
-            if (query.Limit > 0)
-                source = source.Take(query.Limit);
+            foreach (var customSort in customSorts)
+                source = modelConfig.ApplyCustomSort(customSort.Key, (IOrderedQueryable<TModel>)source, customSort.Value, applyThenBy);
+
+            if (offset.HasValue && offset > 0)
+                source = source.Skip(offset.Value);
+            if (limit.HasValue && limit > 0)
+                source = source.Take(limit.Value);
 
             return source;
+        }
+
+        public static IQueryable<TModel> ApplyOrderingAndPaging<TModel>(this IQueryable<TModel> source, QueryModel queryModel, QueryMappingConfig? mappingConfig = null)
+        {
+            return source.ApplyOrderingAndPaging(queryModel.OrderBy, queryModel.Offset, queryModel.Limit, mappingConfig);
         }
     }
 }

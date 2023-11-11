@@ -1,410 +1,544 @@
 ﻿using FluentAssertions;
-using QueryX.Exceptions;
-using QueryX.Filters;
+using System.Linq.Expressions;
 
 namespace QueryX.Tests
 {
     public class QueryableTests
     {
-        private static readonly SampleObject SampleoObject1 = new(1, "stringVal1", true, new DateTime(2018, 1, 1), TestEnum.Value1, 1);
-        private static readonly SampleObject SampleoObject2 = new(2, "stringVal2", true, new DateTime(2018, 6, 6), TestEnum.Value1, 1);
-        private static readonly SampleObject SampleoObject3 = new(3, "newvalue1", false, new DateTime(2017, 3, 9), TestEnum.Value2, 2);
-        private static readonly SampleObject SampleoObject4 = new(4, "newvalue2", false, new DateTime(2017, 12, 11), TestEnum.Value2, 2);
-        private static readonly SampleObject SampleoObject5 = new(5, "custom", true, new DateTime(2016, 7, 7), TestEnum.Value3, 3);
-
-        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship1 = new()
-        {
-            Prop1 = SampleoObject1,
-            Prop2 = SampleoObject2,
-            Prop3 = new List<SampleObject>
-            {
-                SampleoObject1,
-                SampleoObject3,
-                SampleoObject5
-            }
-        };
-        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship2 = new() { Prop1 = null, Prop2 = SampleoObject4 };
-        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship3 = new()
-        {
-            Prop1 = SampleoObject3,
-            Prop3 = new List<SampleObject>
-            {
-                SampleoObject2,
-                SampleoObject4
-            }
-        };
-        private static readonly SampleObjectWithRelationship SampleObjectWithRelationship4 = new() { Prop1 = SampleoObject5 };
-
-        private static readonly SampleObject[] SampleOjectsCollection = new[]
-        {
-            SampleoObject1, SampleoObject2, SampleoObject3, SampleoObject4, SampleoObject5
-        };
-
-        private static readonly SampleObjectWithRelationship[] SampleObjectWithRelationshipsCollection = new[]
-        {
-            SampleObjectWithRelationship1, SampleObjectWithRelationship3, SampleObjectWithRelationship4
-        };
-
-        private static readonly SampleObjectWithRelationship[] SampleObjectWithRelationshipsCollectionWithNulls = new[]
-        {
-            SampleObjectWithRelationship1, SampleObjectWithRelationship2
-        };
-
-        private readonly QueryBuilder _queryBuilder;
-
-        public QueryableTests()
-        {
-            _queryBuilder = new QueryBuilder(new FilterFactory(), new QueryConfiguration());
-
-        }
-
         [Fact]
-        public void TestEqualsFilterIntProperty()
+        public void EqualIntTest()
         {
-            const int prop1FilterValue = 2;
-            const int expectedCount = 1;
-
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
+            const int ProductId = 1;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Id == ProductId;
+            var query = new QueryModel
             {
-                Filter = $"prop1 == {prop1FilterValue}"
-            });
-
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
-            result.First().Prop1.Should().Be(prop1FilterValue);
-        }
-
-        [Fact]
-        public void TestEqualsFilterStringProperty()
-        {
-            const string prop2FilterValue = "newvalue1";
-            const int expectedCount = 1;
-
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
-            {
-                Filter = $"prop2 == '{prop2FilterValue}'"
-            });
-
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
-            result.First().Prop2.Should().Be(prop2FilterValue);
-        }
-
-        [Fact]
-        public void TestEqualsFilterStringProperty1()
-        {
-            const int prop1FilterValue = 3;
-            const int expectedCount = 1;
-
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(new QueryModel
-            {
-                Filter = $"prop1.prop1 == {prop1FilterValue}"
-            });
-
-            var result = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
-            result.First().Prop1!.Prop1.Should().Be(prop1FilterValue);
-        }
-
-        [Fact]
-        public void TestInFilterIntProperty()
-        {
-            var prop1FilterValues = new[] { 2, 4, 5, 8 };
-            const int expectedCount = 3;
-
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
-            {
-                Filter = $"prop1 |= {string.Join(',', prop1FilterValues)}"
-            });
-
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
-            result.Where(r => prop1FilterValues.Contains(r.Prop1)).Count().Should().Be(expectedCount);
-        }
-
-        [Fact]
-        public void TestNotInFilterIntProperty()
-        {
-            var prop1FilterValues = new[] { 2, 4, 5, 8 };
-            const int expectedCount = 2;
-
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
-            {
-                Filter = $"!prop1 |= {string.Join(',', prop1FilterValues)}"
-            });
-
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
-        }
-
-        [Fact]
-        public void TestBetweenFilterDateTimeProperty()
-        {
-            var dateTimeFrom = new DateTime(2017, 3, 1);
-            var dateTimeTo = new DateTime(2018, 1, 1);
-            const int expectedCount = 3;
-
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
-            {
-                Filter = $"prop4 >= '{dateTimeFrom}' & prop4 <= '{dateTimeTo}'"
-            });
-
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
-            result.Where(r => r.Prop4 >= dateTimeFrom && r.Prop4 <= dateTimeTo).Count().Should().Be(expectedCount);
-        }
-
-        [Fact]
-        public void TestContainsFilter()
-        {
-            const string searchValue = "stringVal";
-            const int expectedCount = 2;
-
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
-            {
-                Filter = $"prop2 -=- '{searchValue}'"
-            });
-
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
-        }
-
-        [Fact]
-        public void TestNotContainsFilter()
-        {
-            const string searchValue = "stringVal";
-            const int expectedCount = 3;
-
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
-            {
-                Filter = $"!prop2 -=- '{searchValue}'"
-            });
-
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
-        }
-
-        [Fact]
-        public void TestStartsWithFilter()
-        {
-            const string searchValue = "string";
-            const int expectedCount = 2;
-
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
-            {
-                Filter = $"prop2 =- '{searchValue}'"
-            });
-
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
-        }
-
-        [Fact]
-        public void TestEndsWithFilter()
-        {
-            const string searchValue = "1";
-            const int expectedCount = 2;
-
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
-            {
-                Filter = $"prop2 -= '{searchValue}'"
-            });
-
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(expectedCount);
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void SortWithNestedProperty(bool ascending)
-        {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(new QueryModel
-            {
-                OrderBy = "prop1.prop2"
-            });
-
-            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
-            var result = queryable.ToList();
-
-
-            if (ascending)
-            {
-                SampleObjectWithRelationshipsCollection.OrderBy(p => p.Prop1?.Prop2).Should().BeEquivalentTo(result);
-            }
-            if (!ascending)
-            {
-                SampleObjectWithRelationshipsCollection.OrderByDescending(p => p.Prop1?.Prop2).Should().BeEquivalentTo(result);
-            }
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void SortWithMappedProperties(bool ascending)
-        {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationshipFilter>(new QueryModel
-            {
-                OrderBy = "therop1.theprop2"
-            });
-
-            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
-            var result = queryable.ToList();
-
-
-            if (ascending)
-            {
-                SampleObjectWithRelationshipsCollection.OrderBy(p => p.Prop1?.Prop2).Should().BeEquivalentTo(result);
-            }
-            if (!ascending)
-            {
-                SampleObjectWithRelationshipsCollection.OrderByDescending(p => p.Prop1?.Prop2).Should().BeEquivalentTo(result);
-            }
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void DefaultSortWithInvalidPropertyNameShouldNotThrowException(bool ascending)
-        {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(new QueryModel
-            {
-                OrderBy = $"{(ascending ? "" : "-")}test_prop"
-            });
-
-            var queryable = SampleObjectWithRelationshipsCollectionWithNulls.AsQueryable().ApplyQuery(query);
-            var result = queryable.ToList();
-            result.Should().NotBeNull();
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void SortWithInvalidPropertyNameShouldNotThrowException(bool ascending)
-        {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(new QueryModel
-            {
-                OrderBy = $"{(ascending ? "" : "-")}test_prop"
-            });
-
-            var queryable = SampleObjectWithRelationshipsCollectionWithNulls.AsQueryable().ApplyQuery(query, applyOrderingAndPaging: false);
-            queryable = queryable.ApplyOrderingAndPaging(query);
-            var result = queryable.ToList();
-            result.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void QueryWithObjectPropertiesToNonCollectionShouldThrowException()
-        {
-            var act = () =>
-            {
-                _ = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(
-                    new QueryModel
-                    {
-                        Filter = "prop1(prop2=='stringVal1')"
-                    });
+                Filter = $"id == {ProductId}"
             };
 
-            act.Should().Throw<QueryFormatException>();
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
-        public void CombineQueryWithObjectProperties()
+        public void EqualStringTest()
         {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(
-                new QueryModel
-                {
-                    Filter = "prop3(prop2=='stringVal2')|prop2.prop2=='stringVal2'"
-                });
-
-            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
-            var result = queryable.ToList();
-            result.Should().NotBeNull();
-            result.Count().Should().Be(2);
-        }
-
-        [Fact]
-        public void CombineQueryWithObjectPropertiesAndNegation()
-        {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(
-                new QueryModel
-                {
-                    Filter = "!prop3(prop2-=-'stringVal')|prop2.prop2=='stringVal1'"
-                });
-
-            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
-            var result = queryable.ToList();
-            result.Should().NotBeNull();
-            result.Count().Should().Be(1);
-        }
-
-        [Fact]
-        public void FilterWithCustomQueryObject()
-        {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationshipQuery, SampleObjectWithRelationship>(
-                new QueryModel
-                {
-                    Filter = "prop3(prop2=='stringVal2')|prop2.prop2=='stringVal2'"
-                });
-
-            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
-            var result = queryable.ToList();
-            result.Should().NotBeNull();
-            result.Count().Should().Be(2);
-        }
-
-        [Fact]
-        public void CustomFilterModelWithMappings()
-        {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationshipFilter>(
-                new QueryModel
-                {
-                    Filter = "theProp3(theProp2=='stringVal2')|theProp2.theProp2=='stringVal2'"
-                });
-
-            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
-            var result = queryable.ToList();
-            result.Should().NotBeNull();
-            result.Count().Should().Be(2);
-        }
-
-        [Fact]
-        public void QueryCollectionWithAllCondition()
-        {
-            var query = _queryBuilder.CreateQuery<SampleObjectWithRelationship>(
-                new QueryModel
-                {
-                    Filter = "prop3*(prop2=='stringVal2')"
-                });
-
-            var queryable = SampleObjectWithRelationshipsCollection.AsQueryable().ApplyQuery(query);
-            var result = queryable.ToList();
-            result.Should().NotBeNull();
-            result.Count().Should().Be(1);
-        }
-
-        [Fact]
-        public void QueryWithGroupsTest()
-        {
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
+            const string ProductName = "Product1";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name == ProductName;
+            var query = new QueryModel
             {
-                Filter = "(prop1==1|prop1==2)&prop2-='Val2'"
-            });
+                Filter = $"name == '{ProductName}'"
+            };
 
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(1);
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
         }
 
         [Fact]
-        public void QueryWithNegatedGroupsTest()
+        public void EqualStringShouldMatchCaseTest()
         {
-            var query = _queryBuilder.CreateQuery<SampleObject>(new QueryModel
+            const string ProductName = "pRoDuCt1";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name == ProductName;
+            var query = new QueryModel
             {
-                Filter = "!(prop1==1|prop1==2)&prop2=='newvalue1'"
-            });
+                Filter = $"name == '{ProductName}'"
+            };
 
-            var result = SampleOjectsCollection.AsQueryable().ApplyQuery(query);
-            result.Count().Should().Be(1);
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().BeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void EqualStringCaseSensitiveTest()
+        {
+            const string ProductName = "pRoDuct1";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name.ToLower() == ProductName.ToLower();
+            var query = new QueryModel
+            {
+                Filter = $"name ==* '{ProductName}'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void EqualNullStringTest()
+        {
+            Expression<Func<Product, bool>> expectedFilter = x => x.Description == null;
+            var query = new QueryModel
+            {
+                Filter = $"description == null"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void EqualEnumsFromString()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status == ShoppingCartStatus.Pending;
+            var query = new QueryModel
+            {
+                Filter = $"status == 'pending'"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void EqualEnumsFromInt()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status == ShoppingCartStatus.Confirmed;
+            var query = new QueryModel
+            {
+                Filter = $"status == 1"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GreaterThanIntTest()
+        {
+            const int ProductId = 1;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Id > ProductId;
+            var query = new QueryModel
+            {
+                Filter = $"id > {ProductId}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GreaterThanEnumsFromString()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status > ShoppingCartStatus.Pending;
+            var query = new QueryModel
+            {
+                Filter = $"status > 'pending'"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GreaterThanEnumsFromInt()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status > ShoppingCartStatus.Confirmed;
+            var query = new QueryModel
+            {
+                Filter = $"status > 1"
+            };
+
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GreaterThanOrEqualIntTest()
+        {
+            const int ProductId = 1;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Id >= ProductId;
+            var query = new QueryModel
+            {
+                Filter = $"id >= {ProductId}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GreaterThanOrEqualEnumsFromString()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status >= ShoppingCartStatus.Pending;
+            var query = new QueryModel
+            {
+                Filter = $"status >= 'pending'"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GreaterThanOrEqualEnumsFromInt()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status >= ShoppingCartStatus.Confirmed;
+            var query = new QueryModel
+            {
+                Filter = $"status >= 1"
+            };
+
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void LessThanIntTest()
+        {
+            const int ProductId = 5;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Id < ProductId;
+            var query = new QueryModel
+            {
+                Filter = $"id < {ProductId}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void LessThanEnumsFromString()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status < ShoppingCartStatus.Canceled;
+            var query = new QueryModel
+            {
+                Filter = $"status < 'canceled'"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void LessThanEnumsFromInt()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status < ShoppingCartStatus.Confirmed;
+            var query = new QueryModel
+            {
+                Filter = $"status < 1"
+            };
+
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void LessThanOrEqualIntTest()
+        {
+            const int ProductId = 5;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Id <= ProductId;
+            var query = new QueryModel
+            {
+                Filter = $"id <= {ProductId}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void LessThanOrEqualEnumsFromString()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status <= ShoppingCartStatus.Canceled;
+            var query = new QueryModel
+            {
+                Filter = $"status <= 'canceled'"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void LessThanOrEqualEnumsFromInt()
+        {
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => x.Status <= ShoppingCartStatus.Confirmed;
+            var query = new QueryModel
+            {
+                Filter = $"status <= 1"
+            };
+
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void InIntTest()
+        {
+            var productIds = new[] { 2, 4, 6 }.ToList();
+            Expression<Func<Product, bool>> expectedFilter = x => productIds.Contains(x.Id);
+            var query = new QueryModel
+            {
+                Filter = $"id |= {string.Join(",", productIds)}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void InStringTest()
+        {
+            var productNames = new[] { "Product1", "Product2", "Product4" }.ToList();
+            Expression<Func<Product, bool>> expectedFilter = x => productNames.Contains(x.Name);
+            var query = new QueryModel
+            {
+                Filter = $"name |= {string.Join(",", productNames.Select(n => $"'{n}'"))}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void InStringShouldMatchCaseTest()
+        {
+            var productNames = new[] { "PrOduCt1", "ProDUCT2" }.ToList();
+            Expression<Func<Product, bool>> expectedFilter = x => productNames.Contains(x.Name);
+            var query = new QueryModel
+            {
+                Filter = $"name |= {string.Join(",", productNames.Select(n => $"'{n}'"))}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().BeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void InStringCaseSensitiveTest()
+        {
+            var productNames = new[] { "PrOduCt1", "ProDUCT2" }.ToList();
+            var lowerNames = productNames.Select(n => n.ToLower()).ToList();
+            Expression<Func<Product, bool>> expectedFilter = x => lowerNames.Contains(x.Name.ToLower());
+            var query = new QueryModel
+            {
+                Filter = $"name |=* {string.Join(",", productNames.Select(n => $"'{n}'"))}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void InNullStringTest()
+        {
+            var productDescriptions = new string?[] { null }.ToList();
+            Expression<Func<Product, bool>> expectedFilter = x => productDescriptions.Contains(x.Description);
+            var query = new QueryModel
+            {
+                Filter = $"description |= null"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void InEnumsFromString()
+        {
+            var status = new[] { "pending", "canceled" }.ToList();
+            var statusList = new[] { ShoppingCartStatus.Pending, ShoppingCartStatus.Canceled };
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => statusList.Contains(x.Status);
+            var query = new QueryModel
+            {
+                Filter = $"status |= {string.Join(",", status.Select(n => $"'{n}'"))}"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void InEnumsFromInt()
+        {
+            var status = new[] { 0, 2 }.ToList();
+            var statusList = new[] { ShoppingCartStatus.Pending, ShoppingCartStatus.Canceled };
+            Expression<Func<ShoppingCart, bool>> expectedFilter = x => statusList.Contains(x.Status);
+            var query = new QueryModel
+            {
+                Filter = $"status |= {string.Join(",", status.Select(n => $"{n}"))}"
+            };
+
+            var result = Collections.ShoppingCarts.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.ShoppingCarts.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void ContainsTest()
+        {
+            const string ProductNameContains = "rod";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name.Contains(ProductNameContains);
+            var query = new QueryModel
+            {
+                Filter = $"name -=- '{ProductNameContains}'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void ContainsCaseInSensitiveTest()
+        {
+            const string ProductNameContains = "RoD";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name.ToLower().Contains(ProductNameContains.ToLower());
+            var query = new QueryModel
+            {
+                Filter = $"name -=-* '{ProductNameContains}'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void StartsWithTest()
+        {
+            const string ProductNameStartWith = "Prod";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name.StartsWith(ProductNameStartWith);
+            var query = new QueryModel
+            {
+                Filter = $"name =- '{ProductNameStartWith}'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void StartsWithCaseInsensitiveTest()
+        {
+            const string ProductNameStartWith = "PrOD";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name.ToLower().StartsWith(ProductNameStartWith.ToLower());
+            var query = new QueryModel
+            {
+                Filter = $"name =-* '{ProductNameStartWith}'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void EndsWithTest()
+        {
+            const string ProductNameEndsWith = "duct1";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name.EndsWith(ProductNameEndsWith);
+            var query = new QueryModel
+            {
+                Filter = $"name -= '{ProductNameEndsWith}'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void EndsWithCaseInsensitiveTest()
+        {
+            const string ProductNameEndsWith = "DUcT1";
+            Expression<Func<Product, bool>> expectedFilter = x => x.Name.ToLower().EndsWith(ProductNameEndsWith.ToLower());
+            var query = new QueryModel
+            {
+                Filter = $"name -=* '{ProductNameEndsWith}'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace QueryX.Parsing.Nodes
 {
-    public class AndAlsoNode : BinaryNode
+    internal class AndAlsoNode : BinaryNode
     {
         public AndAlsoNode(NodeBase left, NodeBase right, bool isNegated = false) : base(left, right, isNegated)
         {
