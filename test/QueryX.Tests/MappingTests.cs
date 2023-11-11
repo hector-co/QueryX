@@ -552,6 +552,29 @@ namespace QueryX.Tests
         }
 
         [Fact]
+        public void MappingNavigationPath2()
+        {
+            var config = new QueryMappingConfig()
+                .For<ShoppingCartLine>(cfg =>
+                {
+                    cfg.Property(l => l.Product.Category).MapFrom("prodCat");
+                });
+
+            const string CategoryName = "Category1";
+            Expression<Func<ShoppingCartLine, bool>> expectedFilter = l => l.Product.Category.Name == CategoryName;
+            var query = new QueryModel
+            {
+                Filter = $"prodCat.name == '{CategoryName}'"
+            };
+
+            var result = Collections.ShoppingCartLines.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.ShoppingCartLines.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
+
+        [Fact]
         public void MappingNavigationPathShouldNotInterferesWithNormalFiltering()
         {
             var config = new QueryMappingConfig()

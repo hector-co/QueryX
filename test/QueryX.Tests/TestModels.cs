@@ -8,9 +8,16 @@
         Service
     }
 
+    public class Category
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+
     public class Product
     {
         public int Id { get; set; }
+        public Category Category { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public float Price { get; set; }
@@ -48,12 +55,33 @@
 
     public static class Collections
     {
+        public static Category[] Categories =>
+            new[]
+            {
+                new Category
+                {
+                    Id = 1,
+                    Name = "Category1"
+                },
+                new Category
+                {
+                    Id = 2,
+                    Name = "Category2"
+                },
+                new Category
+                {
+                    Id = 3,
+                    Name = "Category3"
+                }
+            };
+
         public static Product[] Products =>
             new[]
             {
                 new Product
                 {
                     Id = 1,
+                    Category = Categories[0],
                     Name = "Product1",
                     Description = "Description1",
                     Price = 10,
@@ -65,6 +93,7 @@
                 new Product
                 {
                     Id = 2,
+                    Category = Categories[1],
                     Name = "Product2",
                     Description = "Description2",
                     Price = 20,
@@ -76,6 +105,7 @@
                 new Product
                 {
                     Id = 3,
+                    Category = Categories[2],
                     Name = "Product3",
                     Description = "description3",
                     Price = 30,
@@ -87,6 +117,7 @@
                 new Product
                 {
                     Id = 4,
+                    Category = Categories[0],
                     Name = "new Product1",
                     Description = "description4",
                     Price = 40,
@@ -98,6 +129,7 @@
                 new Product
                 {
                     Id = 5,
+                    Category = Categories[1],
                     Name = "new Product2",
                     Price = 50,
                     Stock = 20,
@@ -108,6 +140,7 @@
                 new Product
                 {
                     Id = 6,
+                    Category = Categories[2],
                     Name = "new Product3",
                     Price = 60,
                     Stock = 15,
@@ -118,6 +151,7 @@
                 new Product
                 {
                     Id = 7,
+                    Category = Categories[0],
                     Name = "Custom1",
                     Price = 70,
                     Stock = 10,
@@ -128,6 +162,7 @@
                 new Product
                 {
                     Id = 8,
+                    Category = Categories[1],
                     Name = "Custom2",
                     Price = 80,
                     Stock = 5,
@@ -138,6 +173,7 @@
                 new Product
                 {
                     Id = 9,
+                    Category = Categories[2],
                     Name = "custom3",
                     Price = 90,
                     Stock = 0,
@@ -148,6 +184,7 @@
                 new Product
                 {
                     Id = 10,
+                    Category = Categories[0],
                     Name = "custom4",
                     Price = 100,
                     Stock = 2,
