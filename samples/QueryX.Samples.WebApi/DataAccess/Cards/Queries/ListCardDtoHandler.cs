@@ -19,6 +19,7 @@ namespace QueryX.Samples.WebApi.DataAccess.Cards.Queries
                     {
                         return source = source.Where(c => c.EstimatedPoints > values[0]);
                     });
+                    cfg.Property(m => m.Board.Title).MapFrom("bTitle");
                 });
         }
 

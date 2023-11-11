@@ -156,6 +156,7 @@ QueryMappingConfig.Global
 Allows mapping a property with a different name that will appear in the ```filter``` or ```sortBy``` string:
 ```csharp
 cfg.Property(c => c.Priority).MapFrom("queryPriority");
+cfg.Property(c => c.Board.Title).MapFrom("bTitle");
 ```
 
 Additionally, ```MapFrom``` method supports a second parameter to apply custom conversion from string to the property type:
@@ -169,8 +170,6 @@ Ignore properties from filter and sorting steps. ```IgnoreFilter``` and ```Ignor
 ```csharp
 cfg.Property(c => c.Priority).Ignore();
 ```
-
-
 
 #### Custom filters:
 This properties are excluded as part of the filter, custom code needs to be written for doing something with the filter values. Custom filters are applied after all filters have been applied
@@ -199,6 +198,16 @@ cfg.Property(c => c.Priority).CustomSort((source, ascending, isOrdered) =>
         : ascending
             ? source.OrderBy(c => c.Priority)
             : source.OrderByDescending(c => c.Priority);
+});
+```
+
+#### Concatenate configurations:
+Configurations can be concatenated as required:
+```csharp
+cfg.Property(c => c.Priority).MapFrom("queryPriority").Ignore();
+cfg.Property(c => c.Board.Title).MapFrom("bTitle").CustomFilter((source, values, op) => 
+{
+    // ...
 });
 ```
 

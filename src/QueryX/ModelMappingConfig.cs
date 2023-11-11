@@ -75,9 +75,12 @@ namespace QueryX
 
         public PropertyMappingConfig<TModel, TValue> Property<TValue>(Expression<Func<TModel, TValue>> propertyName)
         {
-            return !(propertyName.Body is MemberExpression member)
-                ? throw new ArgumentException($"Expression '{propertyName}' refers to a method, not a property.")
-                : new PropertyMappingConfig<TModel, TValue>(_mapping, member.Member.Name);
+            if (!(propertyName.Body is MemberExpression member))
+                throw new ArgumentException($"Expression '{propertyName}' refers to a method, not a property.");
+
+            var propName = string.Join(".", member.ToString().Split('.').Skip(1));
+
+            return new PropertyMappingConfig<TModel, TValue>(_mapping, propName);
         }
     }
 

@@ -527,5 +527,170 @@ namespace QueryX.Tests
             result.Should().NotBeEmpty();
             result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
         }
+
+        [Fact]
+        public void MappingNavigationPath()
+        {
+            var config = new QueryMappingConfig()
+                .For<ShoppingCartLine>(cfg =>
+                {
+                    cfg.Property(l => l.Product.Name).MapFrom("prodName");
+                });
+
+            const string ProductName = "Product1";
+            Expression<Func<ShoppingCartLine, bool>> expectedFilter = l => l.Product.Name == ProductName;
+            var query = new QueryModel
+            {
+                Filter = $"prodName == '{ProductName}'"
+            };
+
+            var result = Collections.ShoppingCartLines.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.ShoppingCartLines.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
+
+        [Fact]
+        public void MappingNavigationPathShouldNotInterferesWithNormalFiltering()
+        {
+            var config = new QueryMappingConfig()
+                .For<ShoppingCartLine>(cfg =>
+                {
+                    cfg.Property(l => l.Product.Name).MapFrom("prodName");
+                });
+
+            const string ProductName = "Product1";
+            Expression<Func<ShoppingCartLine, bool>> expectedFilter = l => l.Product.Name == ProductName;
+            var query = new QueryModel
+            {
+                Filter = $"product.name == '{ProductName}'"
+            };
+
+            var result = Collections.ShoppingCartLines.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.ShoppingCartLines.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
+
+
+        [Fact]
+        public void MappingNavigationPathWithCollection()
+        {
+            var config = new QueryMappingConfig()
+                .For<Customer>(cfg =>
+                {
+                    cfg.Property(c => c.CurrentShoppingCart.Lines).MapFrom("cartlines");
+                });
+
+            const string ProductName = "Product2";
+            Expression<Func<Customer, bool>> expectedFilter = c => c.CurrentShoppingCart.Lines.Any(l => l.Product.Name == ProductName);
+            var query = new QueryModel
+            {
+                Filter = $"cartlines(product.name == '{ProductName}')"
+            };
+
+            var result = Collections.Customers.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.Customers.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
+
+        [Fact]
+        public void IgnoreWithNavigationPath()
+        {
+            var config = new QueryMappingConfig()
+                .For<ShoppingCartLine>(cfg =>
+                {
+                    cfg.Property(l => l.Product.Name).MapFrom("prodName").Ignore();
+                });
+
+            const string ProductName = "Product1";
+            Expression<Func<ShoppingCartLine, bool>> expectedFilter = l => true;
+            var query = new QueryModel
+            {
+                Filter = $"prodName == '{ProductName}'"
+            };
+
+            var result = Collections.ShoppingCartLines.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.ShoppingCartLines.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
+
+        [Fact]
+        public void SortWithNavigationPath()
+        {
+            var config = new QueryMappingConfig()
+                .For<ShoppingCartLine>(cfg =>
+                {
+                    cfg.Property(l => l.Product.Name).MapFrom("prodName");
+                });
+
+            var query = new QueryModel
+            {
+                OrderBy = "-prodName"
+            };
+
+            var result = Collections.ShoppingCartLines.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.ShoppingCartLines.AsQueryable().OrderByDescending(l => l.Product.Name).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
+
+        [Fact]
+        public void MapCustomFilterWithNavigationPath()
+        {
+            var config = new QueryMappingConfig()
+                .For<ShoppingCartLine>(cfg =>
+                {
+                    cfg.Property(p => p.Product.Id).MapFrom("prodId").CustomFilter((source, values, op) =>
+                    {
+                        return source.Where(l => l.Product.Id > values.First());
+                    });
+                });
+
+            Expression<Func<ShoppingCartLine, bool>> expectedFilter = l => l.Product.Id > 5;
+            var query = new QueryModel
+            {
+                Filter = $"prodId < 5"
+            };
+
+            var result = Collections.ShoppingCartLines.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.ShoppingCartLines.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void MapCustomSortWithNavigationPath()
+        {
+            var config = new QueryMappingConfig();
+            config.For<ShoppingCartLine>(cfg =>
+            {
+                cfg.Property(p => p.Product.Id).MapFrom("prodId").CustomSort((source, ascending, isOrdered) =>
+                {
+                    return source.OrderByDescending(p => p.Product.Id);
+                });
+            });
+
+            Expression<Func<ShoppingCartLine, bool>> expectedFilter = x => x.Product.Id < 5;
+            var query = new QueryModel
+            {
+                Filter = $"prodId < 5",
+                OrderBy = "prodId"
+            };
+
+            var result = Collections.ShoppingCartLines.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.ShoppingCartLines.AsQueryable().Where(expectedFilter).OrderByDescending(l => l.Product.Id).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
     }
 }

@@ -34,6 +34,11 @@
         public float Quantity { get; set; }
     }
 
+    public class Customer
+    {
+        public ShoppingCart CurrentShoppingCart { get; set; }
+    }
+
     public enum ShoppingCartStatus
     {
         Pending,
@@ -246,6 +251,23 @@
                         ShoppingCartLines[7],
                         ShoppingCartLines[8]
                     }.ToList()
+                }
+            };
+
+        public static Customer[] Customers =>
+            new[]
+            {
+                new Customer
+                {
+                    CurrentShoppingCart = ShoppingCarts[0]
+                },
+                new Customer
+                {
+                    CurrentShoppingCart = ShoppingCarts[1]
+                },
+                new Customer
+                {
+                    CurrentShoppingCart = ShoppingCarts[2]
                 }
             };
     }

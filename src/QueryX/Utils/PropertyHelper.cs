@@ -45,7 +45,7 @@ namespace QueryX.Utils
                     return false;
                 }
 
-                resultPropertyPath += $"{propInfo.Name}{Separator}";
+                resultPropertyPath += $"{mappedName}{Separator}";
                 currentType = propInfo.PropertyType;
             }
 
