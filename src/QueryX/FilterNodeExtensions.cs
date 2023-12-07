@@ -46,6 +46,7 @@ namespace QueryX
                 FilterOperator.In => GetInExpression(filterNode, property, values),
                 FilterOperator.LessThan => GetLessThanExpression(filterNode, property, values),
                 FilterOperator.LessThanOrEqual => GetLessThanOrEqualExpression(filterNode, property, values),
+                FilterOperator.NotEqual => GetNotEqualsExpression(filterNode, property, values),
                 FilterOperator.StartsWith => GetStartsWithExpression(filterNode, property, values),
                 _ => throw new QueryException($"Invalid operator type: '{filterNode.Operator}'"),
             };
@@ -80,6 +81,18 @@ namespace QueryX
             var (prop, expValue) = property.GetPropertyAndConstant(values, filterNode.IsCaseInsensitive);
 
             var exp = Expression.Equal(prop, expValue);
+
+            if (filterNode.IsNegated)
+                return Expression.Not(exp);
+
+            return exp;
+        }
+
+        private static Expression GetNotEqualsExpression<TValue>(FilterNode filterNode, Expression property, IEnumerable<TValue> values)
+        {
+            var (prop, expValue) = property.GetPropertyAndConstant(values, filterNode.IsCaseInsensitive);
+
+            var exp = Expression.NotEqual(prop, expValue);
 
             if (filterNode.IsNegated)
                 return Expression.Not(exp);

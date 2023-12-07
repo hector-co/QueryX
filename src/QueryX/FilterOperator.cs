@@ -4,6 +4,7 @@
     {
         None,
         Equal,
+        NotEqual,
         GreaterThan,
         GreaterThanOrEqual,
         LessThan,
