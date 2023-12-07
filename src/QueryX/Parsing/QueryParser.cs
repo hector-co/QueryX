@@ -13,6 +13,7 @@ namespace QueryX.Parsing
         private static readonly Dictionary<string, FilterOperator> _operatorToFilterOperator = new Dictionary<string, FilterOperator>
         {
             { "==", FilterOperator.Equal},
+            { "!=", FilterOperator.NotEqual},
             { ">", FilterOperator.GreaterThan},
             { ">=", FilterOperator.GreaterThanOrEqual},
             { "<", FilterOperator.LessThan},

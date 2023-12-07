@@ -10,6 +10,7 @@ namespace QueryX.Parsing
         private readonly static string[] _operators = new[]
         {
             "==",
+            "!=",
             ">=",
             "<=",
             "|=",
@@ -30,6 +31,7 @@ namespace QueryX.Parsing
                 .Or(Span.EqualTo(_operators[6])).Try()
                 .Or(Span.EqualTo(_operators[7])).Try()
                 .Or(Span.EqualTo(_operators[8])).Try()
+                .Or(Span.EqualTo(_operators[9])).Try()
             select Unit.Value;
 
         private static TextParser<Unit> CustomIdentifier { get; } =
