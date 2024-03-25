@@ -21,10 +21,11 @@
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public float Price { get; set; }
-        public float Stock { get; set; }
+        public float? Stock { get; set; }
         public DateTime RegisteredAt { get; set; }
         public bool Active { get; set; }
         public int Type { get; set; }
+        public int? Order { get; set; }
     }
 
     public class ShoppingCart
@@ -88,7 +89,8 @@
                     Stock = 40,
                     RegisteredAt = DateTime.Parse("2023-6-1"),
                     Active = true,
-                    Type = (int)ProducType.RawMaterial
+                    Type = (int)ProducType.RawMaterial,
+                    Order = 10
                 },
                 new Product
                 {
@@ -112,7 +114,8 @@
                     Stock = 30,
                     RegisteredAt = DateTime.Parse("2023-6-30"),
                     Active = true,
-                    Type = (int)ProducType.FinishedGoods
+                    Type = (int)ProducType.FinishedGoods,
+                    Order = 2
                 },
                 new Product
                 {
@@ -135,7 +138,8 @@
                     Stock = 20,
                     RegisteredAt = DateTime.Parse("2023-7-15"),
                     Active = true,
-                    Type = (int)ProducType.Consumable
+                    Type = (int)ProducType.Consumable,
+                    Order = 5
                 },
                 new Product
                 {
@@ -157,7 +161,8 @@
                     Stock = 10,
                     RegisteredAt = DateTime.Parse("2023-8-1"),
                     Active = false,
-                    Type = (int)ProducType.Service
+                    Type = (int)ProducType.Service,
+                    Order = 20
                 },
                 new Product
                 {
@@ -179,7 +184,8 @@
                     Stock = 0,
                     RegisteredAt = DateTime.Parse("2023-8-30"),
                     Active = false,
-                    Type = (int)ProducType.FinishedGoods
+                    Type = (int)ProducType.FinishedGoods,
+                    Order = 15
                 },
                 new Product
                 {

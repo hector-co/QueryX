@@ -656,5 +656,124 @@ namespace QueryX.Tests
             result.Should().NotBeEmpty();
             result.Should().BeEquivalentTo(expected);
         }
+
+        [Fact]
+        public void EqualNullableIntTest()
+        {
+            const int ProductOrder = 2;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Order == ProductOrder;
+            var query = new QueryModel
+            {
+                Filter = $"order == {ProductOrder}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void NotEqualNullableIntTest()
+        {
+            const int ProductOrder = 10;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Order != ProductOrder;
+            var query = new QueryModel
+            {
+                Filter = $"order != {ProductOrder}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void EqualNullIntTest()
+        {
+            int? ProductOrder = null;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Order == ProductOrder;
+            var query = new QueryModel
+            {
+                Filter = $"order == null"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void NotEqualNullIntTest()
+        {
+            int? ProductOrder = null;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Order != ProductOrder;
+            var query = new QueryModel
+            {
+                Filter = $"order != null"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void GreaterThanNullableInTest()
+        {
+            int? ProductOrder = 10;
+            Expression<Func<Product, bool>> expectedFilter = x => x.Order > ProductOrder;
+            var query = new QueryModel
+            {
+                Filter = $"order > {ProductOrder}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void InNullableIntTest()
+        {
+            var ProductOrders = new int?[] { 2, 10 }.ToList();
+            Expression<Func<Product, bool>> expectedFilter = x => ProductOrders.Contains(x.Order);
+            var query = new QueryModel
+            {
+                Filter = $"order |= {string.Join(",", ProductOrders)}"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public void InNullableIntWithnullValueTest()
+        {
+            var ProductOrders = new int?[] { 2, null }.ToList();
+            Expression<Func<Product, bool>> expectedFilter = x => ProductOrders.Contains(x.Order);
+            var query = new QueryModel
+            {
+                Filter = $"order |= 2, null"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected);
+        }
     }
 }
