@@ -62,7 +62,12 @@ namespace QueryX.Utils
                     : Expression.Constant((value as string)?.ToLower());
             }
 
-            return Expression.Constant(value);
+            Expression constantExp = Expression.Constant(value);
+
+            if (IsNullableType(targetType) && !IsNullableType(constantExp.Type))
+                constantExp = Expression.Convert(constantExp, targetType);
+
+            return constantExp;
         }
 
         private static Expression GetAllValueExpression<TValue>(this IEnumerable<TValue> values, Type targetType, bool isCaseSensitive)
@@ -107,6 +112,11 @@ namespace QueryX.Utils
                 throw new QueryFormatException($"'{value}' is not valid for type {targetType.Name}");
 
             return TypeDescriptor.GetConverter(targetType).ConvertFrom(value)!;
+        }
+
+        private static bool IsNullableType(Type type)
+        {
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
     }
 }
