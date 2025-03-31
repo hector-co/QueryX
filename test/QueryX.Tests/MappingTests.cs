@@ -503,6 +503,110 @@ namespace QueryX.Tests
         }
 
         [Fact]
+        public void CustomFilterAfterPropertyMapShouldUseMappedName()
+        {
+            var config = new QueryMappingConfig()
+                .For<Product>(cfg =>
+                {
+                    cfg.Property(p => p.Attributes)
+                    .MapFrom("attrKey1")
+                    .CustomFilter((source, values, op) =>
+                    {
+                        return source.Where(p => p.Attributes == values[0]);
+                    });
+                });
+
+            Expression<Func<Product, bool>> expectedFilter = x => x.Attributes == "attrValue3";
+            var query = new QueryModel
+            {
+                Filter = $"attrKey1 == 'attrValue3'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
+
+        [Fact]
+        public void CustomFilterAfterPropertyMapShouldUseMappedName2()
+        {
+            var customFilterCalled = false;
+
+            var config = new QueryMappingConfig()
+                .For<Product>(cfg =>
+                {
+                    cfg.Property(p => p.Attributes)
+                    .MapFrom("attrKey1")
+                    .CustomFilter((source, values, op) =>
+                    {
+                        customFilterCalled = true;
+                        return source;
+                    });
+                });
+
+            Expression<Func<Product, bool>> expectedFilter = x => x.Attributes == "attrValue3";
+            var query = new QueryModel
+            {
+                Filter = $"attributes == 'attrValue3'"
+            };
+
+            var result = Collections.Products.AsQueryable().ApplyQuery(query, mappingConfig: config).ToArray();
+            var expected = Collections.Products.AsQueryable().Where(expectedFilter).ToArray();
+
+            customFilterCalled.Should().BeFalse();
+            result.Should().NotBeEmpty();
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
+        }
+
+        [Fact]
+        public void AllowMultipleCustomFiltersPerPropertyIfMappingNames()
+        {
+            var config = new QueryMappingConfig()
+                .For<Product>(cfg =>
+                {
+                    cfg.Property(p => p.Attributes)
+                    .MapFrom("attrKey1")
+                    .CustomFilter((source, values, op) =>
+                    {
+                        return source.Where(p => p.Attributes == values[0]);
+                    });
+
+                    cfg.Property(p => p.Attributes)
+                    .MapFrom("attrKey2")
+                    .CustomFilter((source, values, op) =>
+                    {
+                        return source.Where(p => p.Attributes == values[0]);
+                    });
+                });
+
+            Expression<Func<Product, bool>> expectedFilter1 = x => x.Attributes == "attrValue3";
+            var queryAttrKey1 = new QueryModel
+            {
+                Filter = $"attrKey1 == 'attrValue3'"
+            };
+
+            Expression<Func<Product, bool>> expectedFilter2 = x => x.Attributes == "attrValue4";
+            var queryAttrKey2 = new QueryModel
+            {
+                Filter = $"attrKey2 == 'attrValue4'"
+            };
+
+            var result1 = Collections.Products.AsQueryable().ApplyQuery(queryAttrKey1, mappingConfig: config).ToArray();
+            var expected1 = Collections.Products.AsQueryable().Where(expectedFilter1).ToArray();
+
+            var result2 = Collections.Products.AsQueryable().ApplyQuery(queryAttrKey2, mappingConfig: config).ToArray();
+            var expected2 = Collections.Products.AsQueryable().Where(expectedFilter2).ToArray();
+
+            result1.Should().NotBeEmpty();
+            result1.Should().BeEquivalentTo(expected1, o => o.WithStrictOrdering());
+
+            result2.Should().NotBeEmpty();
+            result2.Should().BeEquivalentTo(expected2, o => o.WithStrictOrdering());
+        }
+
+        [Fact]
         public void MapCustomSort()
         {
             var config = new QueryMappingConfig();
@@ -596,7 +700,6 @@ namespace QueryX.Tests
             result.Should().NotBeEmpty();
             result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
         }
-
 
         [Fact]
         public void MappingNavigationPathWithCollection()

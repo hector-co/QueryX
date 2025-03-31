@@ -152,7 +152,7 @@ QueryMappingConfig.Global
     });
 ```
 
-#### Map property name:
+### Map property name:
 Allows mapping a property with a different name that will appear in the ```filter``` or ```sortBy``` string:
 ```csharp
 cfg.Property(c => c.Priority).MapFrom("queryPriority");
@@ -165,13 +165,7 @@ Additionally, ```MapFrom``` method supports a second parameter to apply custom c
 cfg.Property(c => c.Priority).MapFrom("queryPriority", value => int.ParseInt(value));
 ```
 
-#### Ignore properties:
-Ignore properties from filter and sorting steps. ```IgnoreFilter``` and ```IgnoreSort``` methods exists also.
-```csharp
-cfg.Property(c => c.Priority).Ignore();
-```
-
-#### Custom filters:
+### Custom filters:
 This properties are excluded as part of the filter, custom code needs to be written for doing something with the filter values. Custom filters are applied after all filters have been applied
 ```csharp
 cfg.Property(c => c.Priority).CustomFilter((source, values, op) => 
@@ -183,7 +177,15 @@ cfg.Property(c => c.Priority).CustomFilter((source, values, op) =>
 });
 ```
 
-#### Custom sort:
+#### Custom filters after property mapping *V3 BREAKING CHANGE*
+
+### Ignore properties:
+Ignore properties from filter and sorting steps. ```IgnoreFilter``` and ```IgnoreSort``` methods exists also.
+```csharp
+cfg.Property(c => c.Priority).Ignore();
+```
+
+### Custom sort:
 This properties are excluded as part of the sort behavior, custom code needs to be written to apply them. Custom filters are applied after all filters have been applied
 ```csharp
 cfg.Property(c => c.Priority).CustomSort((source, ascending, isOrdered) => 
@@ -201,7 +203,7 @@ cfg.Property(c => c.Priority).CustomSort((source, ascending, isOrdered) =>
 });
 ```
 
-#### Concatenate configurations:
+### Concatenate configurations:
 Configurations can be concatenated as required:
 ```csharp
 cfg.Property(c => c.Priority).MapFrom("queryPriority").Ignore();

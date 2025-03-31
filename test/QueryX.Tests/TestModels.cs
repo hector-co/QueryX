@@ -1,4 +1,6 @@
-﻿namespace QueryX.Tests
+﻿using System.Text.Json;
+
+namespace QueryX.Tests
 {
     public enum ProducType
     {
@@ -26,6 +28,7 @@
         public bool Active { get; set; }
         public int Type { get; set; }
         public int? Order { get; set; }
+        public string Attributes { get; set; } = string.Empty;
     }
 
     public class ShoppingCart
@@ -90,7 +93,12 @@
                     RegisteredAt = DateTime.Parse("2023-6-1"),
                     Active = true,
                     Type = (int)ProducType.RawMaterial,
-                    Order = 10
+                    Order = 10,
+                    Attributes = JsonSerializer.Serialize(new Dictionary<string, string>
+                    {
+                        { "key1", "value1.1" },
+                        { "key2", "value1.2" }
+                    })
                 },
                 new Product
                 {
@@ -102,7 +110,12 @@
                     Stock = 35,
                     RegisteredAt = DateTime.Parse("2023-6-15"),
                     Active = true,
-                    Type = (int)ProducType.RawMaterial
+                    Type = (int)ProducType.RawMaterial,
+                    Attributes = JsonSerializer.Serialize(new Dictionary<string, string>
+                    {
+                        { "key1", "value2.1" },
+                        { "key2", "value2.2" }
+                    })
                 },
                 new Product
                 {
@@ -115,7 +128,8 @@
                     RegisteredAt = DateTime.Parse("2023-6-30"),
                     Active = true,
                     Type = (int)ProducType.FinishedGoods,
-                    Order = 2
+                    Order = 2,
+                    Attributes = "attrValue3"
                 },
                 new Product
                 {
@@ -127,7 +141,8 @@
                     Stock = 25,
                     RegisteredAt = DateTime.Parse("2023-7-1"),
                     Active = true,
-                    Type = (int)ProducType.FinishedGoods
+                    Type = (int)ProducType.FinishedGoods,
+                    Attributes = "attrValue4"
                 },
                 new Product
                 {

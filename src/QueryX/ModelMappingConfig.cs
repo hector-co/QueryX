@@ -88,6 +88,7 @@ namespace QueryX
     {
         private readonly ModelMapping _mapping;
         private readonly string _propertyName;
+        private string _lastMappedName = "";
 
         internal PropertyMappingConfig(ModelMapping mapping, string propertyName)
         {
@@ -98,18 +99,20 @@ namespace QueryX
         public PropertyMappingConfig<TModel, TValue> MapFrom(string source)
         {
             _mapping.AddPropertyMapping(_propertyName, source);
+            _lastMappedName = source;
             return this;
         }
 
         public PropertyMappingConfig<TModel, TValue> MapFrom(string source, Func<string, TValue> convert)
         {
             _mapping.AddPropertyMapping(_propertyName, source, convert);
+            _lastMappedName = source;
             return this;
         }
 
         public PropertyMappingConfig<TModel, TValue> CustomFilter(Func<IQueryable<TModel>, TValue[], FilterOperator, IQueryable<TModel>> filter)
         {
-            _mapping.AddCustomFilter(_propertyName, filter);
+            _mapping.AddCustomFilter(string.IsNullOrEmpty(_lastMappedName) ? _propertyName : _lastMappedName, filter);
             return this;
         }
 

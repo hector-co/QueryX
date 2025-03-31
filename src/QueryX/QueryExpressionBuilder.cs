@@ -97,10 +97,10 @@ namespace QueryX
                 return;
             }
 
-            if (modelMapping.HasCustomFilter(resolvedName))
+            if (modelMapping.TryGetCustomFilterKey(resolvedName, node.Property, out var custmFilterKey))
             {
-                if (!_customFilters.ContainsKey(resolvedName))
-                    _customFilters.Add(resolvedName, (node.Values, node.Operator));
+                if (!_customFilters.ContainsKey(custmFilterKey))
+                    _customFilters.Add(custmFilterKey, (node.Values, node.Operator));
 
                 context.Stack.Push(null);
                 return;

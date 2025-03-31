@@ -61,19 +61,33 @@ namespace QueryX
             _ignoredSort.Add(propertyName);
         }
 
-        internal void AddCustomFilter<TModel, TValue>(string propertyName, Func<IQueryable<TModel>, TValue[], FilterOperator, IQueryable<TModel>> customFilterDeleagate)
+        internal void AddCustomFilter<TModel, TValue>(string propertyName,
+            Func<IQueryable<TModel>, TValue[], FilterOperator, IQueryable<TModel>> customFilterDeleagate, string mapFrom = "")
         {
+            var key = string.IsNullOrEmpty(mapFrom) ? propertyName : mapFrom;
             var customFilter = new CustomFilter<TModel, TValue>(customFilterDeleagate);
 
-            if (_customFilters.ContainsKey(propertyName))
-                _customFilters[propertyName] = customFilter;
+            if (_customFilters.ContainsKey(key))
+                _customFilters[key] = customFilter;
             else
-                _customFilters.Add(propertyName, customFilter);
+                _customFilters.Add(key, customFilter);
         }
 
-        internal bool HasCustomFilter(string propertyName)
+        internal bool TryGetCustomFilterKey(string propertyName, string mapFrom, out string customFilterKey)
         {
-            return _customFilters.ContainsKey(propertyName);
+            if ((string.IsNullOrEmpty(mapFrom) || propertyName.ToLower() == mapFrom.ToLower()) && _customFilters.ContainsKey(propertyName))
+            {
+                customFilterKey = propertyName;
+                return true;
+            }
+            else if (_customFilters.ContainsKey(mapFrom))
+            {
+                customFilterKey = mapFrom;
+                return true;
+            }
+
+            customFilterKey = "";
+            return false;
         }
 
         internal IQueryable<TModel> ApplyCustomFilters<TModel>(IQueryable<TModel> source, string propertyName, string?[] values, FilterOperator @operator)
