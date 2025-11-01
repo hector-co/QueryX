@@ -11,8 +11,10 @@ namespace QueryX
 {
     internal class QueryExpressionBuilder<TModel> : INodeVisitor
     {
-        internal static MethodInfo AnyMethod => typeof(Enumerable).GetMethods().First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
-        internal static MethodInfo AllMethod => typeof(Enumerable).GetMethods().First(m => m.Name == "All" && m.GetParameters().Count() == 2);
+        internal static MethodInfo AnyMethod => typeof(Enumerable).GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .First(m => m.Name == "Any" && m.IsGenericMethod && m.GetParameters().Length == 2);
+        internal static MethodInfo AllMethod => typeof(Enumerable).GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .First(m => m.Name == "All" && m.IsGenericMethod && m.GetParameters().Length == 2);
 
         private readonly string? _filter;
         private readonly Stack<Context> _contexts;
@@ -36,7 +38,7 @@ namespace QueryX
 
         public void Visit(OrElseNode node)
         {
-            var context = _contexts.First();
+            var context = _contexts.Peek();
 
             node.Left.Accept(this);
             node.Right.Accept(this);
@@ -57,7 +59,7 @@ namespace QueryX
 
         public void Visit(AndAlsoNode node)
         {
-            var context = _contexts.First();
+            var context = _contexts.Peek();
 
             node.Left.Accept(this);
             node.Right.Accept(this);
@@ -78,7 +80,7 @@ namespace QueryX
 
         public void Visit(FilterNode node)
         {
-            var context = _contexts.First();
+            var context = _contexts.Peek();
 
             if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var resolvedName))
             {
@@ -114,7 +116,7 @@ namespace QueryX
 
         public void Visit(CollectionFilterNode node)
         {
-            var context = _contexts.First();
+            var context = _contexts.Peek();
 
             if (!node.Property.TryResolvePropertyName(context.ParentType, _mappingConfig, out var resolvedName))
             {
@@ -131,27 +133,55 @@ namespace QueryX
                 return;
             }
 
-            var propertyInfo = resolvedName.GetPropertyInfo<TModel>()
+            var propertyInfo = resolvedName.GetPropertyInfo(context.ParentType)
                 ?? throw new InvalidFilterPropertyException(resolvedName);
 
-            if (propertyInfo.PropertyType.GetGenericArguments().Count() == 0)
+            // Determine element type for collections/arrays
+            Type? genericTargetType = null;
+            var propType = propertyInfo.PropertyType;
+
+            if (propType.IsArray)
+                genericTargetType = propType.GetElementType();
+            else if (propType.IsGenericType && propType.GetGenericArguments().Any())
+            {
+                // Try direct generic (e.g., IEnumerable<T>, List<T>)
+                var genDef = propType.GetGenericTypeDefinition();
+                if (genDef == typeof(IEnumerable<>) || propType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+                    genericTargetType = propType.GetGenericArguments()[0];
+            }
+
+            if (genericTargetType == null)
+            {
+                // Fallback: look for IEnumerable<T> in interfaces
+                var enumInterface = propType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+                if (enumInterface != null)
+                    genericTargetType = enumInterface.GetGenericArguments()[0];
+            }
+
+            if (genericTargetType == null)
                 throw new InvalidFilterPropertyException(resolvedName);
 
-            var genericTargetType = propertyInfo.PropertyType.GetGenericArguments()[0];
-
             var modelParameter = Expression.Parameter(genericTargetType, "s");
-            var subContext = new Context(genericTargetType, context.PropertyName, modelParameter);
+            var subContext = new Context(genericTargetType, context.GetConcatenatedProperty(resolvedName), modelParameter);
             _contexts.Push(subContext);
 
             Visit(node.Filter as dynamic);
 
-            var lastExp = subContext.Stack.Last();
+            if (subContext.Stack.Count == 0)
+            {
+                context.Stack.Push(null);
+                _contexts.Pop();
+                return;
+            }
+
+            var lastExp = subContext.Stack.Pop();
             if (lastExp == null)
             {
                 context.Stack.Push(null);
                 _contexts.Pop();
                 return;
             }
+
             var exp = Expression.Lambda(lastExp, modelParameter);
 
             var method = node.ApplyAll ? AllMethod : AnyMethod;
@@ -170,7 +200,7 @@ namespace QueryX
 
         public Expression<Func<TModel, bool>>? GetFilterExpression()
         {
-            var context = _contexts.First();
+            var context = _contexts.Peek();
 
             if (context.Stack.Count == 0)
                 return null;
@@ -187,7 +217,7 @@ namespace QueryX
             if (_customFilters.Count == 0)
                 return source;
 
-            var mapping = _mappingConfig?.GetMapping(typeof(TModel)) ?? QueryMappingConfig.Global.GetMapping(typeof(TModel));
+            var mapping = _mappingConfig.GetMapping(typeof(TModel));
 
             foreach (var propertyName in _customFilters.Keys)
             {

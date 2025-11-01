@@ -7,19 +7,11 @@ namespace QueryX.Utils
 {
     internal static class PropertyHelper
     {
-        internal static ConcurrentDictionary<Type, PropertyInfo[]> Properties { get; set; }
-            = new ConcurrentDictionary<Type, PropertyInfo[]>();
+        internal static ConcurrentDictionary<Type, PropertyInfo[]> Properties { get; } = new ConcurrentDictionary<Type, PropertyInfo[]>();
 
         internal static PropertyInfo[] GetCachedProperties(this Type type)
         {
-            if (Properties.ContainsKey(type))
-            {
-                if (Properties.TryGetValue(type, out var props))
-                    return props;
-            }
-            var properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            Properties.TryAdd(type, properties);
-            return properties;
+            return Properties.GetOrAdd(type, t => t.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
         }
 
         internal static PropertyInfo? GetPropertyInfo<T>(this string propertyName)
@@ -31,9 +23,10 @@ namespace QueryX.Utils
         {
             const char Separator = '.';
 
-            var resultPropertyPath = "";
+            var resultPropertyPath = string.Empty;
             var currentType = baseType;
-            foreach (var propertyName in propertyPath.Split(Separator))
+
+            foreach (var propertyName in propertyPath.Split(new[] { Separator }, StringSplitOptions.RemoveEmptyEntries))
             {
                 var mapping = mappingConfig.GetMapping(currentType);
                 var mappedName = mapping.GetPropertyMapping(propertyName).TargetProperty;
@@ -45,7 +38,7 @@ namespace QueryX.Utils
                     return false;
                 }
 
-                resultPropertyPath += $"{mappedName}{Separator}";
+                resultPropertyPath += mappedName + Separator;
                 currentType = propInfo.PropertyType;
             }
 
@@ -57,18 +50,20 @@ namespace QueryX.Utils
         {
             var currentType = type;
             PropertyInfo? currentProp = null;
-            foreach (var member in propertyName.Split('.'))
+
+            foreach (var member in propertyName.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 var props = GetCachedProperties(currentType);
 
                 currentProp = props.FirstOrDefault(t =>
-                    t.Name.Equals(member, StringComparison.InvariantCultureIgnoreCase));
+                    t.Name.Equals(member, StringComparison.OrdinalIgnoreCase));
 
                 if (currentProp == null)
                     return null;
 
                 currentType = currentProp.PropertyType;
             }
+
             return currentProp;
         }
     }

@@ -6,20 +6,22 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Collections;
+using System.Globalization;
 
 namespace QueryX.Utils
 {
     internal static class ExpressionHelper
     {
-        private static MethodInfo CastMethod => typeof(Enumerable).GetMethod("Cast");
-        private static MethodInfo ToListMethod => typeof(Enumerable).GetMethod("ToList");
-        private static MethodInfo ToLower => typeof(string).GetMethod("ToLower", Type.EmptyTypes);
+        private static MethodInfo ToLowerInvariant => typeof(string).GetMethod("ToLowerInvariant", Type.EmptyTypes);
 
         internal static Expression? GetPropertyExpression(this string propertyName, Expression modelParameter)
         {
+            if (string.IsNullOrWhiteSpace(propertyName))
+                return null;
+
             var property = modelParameter;
 
-            foreach (var member in propertyName.Split('.'))
+            foreach (var member in propertyName.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 var existentProp = member.GetPropertyInfo(property.Type);
                 if (existentProp == null)
@@ -33,15 +35,19 @@ namespace QueryX.Utils
 
         internal static (Expression property, Expression values) GetPropertyAndConstant<TValue>(this Expression property, IEnumerable<TValue> value, bool isCaseInsensitive, bool allValues = false)
         {
-            var propInfo = (PropertyInfo)((MemberExpression)property).Member;
+            var member = UnwrapMemberExpression(property) ?? throw new ArgumentException("Property expression must be a member access", nameof(property));
+            var propInfo = (PropertyInfo)member.Member;
 
-            var prop = isCaseInsensitive
-                ? Expression.Call(property, ToLower)
+            // Apply case-insensitive string comparison only for string properties
+            var prop = (isCaseInsensitive && propInfo.PropertyType == typeof(string))
+                ? Expression.Call(property, ToLowerInvariant)
                 : property;
 
+            // If property is enum and we are comparing single value, compare by underlying numeric type
             if (propInfo.PropertyType.IsEnum && !allValues)
             {
-                prop = Expression.Convert(prop, typeof(int));
+                var underlying = Enum.GetUnderlyingType(propInfo.PropertyType);
+                prop = Expression.Convert(prop, underlying);
             }
 
             if (allValues)
@@ -50,42 +56,69 @@ namespace QueryX.Utils
                 return (prop, value.First().GetValueExpression(propInfo.PropertyType, !isCaseInsensitive));
         }
 
+        private static MemberExpression? UnwrapMemberExpression(Expression expr)
+        {
+            if (expr is MemberExpression me)
+                return me;
+
+            if (expr is UnaryExpression ue && (ue.NodeType == ExpressionType.Convert || ue.NodeType == ExpressionType.ConvertChecked))
+                return ue.Operand as MemberExpression;
+
+            return null;
+        }
+
         private static Expression GetValueExpression<TValue>(this TValue value, Type targetType, bool isCaseSensitive)
         {
+            // Strings: respect case-sensitivity flag
             if (targetType == typeof(string))
             {
                 if (value == null)
-                    return Expression.Constant(null);
+                    return Expression.Constant(null, typeof(string));
 
                 return isCaseSensitive
-                    ? Expression.Constant(value)
-                    : Expression.Constant((value as string)?.ToLower());
+                    ? Expression.Constant(value as string)
+                    : Expression.Constant((value as string)?.ToLowerInvariant());
             }
 
-            Expression constantExp = Expression.Constant(value);
+            // For non-strings we assume the incoming value is already converted to the correct CLR type
+            if (value == null)
+                return Expression.Constant(null, targetType);
 
-            if (IsNullableType(targetType) && !IsNullableType(constantExp.Type))
-                constantExp = Expression.Convert(constantExp, targetType);
+            Expression constExp = Expression.Constant(value, value.GetType());
 
-            return constantExp;
+            if (IsNullableType(targetType) && constExp.Type != targetType)
+                constExp = Expression.Convert(constExp, targetType);
+            else if (constExp.Type != targetType && targetType.IsAssignableFrom(constExp.Type))
+                constExp = Expression.Convert(constExp, targetType);
+
+            return constExp;
         }
 
         private static Expression GetAllValueExpression<TValue>(this IEnumerable<TValue> values, Type targetType, bool isCaseSensitive)
         {
+            // Strings: create a typed List<string> and apply case conversion if needed
             if (targetType == typeof(string))
             {
                 if (values == null)
-                    return Expression.Constant(null);
+                    return Expression.Constant(null, typeof(List<string>));
 
-                return isCaseSensitive
-                    ? Expression.Constant(values.Cast<string>().ToList())
-                    : Expression.Constant(values.Select(v => v == null ? v as string : (v as string)?.ToLower()).Cast<string>().ToList());
+                var list = values.Cast<string>().Select(v => isCaseSensitive ? v : v?.ToLowerInvariant()).ToList();
+                return Expression.Constant(list, typeof(List<string>));
             }
 
-            var converted = (IEnumerable)CastMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { values.ToList() })!;
-            converted = (IEnumerable)ToListMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { converted })!;
+            // For other types: build a typed List<TTarget> using reflection
+            var items = (values == null) ? Enumerable.Empty<TValue>().ToList() : values.ToList();
 
-            return Expression.Constant(converted);
+            var listType = typeof(List<>).MakeGenericType(targetType);
+            var typedList = (IList)Activator.CreateInstance(listType)!;
+
+            foreach (var item in items)
+            {
+                // items are expected to already be converted to the property's CLR type
+                typedList.Add(item);
+            }
+
+            return Expression.Constant(typedList, listType);
         }
 
         // TODO improve
@@ -94,13 +127,34 @@ namespace QueryX.Utils
             if (value == null)
                 return null;
 
-            if (targetType.IsEnum)
+            var isNullable = IsNullableType(targetType);
+            var nonNullable = isNullable ? Nullable.GetUnderlyingType(targetType)! : targetType;
+
+            // Enums: allow parsing from string or numeric values; return the underlying numeric value
+            if (nonNullable.IsEnum)
             {
                 try
                 {
-                    var enumValue = Enum.Parse(targetType, (string)value, true);
+                    if (value is string s)
+                    {
+                        object enumObj;
+                        try
+                        {
+                            enumObj = Enum.Parse(nonNullable, s, true);
+                        }
+                        catch
+                        {
+                            throw new QueryFormatException($"'{value}' is not valid for type {targetType.Name}");
+                        }
 
-                    return (int)enumValue;
+                        var underlyingType = Enum.GetUnderlyingType(nonNullable);
+                        return Convert.ChangeType(enumObj, underlyingType, CultureInfo.InvariantCulture);
+                    }
+                    else
+                    {
+                        var underlyingType = Enum.GetUnderlyingType(nonNullable);
+                        return Convert.ChangeType(value, underlyingType, CultureInfo.InvariantCulture);
+                    }
                 }
                 catch
                 {
@@ -108,10 +162,31 @@ namespace QueryX.Utils
                 }
             }
 
-            if (!TypeDescriptor.GetConverter(targetType).IsValid(value))
-                throw new QueryFormatException($"'{value}' is not valid for type {targetType.Name}");
+            try
+            {
+                // If the value is already assignable to the target, return it
+                if (nonNullable.IsAssignableFrom(value.GetType()))
+                    return value;
 
-            return TypeDescriptor.GetConverter(targetType).ConvertFrom(value)!;
+                // Guid from string
+                if (nonNullable == typeof(Guid) && value is string gs)
+                    return Guid.Parse(gs);
+
+                // Try type converter from string first
+                if (value is string str)
+                {
+                    var converter = TypeDescriptor.GetConverter(nonNullable);
+                    if (converter != null && converter.CanConvertFrom(typeof(string)))
+                        return converter.ConvertFromInvariantString(str);
+                }
+
+                // Fallback to ChangeType
+                return Convert.ChangeType(value, nonNullable, CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                throw new QueryFormatException($"'{value}' is not valid for type {targetType.Name}");
+            }
         }
 
         private static bool IsNullableType(Type type)
