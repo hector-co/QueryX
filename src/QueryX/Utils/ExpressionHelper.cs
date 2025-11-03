@@ -50,7 +50,7 @@ namespace QueryX.Utils
                 prop = Expression.Convert(prop, underlying);
             }
 
-            if (allValues)
+            if (allValues || propInfo.PropertyType.IsArray)
                 return (prop, value.GetAllValueExpression(propInfo.PropertyType, !isCaseInsensitive));
             else
                 return (prop, value.First().GetValueExpression(propInfo.PropertyType, !isCaseInsensitive));
@@ -109,7 +109,7 @@ namespace QueryX.Utils
             // For other types: build a typed List<TTarget> using reflection
             var items = (values == null) ? Enumerable.Empty<TValue>().ToList() : values.ToList();
 
-            var listType = typeof(List<>).MakeGenericType(targetType);
+            var listType = targetType.IsArray ? typeof(List<>).MakeGenericType(targetType.GetElementType()) : typeof(List<>).MakeGenericType(targetType);
             var typedList = (IList)Activator.CreateInstance(listType)!;
 
             foreach (var item in items)
@@ -118,7 +118,10 @@ namespace QueryX.Utils
                 typedList.Add(item);
             }
 
-            return Expression.Constant(typedList, listType);
+            if (targetType.IsArray)
+                return Expression.Constant((typedList as dynamic).ToArray(), targetType);
+            else
+                return Expression.Constant(typedList, listType);
         }
 
         // TODO improve

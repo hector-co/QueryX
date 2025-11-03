@@ -34,7 +34,9 @@ namespace QueryX
 
             var values = propMapping.Convert != null
                 ? filterNode.Values.Select(v => propMapping.Convert(v))
-                : filterNode.Values.Select(v => v.ConvertValue(propInfo.PropertyType));
+                : propInfo.PropertyType.IsArray
+                    ? filterNode.Values.Select(v => v.ConvertValue(propInfo.PropertyType.GetElementType()))
+                    : filterNode.Values.Select(v => v.ConvertValue(propInfo.PropertyType));
 
             return filterNode.Operator switch
             {
